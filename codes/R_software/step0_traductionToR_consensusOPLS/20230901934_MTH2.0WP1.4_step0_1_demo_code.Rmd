@@ -1,0 +1,249 @@
+---
+title: 'MetaboHub project. Step0 Conversion matlab code into R code. 
+Exploration functions and code of the Consensus OPLS-DA method.'
+author: "Celine Bougel"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    code_folding: show
+    df_print: kable
+    highlight: pygments
+    number_sections: yes
+    self_contained: yes
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  editor_options:
+    chunk_output_type: console
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+#install.packages("knitr")
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(12)
+```
+
+Before any action, it is necessary to verify that the needed packages are 
+installed (the code chunks are not shown) and to define define the localisation 
+of the codes and the files.
+
+```{r packages_installation, class.source='fold-hide', warning=FALSE, include=FALSE, message=FALSE}
+#install.packages(c("R.matlab", "DiagrammeR"))
+#update.packages(ask = FALSE)
+```
+
+```{r packages_load, class.source='fold-hide', warning=FALSE, include=FALSE, message=FALSE}
+library(R.matlab) # to read MATLAB data
+library(DiagrammeR) # to make mermaid diagrams
+```
+
+```{r access}
+path_data <- "../../../data/data_brut" 
+path_results <- "../../../results" 
+path_functions <- "../functions"
+```
+
+```{r theme_ggplot2, class.source='fold-hide'}
+# theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
+#                                    axis.title = element_text(size=16),
+#                                    axis.text = element_text(size=14),
+#                                    plot.title = element_text(size = 16),
+#                                    legend.title = element_text(size = 14))
+```
+
+
+# Content of this file: Traduction of matlab code
+
+In this file, the aim is to translate the `MATLAB` functions used in Julien 
+Boccard's OPLS-DA consensus method (DOI: `10.1016/j.aca.2013.01.022`).
+
+In this code example, the aim is to perform a discriminant analysis of NCI-60
+cancer cell lines from two origins: colon versus ovary.
+The data is divided into 3 blocks, evaluated on the same observations:
+
+- Metabolomics: 14x 150 variables
+- Microarray: 14x 200 variables
+- Proteomics: 14x 100 variables
+
+
+
+
+
+# Mind map of functions used
+
+```{r mermaid_mindMap, echo=FALSE, class.source='fold-hide'}
+# mindmap
+#     root((Consensus OPLS-DA <br/> method))
+#         (matrix2saisir)
+#             addcode
+#         {{RVConsensusOPLS}}
+#             1 koplsScale
+#             2 koplsKernel
+#             3 koplsModel
+#             4 RV_modified
+#             5 ConsensusOPLSCV
+#             (6 DQ2)
+#         {{RVConsensusOPLSPerm}}
+#             1 RVConsensusOPLS
+#             2 RV_modified
+#         {{ConsensusOPLSCV}}
+#             koplsDummy/ koplsReDummy
+#             koplsCrossValSet
+#             koplsScale/ koplsScaleApply
+#             koplsCenterKT*
+#             koplsModel
+#             koplsPredict
+#             koplsRescale
+#             koplsMaxClassify/ koplsBasicClassify
+#             koplsSensSpec
+#             koplsConfusionMatrix
+# ", height = '100%', width = '100%')
+```
+
+
+
+
+
+# Data preprocessing
+
+## Function `matrix2saisir`
+
+```{r matrix2saisir}
+source(file = file.path(path_functions, "Step0_1_matrix2saisir.R"))
+```
+
+## `Demo_data` file
+
+```{r import_demo_data.mat}
+demo_data <- R.matlab::readMat(con = file.path(path_data,
+                                               "demo_data.mat"))
+```
+
+This file corresponds to a `r class(demo_data)` of size `r length(demo_data)`.
+It contains the data of `r ls(demo_data)`.
+
+### Rename Block names
+
+```{r names_data}
+demo_data$BlockNames <- c("MetaboData", "MicroData", "ProteoData")
+```
+
+### Unit variance scaling
+
+To use the OPLS-DA consensus method, it is necessary to normalize the data.
+
+```{r created_collection_data}
+# Extract the 3 blocks of data
+collection <- lapply(X = 1:length(demo_data$BlockNames), 
+                     FUN = function(X){
+                       name_data <- demo_data$BlockNames[X]
+                       scaled_data <- as.data.frame(scale(demo_data[[name_data]],
+                                                          center = TRUE,
+                                                          scale = TRUE))
+                       matrix <- matrix2saisir(as.matrix(scaled_data))
+                       return(matrix)
+                     })
+
+# Rename blocks with BlokNames
+names(collection) <- demo_data$BlockNames
+ls(collection)
+```
+
+```{r verif_size}
+size <- lapply(X = 1:length(collection),
+               FUN = function(X){
+                 dim(collection[[X]])[1]
+               })
+size <- size[[1]]
+```
+
+```{r not_understand}
+# je ne sais pas à quoi correspond ça :
+# collection(1).i=MetaboVarNames;
+# collection(2).i=MicroVarNames;
+# collection(3).i=ProteoVarNames;
+# ni quand c'est utilisé..
+```
+
+
+
+
+
+# Consensus OPLS model
+
+Computation of a consensusOPLS model with leave-one-out cross-validation.
+
+## Define parameters
+
+To start the method, we need to define some parameters:
+
+```{r init_parameters}
+# Number of predictive component(s)
+LVsPred <- 1
+
+# Maximum number of orthogonal components
+LVsOrtho <- 1
+
+# Number of cross-validation folds
+CVfolds <- size
+```
+
+
+## Main function
+
+```{r}
+# traduction fonction RVConsensusOPLS
+```
+
+
+
+
+
+# Plot the results
+
+```{r}
+
+```
+
+
+
+
+
+# Permutations
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Reproducibility
+
+```{r reproducibility}
+sessionInfo()
+```
