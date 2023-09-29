@@ -4,7 +4,7 @@ Overview of project stages:
 graph TD
 classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
 
-0[Functions of <br> ConsensusOPLS-DA method]
+0[Functions of ConsensusOPLS-DA method]
     subgraph Number1[Step 0 : Translate MATLAB function into R]
     0 --> 1
     1(Step0_1_matrix2saisir) 
@@ -41,8 +41,8 @@ ConsensusOPLSCV function only.
 graph TB
 classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
 
-0[Functions of <br> ConsensusOPLS-DA method]
-    subgraph Number1[Step 0 : Translate MATLAB function into R <br> from the ConsensusOPLSCV]
+0[Functions of ConsensusOPLS-DA method]
+    subgraph Number1[Step 0 : from the ConsensusOPLSCV]
     0 --> 1
     1(ConsensusOPLSCV) 
 	
@@ -51,26 +51,31 @@ classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
     1 --> 3
     3(koplsReDummy)
     1 --> 4
-    4(koplsCrossValSet)
+    4(koplsScaleApply)
     1 --> 5
-    5(koplsScale)
+    5(koplsCenterKT*)
     1 --> 6
-    6(koplsScaleApply)
+    6(koplsPredict)
     1 --> 7
-    7(koplsCenterKT*)
-    1 ---|use koplsModel| 1
+    7(koplsRescale)
     1 --> 8
-    8(koplsPredict)
+    8(koplsMaxClassify)
     1 --> 9
-    9(koplsRescale)
+    9(koplsBasicClassify)
     1 --> 10
-    10(koplsMaxClassify)
+    10(koplsSensSpec)
     1 --> 11
-    11(koplsBasicClassify)
+    11(koplsConfusionMatrix)
     1 --> 12
-    12(koplsSensSpec)
-    1 --> 13
-    13(koplsConfusionMatrix)
+    12(koplsCrossValSet)
+    6 --> 13
+    13(koplsRescale)
+
+    1 ---|use koplsModel <br> koplsScale | 1
+    12 --> 3
+    5 ---|KTeTe, KTeTr, KTrTr|5
+    6 --> 5
+
 
     end
     class Number1 Title;
