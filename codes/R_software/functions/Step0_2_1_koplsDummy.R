@@ -1,16 +1,15 @@
-
 #' KoplsDummy
-#' Transform a vector into a dummy (binary) vector
+#' Transform a vector into a dummy (binary) matrix.
 #'
 #' @param class: integer vector with classes to define.
 #' @param numClasses: pre-defined the number of classes in the output. By 
 #' default is equal to the length of `class` vector.
 #'
 #' @return
-#' matrix: A matrix with rows corresponding to observations and columns 
+#' `matrix`: A matrix with rows corresponding to observations and columns 
 #' to classes. Each element in matrix is either one (observation belongs to 
 #' class) or zero (observation does not belong to class).
-#' labels_sorted: The class labels that are found in class in sorted order.
+#' `labels_sorted`: The class labels that are found in class in sorted order.
 #'
 #' @examples
 #' class <- c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3)
