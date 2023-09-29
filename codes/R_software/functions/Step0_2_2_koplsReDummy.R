@@ -1,10 +1,10 @@
 #' koplsReDummy
-#' Convert a dummy matrix into an integer vector
+#' Reconstructs a (integer) class vector from a binary (dummy) matrix.
 #'
-#' @param Y: a dummy matrix 
+#' @param Y: a dummy matrix.
 #'
-#' @return classVect
-#' A (integer) class vector from a binary matrix
+#' @return 
+#' `classVect`: The reconstructed integer class vector.
 #'
 #' @examples
 #' matrix_test <- c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3)
@@ -12,15 +12,11 @@
 #' Y$matrix
 
 koplsReDummy <- function(Y){
-  # Extract size of matrix
-  n <- nrow(Y)
-  m <- ncol(Y)
-  
   # Create an empty vector
-  classVect <- base::rep(x = NA, times = n)
+  classVect <- base::rep(x = NA, times = nrow(Y))
   
   # Rebuild the vector
-  for(i in 1:m){
+  for(i in 1:ncol(Y)){
     classVect[Y[, i] == 1] <- i
   }
   
