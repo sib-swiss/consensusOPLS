@@ -14,6 +14,9 @@
 #' @examples
 #' class <- c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3)
 #' numClasses <- 2
+#' Y <- koplsDummy(class = class, numClasses = numClasses)
+#' Y$matrix
+#' Y$labels_sorted
 
 koplsDummy <- function(class, numClasses = NA){
   # Define parameters
@@ -22,7 +25,7 @@ koplsDummy <- function(class, numClasses = NA){
   samples_number <- base::length(class)
   
   # Variable format control
-  if(is.na(class)){stop("class must be contain an integer vector.")}
+  if(is.null(class)){stop("class must be contain an integer vector.")}
   if(is.na(numClasses)){
     sample_labels <- base::length(labels)
     ncol <- sample_labels
@@ -42,12 +45,12 @@ koplsDummy <- function(class, numClasses = NA){
     if(default){
       dummy[class %in% labels_sorted[i], i] <- 1
     } else{
-      labels_cut <- cbind(lower <- as.numeric(base::sub("\\((.+),.*", "\\1", 
-                                                        levels(sample_labels)[i],
-                                                        fixed = FALSE)),
-                          upper <- as.numeric(base::sub("[^,]*,([^]]*)\\]", "\\1", 
-                                                        levels(sample_labels)[i],
-                                                        fixed = FALSE)))
+      labels_cut <- cbind("lower" = as.numeric(base::sub("\\((.+),.*", "\\1", 
+                                                         levels(sample_labels)[i],
+                                                         fixed = FALSE)),
+                          "upper" = as.numeric(base::sub("[^,]*,([^]]*)\\]", "\\1", 
+                                                         levels(sample_labels)[i],
+                                                         fixed = FALSE)))
       dummy[(class > labels_cut[1, "lower"] & 
                class <= labels_cut[1, "upper"]), i] <- 1
     }
