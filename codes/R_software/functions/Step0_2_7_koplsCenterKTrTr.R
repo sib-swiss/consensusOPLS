@@ -8,13 +8,20 @@
 #' `K`: The centered kernel matrix.
 #'
 #' @examples
-#' # TO DO
+#' K <- matrix(1:25, nrow = 5, ncol = 5)
+#' test <- koplsCenterKTrTr(K = K)
+#' test
 #' 
 koplsCenterKTrTr <- function(K){
+  # Identity matrices
   I <- base::diag(nrow(K))
   I_n <- base::rep(x = 1, times = nrow(K))
-  K = (I- (1/nrow(K)) %.*% I_n %*% t(I_n)) %*% K %*% 
-    (I-(1/nrow(K)) %.*% I_n %*% t(I_n));
+  
+  # Calculate (1/n) * I_n * I_n'
+  scaling_matrix <- (1/nrow(K)) * (I_n %*% t(I_n))
+  
+  # Update K
+  K = (I- scaling_matrix) %*% K %*% (I - scaling_matrix);
   
   # Return the centered kernel matrix
   return(K)
