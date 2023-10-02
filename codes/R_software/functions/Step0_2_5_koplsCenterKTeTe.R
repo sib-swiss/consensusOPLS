@@ -12,7 +12,10 @@
 #' `KteTe` the centered test kernel matrix
 #'
 #' @examples
-#' # TO DO
+#' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
+#' KteTe <- matrix(1:25, nrow = 5, ncol = 5)
+#' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
+#' test <- koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
 
 koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
   # Variable format control
@@ -25,13 +28,13 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
   I_nTrain <- base::rep(x = 1, times = ncol(KteTr))
   nTrain <- ncol(KteTr)
   
-  I <- base::diag(nrow(KteTr))
-  I_n <- base::rep(x = 1, times = nrow(KteTr))
-  n <- nrow(KteTr)
+  I <- base::diag(ncol(KteTe))
+  I_n <- base::rep(x = 1, times = ncol(KteTe))
+  n <- ncol(KteTe)
   
   # Center the kernel
-  D_te = (1/nTrain) %.*% I_n %*% t(I_nTrain)
-  KteTe = KteTe - D_te%*%t(KteTr) - KteTr%*%t(D_te) + D_te%*%KtrTr%*%t(D_te)
+  D_te <- (1/nTrain) %*% I_n %*% t(I_nTrain)
+  KteTe <- KteTe - D_te%*%t(KteTr) - KteTr%*%t(D_te) + D_te%*%KtrTr %*%t(D_te)
   
   # Return the centered test kernel matrix
   return(KteTe)
