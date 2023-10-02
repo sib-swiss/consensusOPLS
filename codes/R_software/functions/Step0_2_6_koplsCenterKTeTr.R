@@ -11,7 +11,10 @@
 #' `KteTr`: The centered kernel matrix.
 #'
 #' @examples
-#' # TO DO
+#' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
+#' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
+#' test <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
+#' test
 
 koplsCenterKTeTr <- function(KteTr, KtrTr){
   # Variable format control
@@ -19,16 +22,20 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
   if(!is.matrix(KtrTr)){stop("KtrTr is not a matrix.")}
   
   # Define parameters
-  Itrain <-  base::diag(nrow(KtrTr))
-  I_nTrain <- base::rep(x = 1, times = nrow(KtrTr))
-  nTrain <- nrow(KtrTr)
+  Itrain <-  base::diag(ncol(KtrTr))
+  I_nTrain <- base::rep(x = 1, times = ncol(KtrTr))
+  nTrain <- ncol(KtrTr)
   
-  I <- base::diag(nrow(KteTr))
-  I_n <- base::rep(x = 1, times = nrow(KteTr))
-  n <- nrow(KteTr)
+  I <- base::diag(ncol(KteTr))
+  I_n <- base::rep(x = 1, times = ncol(KteTr))
+  n <- ncol(KteTr)
   
-  KteTr = (KteTr-(1/nTrain)%*% I_n %*% t(I_nTrain) %*% KtrTr) %*% 
-    (Itrain-(1/nTrain) %.*% I_nTrain %*% t(I_nTrain))
+  # Calculate (1/nTrain) * I_n * I_nTrain'
+  scaling_matrix <- (1/nTrain) * (I_n %*% t(I_nTrain))
+  
+  # Update KTeTr
+  KteTr = (KteTr - scaling_matrix %*% KtrTr) %*% 
+    (Itrain-(1/nTrain) * I_nTrain %*% t(I_nTrain))
   
   # Return the centered kernel matrix.
   return(KteTr)
