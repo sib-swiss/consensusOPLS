@@ -24,14 +24,21 @@
 #' `testIndex` = Indices of test set observations.
 #'
 #' @examples
-#' TO DO
+#' Y <- matrix(1:100, nrow = 10)
+#' K <- matrix(1:100, nrow = 10)  
+#' type <- "nfold"  
+#' modelFrac <- 0.7  
+#' nfold <- 5  
+#' nfoldRound <- 1 
+#' test <- koplsCrossValSet(K = K, Y = Y, modelFrac = modelFrac,
+#'                          type = type, nfold = nfold, nfoldRound = nfoldRound) 
 
 koplsCrossValSet <- function(K, Y, modelFrac, type, 
                              nfold = NA, nfoldRound = NA){
   # ----- Variable format control
   if(!is.matrix(K)){stop("K is not a matrix.")}
   if(!is.matrix(Y)){stop("Y is not a matrix.")}
-  #if(modelFrac){}
+  if(!is.numeric(modelFrac)){stop("modelFrac is not numeric.")}
   if(!is.character(type)){stop("type is not a character.")
   } else{
     if(!(type %in% c("nfold", "mccv", "mccvb"))){
@@ -59,75 +66,70 @@ koplsCrossValSet <- function(K, Y, modelFrac, type,
   if(type == "mccvb"){
     # check if Y is dummy or labels
     temp <- unique(Y)
-    if(temp %in% c(0, 1)){
+    if(all(temp == c(0, 1))){
       classVect <- koplsReDummy(Y)
     } else{
       classVect <- Y
     }
     
-    # Stock class labels
-    minset <- unique(ClassVect)
+    # Find all class labels
+    minset <- unique(classVect)
+    
+    # For each class
     for(i in 1:length(minset)){
       # Find samples of current class
-      ind <- (classVect == minset[i])
+      ind <- which(classVect == minset[i])
       
-      # Randomization
-      ##### ----- code que je ne sais pas traduire
-      # %randomize
-      # ran=rand(length(ind),1); %randomize
-      # [tmp,rand_ind]=sort(ran); %sort randomize number to get randomized index string
-      # ind=ind(rand_ind); %apply randomization on the real index vector
-      # %-end randomize
-      ##### ----- fin
-      rand <- sample(ind)
+      # Randomize
+      ran <- runif(length(ind))
+      rand_ind <- order(ran)
+      ind <- ind[rand_ind]
       
       # Adjusted model with randomized vector
-      modelLim <- round(length(ind)*modelFrac)
-      modInd <- ind[1:modelLim]
-      predInd <- ind[(modelLim+1):length(classVect)]
+      modelLim <- ceiling(length(ind) * modelFrac)
+      modInd <- c(modInd, ind[1:modelLim])
+      predInd <- c(predInd, ind[(modelLim + 1):length(ind)])
     }
   }
   
   # Define Monte-Carlos Cross Validation
   if(type == "mccv"){
-    # Randomization
-    ##### ----- code that I do
-    # %randomize
-    # ran=rand(length(K(:,1)),1); %randomize
-    # [tmp,rand_ind]=sort(ran); %sort randomize number to get randomized index string
-    # ind=[1:length(ran)]';
-    # ind=ind(rand_ind); %apply randomization on the real index vector
-    # %-end randomize
-    ##### ----- fin
-    rand <- sample(1:nrow(K))
+    # Randomize
+    ran <- runif(length(K[, 1]))
+    rand_ind <- order(ran)
+    ind <- 1:length(ran)
+    ind <- ind[rand_ind]
     
     # Adjusted model with randomized vector
-    modelLim <- round(length(ind)*modelFrac)
+    modelLim <- ceiling(length(ind) * modelFrac)
     modInd <- ind[1:modelLim]
-    predInd <- ind[(modelLim+1):nrow(K)]
+    predInd <- ind[(modelLim + 1):length(ind)]
   }
   
   # Define N-fold Cross Validation
   if(type == "nfold"){
-    predInd <- nfoldRound:nfold:nrow(Y)
-    modInd <- setdiff(1:nrow(Y), predInd)
+    predInd <- base::seq(from = nfoldRound, to = nfold, by = nfold)
+    modInd <- setdiff(1:length(Y[, 1]), predInd)
   }
   
   # Apply cross validation
   if(nrow(Y) == ncol(Y)){
-    cvSet.KTrTr <- K(modInd,modInd)
-    cvSet.KTeTr <- K(predInd,modInd)
-    cvSet.KTeTe <- K(predInd,predInd)
+    KTrTr <- K[modInd, modInd]
+    KTeTr <- K[predInd, modInd]
+    KTeTe <- K[predInd, predInd]
   } else{
-    cvSet.KTrTr <- NA
-    cvSet.KTeTr <- NA
-    cvSet.KTeTe <- NA
+    KTrTr <- NA
+    KTeTr <- NA
+    KTeTe <- NA
   }
   
   # Return the final CV Set
   return(cvSet = list("type" = type,
                       "nfold" = nfold,
                       "nfoldRound" = nfoldRound,
+                      "KTrTr" = KTrTr,
+                      "KTeTr" = KTeTr,
+                      "KTeTe" = KTeTe,
                       "yTraining" = Y[modInd, ],
                       "yTest" = Y[predInd, ],
                       "trainingIndex" = modInd,
