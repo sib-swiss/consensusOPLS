@@ -13,6 +13,9 @@
 #' test
 #' 
 koplsCenterKTrTr <- function(K){
+  # Variable format control
+  if(!is.matrix(K)){stop("K is not a matrix.")}
+  
   # Identity matrices
   I <- base::diag(nrow(K))
   I_n <- base::rep(x = 1, times = nrow(K))
