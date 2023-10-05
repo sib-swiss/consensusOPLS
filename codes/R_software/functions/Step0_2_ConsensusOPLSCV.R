@@ -111,6 +111,7 @@ ConsensusOPLSCV <- function(K, Y,
   #11. koplsMaxClassify
   #12. koplsBasicClassify
   #13. koplsConfusionMatrix
+  #14. koplsSensSpec
   
   # ----- Default values control
   if(cvType == "mccvb" & modelType != "da"){
@@ -280,8 +281,8 @@ ConsensusOPLSCV <- function(K, Y,
   #is this correct?
   modelMain$cv$Tcv <- Yhat %*% modelMain$koplsModel$Cp %*% modelMain$koplsModel$Bt[oax + 1]
   
-  modelMain.cv.Q2Yhat=[]; 
-  modelMain.cv.Q2YhatVars=cell(1,1);
+  modelMain$cv$Q2Yhat=c() 
+  modelMain$cv$Q2YhatVars=cell(1,1)
   
   
   for( ioax = 1:oax+1){
@@ -291,88 +292,81 @@ ConsensusOPLSCV <- function(K, Y,
     }
   }
   
+  modelMain$cv$cvTestIndex <- cvTestIndex
+  modelMain$cv$cvTrainingIndex <- cvTrainingIndex
   
-  # ---------------------------------------------------------
-  # ----- MATLAB code
-
-  #[scaleY]=koplsScale(Y,YcenterType,YscaleType);
-  #KtrTr=koplsKernel(X,X,kernelType,kernelParam);
-  #if (strcmp(preProcK,'mc'))
-  #    KtrTr=koplsCenterKTrTr(KtrTr);
-  #end
-  #modelMain.koplsModel=koplsModel(KtrTr,scaleY.X,A,oax,preProcK,preProcY);
-
-
-    modelMain.cv.cvTestIndex=cvTestIndex;
-    modelMain.cv.cvTrainingIndex=cvTrainingIndex;
-
-    if(strcmp(modelType,'da'))
-
-        %get sens/spec for each y-orth component... eval of model
-        for( i = 1:oax+1) %we would have no osc comps for dummy matrix...
-                if(strcmp(drRule,'max'))
-                    predClass=koplsMaxClassify(YhatDaSave{i,1});
-                elseif(strcmp(drRule,'fixed'))
-                    predClass=koplsBasicClassify(YhatDaSave{i,1},1/nclasses);
-                else
-                    warning(['Decision rule given: ',drRule,' is not valid/implemnted'])
-                end
-                %keyboard;
-                [da.sensAllOsc{i}, da.specAllOsc{i}, da.classvecAllOsc{i}, da.tot_sensAllOsc{i},da.meanSensAllOsc{i},da.meanSpecAllOsc{i}]=koplsSensSpec(classVect(cvTestIndex), predClass);
-        end
-        
-
-        
-        % get sens/spec for max number of oscs.... (hmm redundant).
-        
-        if(strcmp(drRule,'max'))
-            predClass=koplsMaxClassify(Yhat);
-        elseif(strcmp(drRule,'fixed'))
-            predClass=koplsBasicClassify(Yhat,1/nclasses);
-        else
-            warning(['Decision rule given: ',drRule,' is not valid/implemnted'])
-        end
-        
-
-           [da.sens, da.spec, da.classvec, da.tot_sens,da.meanSens,da.meanSpec]=koplsSensSpec(classVect(cvTestIndex), predClass);
-           [da.confusionMatrix]=koplsConfusionMatrix(classVect(cvTestIndex), predClass);
-           da.trueClass=classVect(cvTestIndex);
-            da.nclasses=nclasses;
-        modelMain.da=da;
-        modelMain.da.predClass=predClass;        
-        modelMain.da.decisionRule=drRule;
-                %CHANGE TO ORIGNAL ORDER IF NFOLD CV - for backward
-                %compatibility and comparison w/ simca-p etc
-        if(strcmp(cvType,'nfold'))
-            [tmp,cvOrder]=sort(cvTestIndex);
-            modelMain.da.predClass=modelMain.da.predClass(cvOrder);
-            modelMain.da.trueClass=modelMain.da.trueClass(cvOrder);           
-        end
-        
-    end
-
-
-    %CHANGE TO ORIGNAL ORDER IF NFOLD CV - for backward
-    %compatibility and comparison w/ simca-p etc
-    if(strcmp(cvType,'nfold'))
-        [tmp,cvOrder]=sort(cvTestIndex);
-
-           modelMain.cv.Yhat=modelMain.cv.Yhat(cvOrder,:);
-           modelMain.cv.Tcv=modelMain.cv.Tcv(cvOrder,:);
-
-    end
-
-if (verbose)
-    close(h);
-end
-
-modelMain.release=release;
-modelMain.args.oax=oax;
-%modelMain.args.oay=oay;
-modelMain.args.A=A;
-modelMain.class='koplscv';
-
-end
+  if (modelType == "da") {
+    # Get sens/spec for each y-orth component
+    for (i in 1:(oax + 1)) {
+      if (drRule == "max") {
+        predClass <- koplsMaxClassify(YhatDaSave[i,1])
+      } else if (drRule == "fixed") {
+        predClass <- koplsBasicClassify(YhatDaSave[i,1], 1/nclasses)
+      } else {
+        warning(paste0('Decision rule given: ', drRule, 
+                      ' is not valid/implemented.'))
+      }
+      
+      # Calculate sensitivity and specificity
+      daMetrics <- koplsSensSpec(classVect[cvTestIndex], predClass)
+      da$sensAllOsc[i] <- daMetrics$sens
+      da$specAllOsc[i] <- daMetrics$spec
+      da$classvecAllOsc[i] <- daMetrics$classvec
+      da$tot_sensAllOsc[i] <- daMetrics$tot_sens
+      da$meanSensAllOsc[i] <- daMetrics$meanSens
+      da$meanSpecAllOsc[i] <- daMetrics$meanSpec
+    }
+    
+    # Get sens/spec for max number of oscs
+    if (drRule == "max") {
+      predClass <- koplsMaxClassify(Yhat)
+    } else if (drRule == "fixed") {
+      predClass <- koplsBasicClassify(Yhat, 1/nclasses)
+    } else {
+      warning(paste0('Decision rule given: ', drRule, 
+                     ' is not valid/implemented.'))
+    }
+    
+    # Calculate sensitivity and specificity
+    daMetrics <- koplsSensSpec(classVect[cvTestIndex], predClass)
+    da$sens <- daMetrics$sens
+    da$spec <- daMetrics$spec
+    da$classvec <- daMetrics$classvec
+    da$tot_sens <- daMetrics$tot_sens
+    da$meanSens <- daMetrics$meanSens
+    da$meanSpec <- daMetrics$meanSpec
+    da$confusionMatrix <- koplsConfusionMatrix(classVect[cvTestIndex], predClass)
+    da$trueClass <- classVect[cvTestIndex]
+    da$nclasses <- nclasses
+    modelMain$da <- da
+    modelMain$da$predClass <- predClass
+    
+    # Change to original order if NFOLD CV
+    if (cvType == "nfold") {
+      cvOrder <- order(cvTestIndex)
+      modelMain$da$predClass <- modelMain$da$predClass[cvOrder]
+      modelMain$da$trueClass <- modelMain$da$trueClass[cvOrder]
+    }
+  }
+  
+  # Change to original order if NFOLD CV
+  if (cvType == "nfold") {
+    cvOrder <- order(cvTestIndex)
+    modelMain_cv_Yhat <- modelMain$cv$Yhat[cvOrder, ]
+    modelMain_cv_Tcv <- modelMain_cv_Tcv[cvOrder, ]
+  }
+  
+  if (verbose) {
+    close(h)
+  }
+  
+  return(modelMain = list("release" = release,
+                          "cv" = list("Yhat" = modelMain_cv_Yhat,
+                                      "Tcv" = modelMain_cv_Tcv),
+                          "arg" = list("oax" = oax,
+                                       "A" = A),
+                          "class" = "koplscv"))
+}
 
 
 
