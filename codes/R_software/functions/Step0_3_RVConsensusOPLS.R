@@ -2,117 +2,193 @@
 #' Consensus OPLS-DA with RV coefficients weighting and 
 #' DQ2 computation for discriminant analysis
 #' 
-#' @param 
-#' @param 
-#' @param 
-#' @param 
+#' @param data: the collection list containing each block of data.
+#' @param Y: The response matrix (un-centered/scaled).
+#' @param A: The number of Y-predictive components (integer). 
+#' @param maxOrtholvs: The maximal number of Y-orthogonal components (integer).
+#' @param nrcv: Number of cross-validation rounds (integer).
+#' @param cvType: Type of cross-validation used. Either `nfold` for n-fold
+#' cross-validation, `mccv` for Monte Carlo CV or `mccvb` for Monte Carlo 
+#' class-balanced CV.
+#' @param modelType: type of OPLS regression model. Can be defined as "reg" for 
+#' regression or "da" for discriminant analysis. Default value "da".
+#' @param verbose: logical which indicates whether the user wants to see the 
+#' progress bar printlayed in the ConsensusOLPSCV function.
 #'
 #' @return 
-
+#' `execution_time`: function execution time.
+#' `model`: a list with all model parameters.
+#'
 #' @examples
-#' 
+#' TO DO
 
 RVConsensusOPLS <- function(data = collection,
                             Y,
-                            1, 10, 100,
-                            "nfold",
-                            "da", 0){
+                            A = 1, 
+                            maxOrtholvs = 10, 
+                            nrcv = 100,
+                            cvType = "nfold",
+                            modelType = "da", 
+                            verbose = FALSE){
+  # Variable format control
+  if(!is.list(data)){stop("data is not a list.")}
+  if(!is.matrix(Y)){stop("Y is not a matrix.")}
+  if(!is.numeric(A)){stop("A is not numeric.")}
+  if(!is.numeric(maxOrtholvs)){stop("maxOrtholvs is not numeric.")}
+  if(!is.numeric(nrcv)){stop("nrcv is not numeric.")}
+  if(!is.character(cvType)){
+    stop("cvType is not a character.")
+  } else{
+    if(!(cvType %in% c("nfold", "mccv", "mccvb"))){
+      stop("cvType must be `nfold`, `mccv` or `mccvb`.")
+    }
+  }
+  if(!is.character(modelType)){
+    stop("modelType is not a character.")
+  } else{
+    if(!(modelType %in% c("reg", "da"))){
+      stop("modelType must be `reg` or `da`.")
+    }
+  }
+  if(is.logical(verbose)){stop("verbose must be logical `TRUE` or `FALSE`.")}
+  
   # Evaluate time ellapse
-  execution_time <- system.time(
+  tStart <- Sys.time()
+  
+  # Check collection dimension
+  ntable <- length(collection)
+  nrow <- nrow(collection[[1]])
+  
+  # Initialize parameters
+  W_mat <- matrix(0, nrow = nrow, ncol = nrow)
+  preProcK <- "mc"
+  preProcY <- "mc"
+  
+  #Fraction of data to be used for cross-validation
+  cvFrac <- 0.75
+  
+  if (modelType == "reg") {
+    koplsScale <- koplsScale(X = Y, centerType = preProcY, scaleType = "no")
+    Yc <- koplsScale$matrix
+  } else {
+    Yc <- Y
+  }
+  
+  # For each data block
+  for (ta in 1:ntable) {
+    # Produce the kernel of the data block
+    temp <- koplsKernel(X1 = collection[[ta]], X2 = NULL, Ktype = 'p', params = 1)
+    # Frobenius norm of the kernel
+    xnorm[ta] <- c(xnorm, base::norm(x = temp, type = 'F'))
+    # Normalize the Kernel
+    AMat[ta] <- c(AMat, temp/xnorm)
+    # RV coefficient for AMat
+    RV[ta] <- c(RV, (RV_modified(X = AMat, Y = Yc) + 1) / 2)
+    # calculates the weighted sum of blocks kernel by the RV coeff
+    W_mat <- W_mat + RV[ta] * AMat[ta]
+  }
+  
+  # Performs a Kernel-OPLS cross-validation for W_mat
+  modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
+                             nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
+                             preProcY = preProcY, cvFrac = cvFrac, 
+                             modelType = modelType, verbose = verbose)
+  
+  Ylarg <- ncol(Y)  
+  # Search for the optimal model based on DQ2
+  if (modelType == 'da') {
+    dqq <- matrix(0, nrow = maxOrtholvs + 1, ncol = Ylarg)
+    PRESSD <- matrix(0, nrow = maxOrtholvs + 1, ncol = Ylarg)
     
-  )
-  return(c(execution_time, model))
+    for (i in 0:maxOrtholvs) {
+      for (j in 1:Ylarg) {
+        # For each Y column, perform the DQ2
+        result <- DQ2(modelCV$cv$AllYhat[, Ylarg*i+j], Y[, j])
+        dqq[i+1, j] <- result$dqq  
+        PRESSD[i+1, j] <- result$PRESSD
+      }
+    }
+    
+    dq2 <- means(dqq) 
+    index <- A  
+    
+    # Finds the optimal number of orthogonal components as a function of DQ2
+    while (index < (maxOrtholvs+A) && (dq2[index+1] - dq2[index]) > 0.01) {
+      index <- index + 1
+    }
+    
+    # Add DQ2 in the model objects
+    modelCV$cv$DQ2Yhat <- dq2 
+    # Add optimal number of orthogonal components in the model objects
+    modelCV$cv$OrthoLVsOptimalNum <- index - A
+    
+  } else { # if modelType == "reg"
+    index <- A 
+    
+    # Finds the optimal number of orthogonal components as a function of Q2Yhat
+    while (index < (maxOrtholvs+A) && 
+           (modelCV$cv$Q2Yhat[index+1] - modelCV$cv$Q2Yhat[index]) > 0.01) {
+      index <- index + 1
+    }
+    # Add optimal number of orthogonal components in the model objects
+    modelCV$cv$OrthoLVsOptimalNum <- index - A
+  }
+  
+  # Simplifies the name to be used afterwards
+  if (modelCV$cv$OrthoLVsOptimalNum == 0) {
+    OrthoLVsNum <- 1
+  } else {
+    OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
+  }
+  
+  # Recompute the optimal model using OrthoLVsNum parameters
+  modelCV$koplsModel <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
+                                   preProcK = preProcK, preProcY = preProcY)
+  
+  # Adjust Yhat to the selected model size
+  modelCV$cv$Yhat <- modelCV$cv$AllYhat[, (Ylarg*A)+(OrthoLVsNum*A)+1 : 
+                                          (Ylarg*A)+(OrthoLVsNum*A)+Ylarg]
+  
+  # Compute the blocks contributions for the selected model
+  for (j in 1:ntable) {
+    for (k in 1:A) {
+      T <- modelCV$koplsModel$T[, k]
+      lambda[j, k] <- t(T)%*%AMat[j]%*%T
+    }
+    for (l in 1:OrthoLVsNum) {
+      To <- modelCV$koplsModel$To[, l]
+      lambda[j, l+A] <- t(To)%*%AMat[j]%*%To
+    }
+  }
+  # Stores raw lambda coefficient values in the model object
+  modelCV$koplsModel$lambda_raw <- lambda 
+  
+  # Normalize the lambda coefficients
+  for (nb in 1:ncol(lambda)) {
+    lambda[, nb] <- lambda[, nb] / sum(lambda)
+  }
+  # Stores normalized lambda values in the model object
+  modelCV$koplsModel$lambda <- lambda 
+  
+  # Compute the loadings for the selected model size
+  loadings <- list()
+  for (ta in 1:ntable) {
+    for (m in 1:A) {
+      T <- modelCV$koplsModel$T[, m]
+      loadings[ta, m] <- t(collection[[ta]]) %*% T / t(T)%*%T
+    }
+    for (n in 1:OrthoLVsNum) {
+      To <- modelCV$koplsModel$To[, n]
+      loadings[ta, n+m] <- t(collection[[ta]]) %*% To / t(To)%*%To
+    }
+  }
+  
+  # Add RV coefficients in the model objects
+  modelCV$RV <- RV  
+  # Add the loadings in the model objects
+  modelCV$koplsModel$loadings <- loadings 
+  
+  tStop <- Sys.time()
+  return(list("execution_time" = as.numeric(tStop - tStart), 
+              "model" = model))
 }
-
-# ---------- MATLAB ---------- #
-ntable=size(collection,2);
-nrow=size(collection(1).d,1) ; 
-W_mat=zeros(nrow,nrow);
-preProcK='mc';
-preProcY='mc';
-cvFrac=0.75;
-
-if strcmp(modelType,'reg')
-Yc=koplsScale(Y,'mc','no');
-else
-  Yc.X=Y;
-end
-
-for ta=1:ntable
-temp=koplsKernel(collection(ta).d,[],'p',1);
-%xnorm(ta)=norm(collection(ta).d,'fro')^2;
-xnorm(ta)=norm(temp,'fro');
-AMat{ta}=temp/xnorm(ta);
-RV(ta)=(RV_modified(AMat{ta},Yc.X)+1)/2;
-W_mat=W_mat+RV(ta)*AMat{ta};
-end
-
-modelCV=ConsensusOPLSCV(W_mat,Y,A,maxOrtholvs,nrcv,cvType,preProcK,preProcY,cvFrac,modelType,verbose);
-
-Ylarg=size(Y,2);
-
-if strcmp(modelType,'da') % Search for the optimal model based on DQ2
-for i=0:maxOrtholvs
-for j=1:Ylarg
-[dqq(i+1,j),PRESSD(i+1,j)] = DQ2(modelCV.cv.AllYhat(:,Ylarg*i+j),Y(:,j)); % Compute DQ2 index
-end
-end
-dq2=mean(dqq,2);
-index=A; %Minimum model size
-while index<maxOrtholvs+A && dq2(index+1)-dq2(index)>0.01  % 1 percent DQ2 increase criterion
-index=index+1;
-end
-modelCV.cv.DQ2Yhat=dq2;
-modelCV.cv.OrthoLVsOptimalNum=index-A;
-
-else % Search for the optimal model based on Q2Yhat
-index=A; %Minimum model size
-while index<maxOrtholvs+A && modelCV.cv.Q2Yhat(index+1)-modelCV.cv.Q2Yhat(index)>0.01  % 1 percent Q2 increase criterion
-index=index+1;
-end
-modelCV.cv.OrthoLVsOptimalNum=index-A;
-end
-
-if modelCV.cv.OrthoLVsOptimalNum==0
-OrthoLVsNum=1;
-else
-  OrthoLVsNum=modelCV.cv.OrthoLVsOptimalNum;
-end
-
-% Recompute the optimal model
-modelCV.koplsModel=koplsModel(W_mat,Y,A,OrthoLVsNum,preProcK,preProcY);
-
-% Adjust Yhat to the selected model size
-modelCV.cv.Yhat=modelCV.cv.AllYhat(:,(Ylarg*A)+(OrthoLVsNum*A):(Ylarg*A)+(OrthoLVsNum*A)+Ylarg-1);
-
-% Compute the blocks contributions for the selected model
-for j=1:ntable
-for k=1:A
-lambda(j,k)=modelCV.koplsModel.T(:,k)'*AMat{j}*modelCV.koplsModel.T(:,k);
-    end
-	for l=1:OrthoLVsNum
-        lambda(j,l+A)=modelCV.koplsModel.To(:,l)'*AMat{j}*modelCV.koplsModel.To(:,l);
-end
-end
-
-modelCV.koplsModel.lambda_raw=lambda;
-
-for nb=1:size(lambda,2)
-lambda(:,nb)=lambda(:,nb)/sum(lambda(:,nb));
-end
-modelCV.koplsModel.lambda=lambda;
-
-% Compute the loadings for the selected model size
-
-for ta=1:ntable
-for m=1:A
-loadings{ta,m}=collection(ta).d'*modelCV.koplsModel.T(:,m)/(modelCV.koplsModel.T(:,m)'*modelCV.koplsModel.T(:,m));
-end
-for n=1:OrthoLVsNum
-loadings{ta,n+m}=collection(ta).d'*modelCV.koplsModel.To(:,n)/(modelCV.koplsModel.To(:,n)'*modelCV.koplsModel.To(:,n));
-end
-end
-
-modelCV.RV=RV;
-modelCV.koplsModel.loadings=loadings;
-%disp('Done!')
