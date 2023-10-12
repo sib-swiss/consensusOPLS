@@ -3,16 +3,28 @@
 #' is constructed from the test matrix Xte and the training matrix
 #' Xtr as KteTr = <phi(Xte), phi(Xtr)>. Requires additional
 #' (un-centered) training kernel to estimate mean values.
+#' 
+#' # ------------------------------------------------------------------------ #
+#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
+#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
+#' 
+#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
+#' 
+#' This code has been extended and adapted under the terms of the GNU General 
+#' Public License version 2 as published by the Free Software Foundation.
+#' # ------------------------------------------------------------------------ #
 #'
-#' @param KteTr: hybrid test/training kernel matrix, KteTr = <phi(Xte), phi(Xtr)>.
-#' @param KtrTr: Training kernel matrix; Ktrain = <phi(Xtr), phi(Xtr)>.
+#' @param KteTr: matrix. Contains the hybrid test/training kernel matrix, 
+#' KteTr = <phi(Xte), phi(Xtr)>.
+#' @param KtrTr: matrix. Contains the training kernel matrix; 
+#' Ktrain = <phi(Xtr), phi(Xtr)>.
 #'
 #' @return
-#' `KteTr`: The centered kernel matrix.
+#' `KteTr`: matrix. The centered kernel matrix.
 #'
 #' @examples
-#' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
-#' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
+#' KteTr <- base::matrix(1:25, nrow = 5, ncol = 5)
+#' KtrTr <- base::matrix(1:25, nrow = 5, ncol = 5)
 #' test <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' test
 
@@ -22,13 +34,13 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
   if(!is.matrix(KtrTr)){stop("KtrTr is not a matrix.")}
   
   # Define parameters
-  Itrain <-  base::diag(ncol(KtrTr))
-  I_nTrain <- base::rep(x = 1, times = ncol(KtrTr))
-  nTrain <- ncol(KtrTr)
+  Itrain <-  base::diag(nrow(KtrTr))
+  I_nTrain <- base::rep(x = 1, times = nrow(KtrTr))
+  nTrain <- nrow(KtrTr)
   
-  I <- base::diag(ncol(KteTr))
-  I_n <- base::rep(x = 1, times = ncol(KteTr))
-  n <- ncol(KteTr)
+  I <- base::diag(nrow(KteTr))
+  I_n <- base::rep(x = 1, times = nrow(KteTr))
+  n <- nrow(KteTr)
   
   # Calculate (1/nTrain) * I_n * I_nTrain'
   scaling_matrix <- (1/nTrain) * (I_n %*% t(I_nTrain))
