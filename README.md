@@ -1,4 +1,4 @@
-Overview of project stages:
+#  Overview of project stages:
 
 ```mermaid
 graph TD
