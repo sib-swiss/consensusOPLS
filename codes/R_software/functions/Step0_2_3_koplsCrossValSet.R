@@ -77,7 +77,9 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
   }
 
   # Function loading control
-  warning("Remember to load the source code for the `koplsReDummy` function.")
+  if (!exists("koplsReDummy", mode = "function")) {
+    warning("Remember to load the source code for the `koplsReDummy` function.")
+  }
   
   # Define Monte-Carlos Cross Validation - class Balanced
   if(type == "mccvb"){
