@@ -1,6 +1,16 @@
 #' koplsRescale
 #' Scales a matrix based on pre-defined parameters from a scaling
 #' object defined in a list (result of 'koplsScale' function).
+#' 
+#' # ------------------------------------------------------------------------ #
+#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
+#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
+#' 
+#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
+#' 
+#' This code has been extended and adapted under the terms of the GNU General 
+#' Public License version 2 as published by the Free Software Foundation.
+#' # ------------------------------------------------------------------------ #
 #'
 #' @param scaleS: a list containing scaling parameters 
 #' @param varargin: If defined, this matrix will be scaled and returned.
@@ -8,22 +18,23 @@
 #' returned. 
 #'
 #' @return
-#' `scaleS`: A list containing the following entries:
-#' centerType: 'mc' (mean-centering) or 'no' (no centering).
-#' scaleType: 'uv' (unit variance), 'pa' (pareto) or 'no' (no scaling).
-#' meanV: vector with mean values for all columns in X.
-#' stdV: vector with standard deviations for all columns in X.
-#' X: Scaled version of 'varargin', if defined, otherwise, scaled version of 
-#' scaleS.X from input. Scaling is done according to 'centerType' and 'scaleType'.
+#' A list containing the following entries:
+#' `centerType`: 'mc' (mean-centering) or 'no' (no centering).
+#' `scaleType`: 'uv' (unit variance), 'pa' (pareto) or 'no' (no scaling).
+#' `meanV`: vector with mean values for all columns in X.
+#' `stdV`: vector with standard deviations for all columns in X.
+#' `X`: Scaled version of 'varargin', if defined, otherwise, scaled version of 
+#' 'scaleS$matrix' from input. Scaling is done according to 'centerType' and 
+#' 'scaleType'.
 #'
 #' @examples
-#'data <- matrix(c(-1.732051, 0, 1.732051, 2, 0, -2, -1.732051, 0, 1.732051), 
-#'                  nrow = 3, ncol = 3)
-#'scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
-#'               "stdV" = 1.581139, "matrix" = data)
-#'test <- koplsRescale(scaleS)
-#'test
-#'test$X
+#' data <- matrix(c(-1.732051, 0, 1.732051, 2, 0, -2, -1.732051, 0, 1.732051), 
+#'                   nrow = 3, ncol = 3)
+#' scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
+#'                "stdV" = 1.581139, "matrix" = data)
+#' test <- koplsRescale(scaleS)
+#' test
+#' test$X
 
 koplsRescale <- function(scaleS, varargin = NULL){
   # Variable format control
@@ -37,15 +48,15 @@ koplsRescale <- function(scaleS, varargin = NULL){
   
   # Center the matrix
   if(scaleS$centerType == "mc"){
-    X <- apply(X, 2, FUN = function(X){X - scaleS$meanV})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X + scaleS$meanV})
   }
   
   # Scale the matrix
   if(scaleS$scaleType == "uv"){
-    X <- apply(X, 2, FUN = function(X){X/scaleS$stdV})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/scaleS$stdV})
   }
   if(scaleS$scaleType == "pa"){
-    X <- apply(X, 2, FUN = function(X){X/sqrt(scaleS$stdV)})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/sqrt(scaleS$stdV)})
   }
   
   # Return the list of parameters
