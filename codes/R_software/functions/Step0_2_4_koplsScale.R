@@ -48,15 +48,15 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
   
   # Center the matrix
   if(centerType == "mc"){
-    X <- apply(X, 2, FUN = function(X){X - mean(X)})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X - mean(X)})
   }
   
   # Scale the matrix
   if(scaleType == "uv"){
-    X <- apply(X, 2, FUN = function(X){X/sd(X)})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/sd(X)})
   }
   if(scaleType == "pa"){
-    X <- apply(X, 2, FUN = function(X){X/sqrt(sd(X))})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/sqrt(sd(X))})
   }
   
   # Return a list with all parameters
