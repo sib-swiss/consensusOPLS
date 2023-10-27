@@ -41,50 +41,30 @@ koplsDummy <- function(class, numClasses = NA){
       if(ncol(class) != 1){
         stop("class must be a matrix with only 1 column.")
       }
+      class <- as.vector(class)
     }
   }
   if(is.na(numClasses)){
-    sample_labels <- base::length(base::unique(class))
-    ncol <- sample_labels
-    default <- TRUE
+    labels <- base::sort(x = base::unique(class))
   } else{
     if(!is.numeric(numClasses)){stop("numClasses must be numeric.")}
-    sample_labels <- base::cut(x = class, breaks = numClasses,
-                               ordered_result = TRUE)
-    ncol <- base::length(levels(sample_labels))
-    default <- FALSE
+    labels <- 1:numClasses
   }
-  
-  # Define parameters
-  labels <- base::sort(base::unique(class), decreasing = FALSE)
   
   # Matrix initialization
-  dummy <- base::matrix(data = 0, nrow = base::length(class), ncol = ncol)
+  dummy <- base::matrix(data = 0, nrow = base::length(class), 
+                        ncol = base::length(labels))
   
-  # Search for class membership
-  for(i in 1:ncol){
-    if(default){
-      dummy[class == labels[i], i] <- 1
-      
-      # And change dummy's column names
-      colnames(dummy) <- labels
-    } else{
-      labels_cut <- cbind("lower" = as.numeric(base::sub("\\((.+),.*", "\\1", 
-                                                         levels(sample_labels)[i],
-                                                         fixed = FALSE)),
-                          "upper" = as.numeric(base::sub("[^,]*,([^]]*)\\]", "\\1", 
-                                                         levels(sample_labels)[i],
-                                                         fixed = FALSE)))
-      dummy[(class > labels_cut[1, "lower"] & 
-               class <= labels_cut[1, "upper"]), i] <- 1
-      
-      # And change dummy's column names
-      colnames(dummy) <- c(labels_cut[1, "lower"], labels_cut[1, "upper"])
-    }
+  
+  for(i in 1: base::length(labels)){
+    # Search for class membership
+    dummy[which(class == labels[i]), i] <- 1
   }
   
-  # Change dummy row names
+  # Change dummy's row names
   rownames(dummy) <- rownames(class)
+  # Change dummy's column names
+  colnames(dummy) <- labels
   
   # Return a list with 2 elements
   return(list("matrix" = dummy,
