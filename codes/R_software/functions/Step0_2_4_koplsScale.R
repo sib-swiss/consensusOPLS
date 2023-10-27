@@ -46,6 +46,10 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
       stop("scaleType must be `uv`, `pa` or `no`.")}
   }
   
+  # Calculation of dispersion parameters before center and scale matrix
+  meanV <- base::apply(X = X, 2, FUN = function(X){mean(X)})
+  stdV <- base::apply(X = X, 2, FUN = function(X){sd(X)})
+  
   # Center the matrix
   if(centerType == "mc"){
     X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X - mean(X)})
@@ -62,7 +66,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
   # Return a list with all parameters
   return(list("centerType" = centerType,
               "scaleType" = scaleType,
-              "meanV" = apply(X = X, 2, FUN = function(X){mean(X)}),
-              "stdV" = apply(X = X, 2, FUN = function(X){sd(X)}),
+              "meanV" = meanV,
+              "stdV" = stdV,
               "matrix" = X))
 }
