@@ -31,35 +31,32 @@
 #' progress .
 #'
 #' @return model: a number of diagnostic parameters which can be used to 
-#' determine the optimal number of model components.
-#' OUTPUT
-% modelMain = Object with 'A' predictive components and 'oax'
-%   Y-orthogonal components. Contains the following entries:
-  %  cv = Cross-validation results:
-    %  	 Q2Yhat = Total Q-square result for all Y-orthogonal components.
-    %	 Q2YhatVars = Q-square result per Y-variable for all Y-orthogonal
-    %       components.
-    %	 Yhat = All predicted Y values as a concatenated matrix.
-    %	 Tcv = Predictive score vector T for all cross-validation rounds.
-    %	 cvTrainIndex = Indices for the training set observations during
-    %       the cross-validation rounds.
-    %	 cvTestIndex = Indices for the test set observations during the
-    %       cross-validation rounds.
-    %  da = Cross-validation results specifically for discriminant
-    %       analysis (DA) cases:
-      %    predClass = Predicted class list per class and Y-orthogonal
-      %       components (integer values).
-      %	 trueClass = Predicted class list per class and Y-orthogonal
-      %       components (integer values).
-      %	 sensSpec = Sensitivity and specificity values per class and
-      %       Y-orthogonal components (integer values).
-      %	 confusionMatrix = Confusion matrix during cross-validation
-      %       rounds.
-      %	 nclasses = Number of classes in model.
-      %	 decisionRule = Decision rule used: 'max' or 'fixed'.
-      %  args = Arguments to the function:
-        %  	 A = Number of Y-predictive components.
-        %	 oax = Number of Y-orthogonal components.
+#' determine the optimal number of model components. It contains :
+#' `cv`: list. The cross-validation results.
+#'      `Q2Yhat`: Total Q-square result for all Y-orthogonal components.
+#'      `Q2YhatVars`: Q-square result per Y-variable for all Y-orthogonal
+#'      components.
+#'      `Yhat`: All predicted Y values as a concatenated matrix.
+#'      `Tcv`: Predictive score vector T for all cross-validation rounds.
+#'      `cvTrainIndex`: Indices for the training set observations during the 
+#'      cross-validation rounds.
+#'      `cvTestIndex`: Indices for the test set observations during the
+#'      cross-validation rounds.
+#' `da`: list. Cross-validation results specifically for discriminant analysis:
+#'      `predClass`: integer. Predicted class list per class and Y-orthogonal
+#'      components.
+#'      `trueClass`: integer. Predicted class list per class and Y-orthogonal 
+#'      components.
+#'      `sensSpec`: integer. Sensitivity and specificity values per class and
+#'      Y-orthogonal components.
+#'      `confusionMatrix`: matrix. Confusion matrix during cross-validation
+#'      rounds.
+#'      `nclasses`: integer. Number of classes in model.
+#'      `decisionRule`: character. Decision rule used: 'max' or 'fixed'.
+#'      `args`: list. Arguments to the function:
+#'            `oax`: integer. Number of Y-orthogonal components.
+#'            `A`: integer. Number of Y-predictive components.
+#' `class`: character. Model class: koplscv.
 #' 
 #' @examples
 #' #TO DO
@@ -73,9 +70,9 @@ ConsensusOPLSCV <- function(K, Y,
   # ----- Variable format control (part 1)
   if(!is.matrix(K)){stop("K is not a matrix.")}
   if(!is.matrix(Y)){stop("Y is not a matrix.")}
-  if(!is.integer(A)){stop("A is not an integer.")}
-  if(!is.integer(oax)){stop("oax is not an integer.")}
-  if(!is.integer(nbrcv)){stop("nbrcv is not an integer.")}
+  if(!is.numeric(A)){stop("A is not numeric.")}
+  if(!is.numeric(oax)){stop("oax is not numeric.")}
+  if(!is.numeric(nbrcv)){stop("nbrcv is not numeric.")}
   if(!is.character(cvType)){stop("cvType is not a character.")
   } else{
     if(!(cvType %in% c("nfold", "mccv", "mccvb"))){
@@ -90,8 +87,8 @@ ConsensusOPLSCV <- function(K, Y,
     if(!(preProcY %in% c("mc", "uv", "pareto", "no"))){
       stop("preProcY must be `mc`, `uv`, `pareto` or `no`.")}
   }
-  if(!is.integer(cvFrac)){stop("cvFrac is not an integer.")}
-  if(!is.character(modelType){stop("modelType is not a character.")
+  if(!is.numeric(cvFrac)){stop("cvFrac is not numeric.")}
+  if(!is.character(modelType)){stop("modelType is not a character.")
   } else{
     if(!(modelType %in% c("da", "re"))){stop("modelType must me `da` or `re`.")}
   }
@@ -128,7 +125,7 @@ ConsensusOPLSCV <- function(K, Y,
     
     # Check the response matrix
     temp <- unique(Y)
-    if(all(temp == c(0, 1))){
+    if(all(temp == 0 | temp == 1)){
       if(ncol(Y) == 1){Y <- koplsDummy(Y)}
       classVect <- koplsReDummy(Y)
     } else{
@@ -155,15 +152,19 @@ ConsensusOPLSCV <- function(K, Y,
   # ----- Parameters init
   release <- ""
   set.seed(1214)
-  # Yhat <- base::matrix(NA, nrow = nrow(Y), ncol = ncol(Y))
-  # YhatDaSave=cell(1);
-  # pressyVars=cell(1,1);
-  # pressyVarsTot=cell(1,1);
   
+  pressy <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressyVars <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressyTot <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressyVarsTot <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  YhatDaSave <- base::matrix(data = list(), nrow = oax+1, ncol = 1)
+
   if(verbose){
     utils::txtProgressBar(min = 0, max = nbrcv, style = 3, 
                           width = 10, char = "=",
                           title = paste0('Please wait... cv round: 1 of ', nrcv))
+    # cette progress bar doit etre changée car ouvre une fenetre a part..
+    # il faudrait que tout soit intégré à R
   }
   
   AllYhat <- c()
@@ -171,18 +172,19 @@ ConsensusOPLSCV <- function(K, Y,
   for(icv in 1:nbrcv){
     # Update progression bar
     if(verbose){
-      print(paste0('Cross-validation round: ', icv,'...'))
+      print(paste0('Cross-validation round: ', icv,' of ', nbrcv, ' ...'))
       # Create a waitbar (you'll need the tcltk package)
       if (requireNamespace("tcltk", quietly = TRUE)) {
         h <- tcltk::tkProgressBar(title = 'Please wait...', 
                                   label = paste0('cv round: ', icv, 
                                                  ' of ', nrcv))
-        tcltk::tkSetProgress(icv/nrcv*100, h)
+        tcltk::setTkProgressBar(pb = h, value = icv/nrcv*100)
       }
     }
     
     # Set up Cross-Validation
-    cvSet <- koplsCrossValSet(K, Y, cvFrac, cvType, nbrcv, icv)
+    cvSet <- koplsCrossValSet(K = K, Y = Y, modelFrac = cvFrac, type = cvType, 
+                              nfold = nbrcv, nfoldRound = icv)
     cvTestIndex <- cvSet$testIndex
     cvTrainingIndex <- cvSet$trainingIndex
     
@@ -194,9 +196,10 @@ ConsensusOPLSCV <- function(K, Y,
     KteTr <- cvSet$KTeTr
     
     # Center Y and kernel matrices
-    YScaleObj <- koplsScale(cvSet$yTraining,YcenterType,YscaleType)
-    # I don't understand the useful of koplsScaleApply...
-    YScaleObjTest <- koplsScale(cvSet$yTest,YScaleObj)
+    YScaleObj <- koplsScale(X = cvSet$yTraining, 
+                            centerType = YcenterType,
+                            scaleType = YscaleType)
+    YScaleObjTest <- koplsScaleApply(model = YScaleObj, X = cvSet$yTest)
     
     if(preProcK == "mc"){
       KteTe <- koplsCenterKTeTe(KteTe,KteTr,KtrTr)
@@ -205,12 +208,13 @@ ConsensusOPLSCV <- function(K, Y,
     }
     
     # Estimate K-OPLS model
-    model <- koplsModel(KtrTr, YScaleObj$X, A, oax, 'no', 'no')
+    model <- koplsModel(K = KtrTr, Y = YScaleObj$matrix, A = A, 
+                        nox = oax, preProcK = "no", preProcY = "no")
     
     # Set up model stats
-    ssy <- sum( sum(YScaleObjTest$matrix)**2 )
-    ssyVars <- sum(YScaleObjTest$matrix)**2
-    ssx <- sum(diag(KteTe))
+    ssy <- base::sum( base::sum(YScaleObjTest$matrix**2 ))
+    ssyVars <- base::sum(YScaleObjTest$matrix**2)
+    ssx <- base::sum( base::diag(KteTe))
     
     if(icv == 1){
       ssyTot <- ssy
@@ -224,14 +228,19 @@ ConsensusOPLSCV <- function(K, Y,
     
     # for each combination of Y-osc components
     AllYhatind <- c()
+    
     for(ioax in 1:(oax+1)){
-      for(ioay == 1){
+      for(ioay in 1:1){
         # Consensus OPLS predict Yhat
-        modelPredy <- koplsPredict(KteTr, KteTe, KtrTr, model, ioax-1, 0)
-        tmp <- koplsRescale(YScaleObj, modelPredy$Yhat)
+        modelPredy <- koplsPredict(KteTr = KteTr, Ktest = KteTe, Ktrain = KtrTr,
+                                   model = model, nox = ioax-1, 
+                                   rescaleY = FALSE)
+        tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
         AllYhatind <- cbind(AllYhatind, tmp$X)
-        pressy[ioax, ioay] <- sum(sum(YScaleObjTest$X - modelPredy$Yhat)**2)
-        pressyVars[ioax, ioay] <- sum((YScaleObjTest$X - modelPredy$Yhat)**2)
+        pressy[ioax, ioay] <- base::sum( base::sum((YScaleObjTest$matrix - 
+                                                      modelPredy$Yhat)**2))
+        pressyVars[ioax, ioay] <- base::sum((YScaleObjTest$matrix - 
+                                               modelPredy$Yhat)**2)
         
         if (icv == 1) {
           pressyTot[ioax, ioay] <- pressy[ioax, ioay]
@@ -244,18 +253,20 @@ ConsensusOPLSCV <- function(K, Y,
         # If 'da', save Yhat for all rounds
         if (modelType == "da") {
           if (icv == 1) {
-            YhatDaSave[ioax, ioay] <- c()
+            YhatDaSave[[ioax, ioay]] <- base::matrix(data = NA, 
+                                                     nrow = nrow(modelPredy$Yhat),
+                                                     ncol = ncol(modelPredy$Yhat))
           }
           
           # + mean on Yhat
           tmp <- koplsRescale(YScaleObj, modelPredy$Yhat)
-          YhatDaSave[ioax,ioay] <- rbind(YhatDaSave[ioax, ioay], tmp$X)
+          YhatDaSave[[ioax, ioay]] <- tmp$X
         }
         
         # If highest number of oscs, save Yhat and Xhat
         if (ioax == oax+1) {  # && ioay == oay + 1) 
           if (icv == 1) {
-            Yhat <- c()
+            Yhat <- list()
           }
           tmp <- koplsRescale(YScaleObj, modelPredy$Yhat)
           Yhat <- rbind(Yhat, tmp$X)
@@ -269,29 +280,25 @@ ConsensusOPLSCV <- function(K, Y,
     if (requireNamespace("tcltk", quietly = TRUE)) {
       h <- tcltk::tkProgressBar(title = 'finishing up...', 
                                 label = '', max = nrcv, initial = icv)
-      tcltk::tkSetProgress(icv, h)
+      tcltk::setTkProgressBar(pb = h, value = icv)
     }
   }
   
   KtrTr <- K
-  modelMain$koplsModel <- koplsModel(KtrTr, Y, A, oax, preProcK, preProcY)
+  modelMain <- list()
+  modelMain$koplsModel <- koplsModel(K = KtrTr, Y = Y, A = A, nox = oax, 
+                                     preProcK = preProcK, preProcY = preProcY)
   modelMain$cv$Yhat <- Yhat
   modelMain$cv$AllYhat <- AllYhat
-  
-  #is this correct?
-  modelMain$cv$Tcv <- Yhat %*% modelMain$koplsModel$Cp %*% modelMain$koplsModel$Bt[oax + 1]
-  
-  modelMain$cv$Q2Yhat=c() 
-  modelMain$cv$Q2YhatVars=cell(1,1)
-  
-  
-  for( ioax = 1:oax+1){
-    for(ioay == 1){
-      modelMain$cv$Q2Yhat(ioax,ioay) <- 1-pressyTot(ioax,ioay)/ssyTot
-      modelMain$cv$Q2YhatVars(ioax,ioay) <- 1-pressyVarsTot(ioax,ioay)/ssyVarsTot
+  modelMain$cv$Tcv <- Yhat %*% modelMain$koplsModel$Cp %*% modelMain$koplsModel$Bt[[oax + 1]]
+  modelMain$cv$Q2Yhat <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  modelMain$cv$Q2YhatVars <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  for(ioax in 1:(oax+1)){
+    for(ioay in 1:1){
+      modelMain$cv$Q2Yhat[ioax,ioay] <- 1 - pressyTot[ioax,ioay]/ssyTot
+      modelMain$cv$Q2YhatVars[ioax,ioay] <- 1 - pressyVarsTot[ioax,ioay]/ssyVarsTot
     }
   }
-  
   modelMain$cv$cvTestIndex <- cvTestIndex
   modelMain$cv$cvTrainingIndex <- cvTrainingIndex
   
@@ -299,16 +306,19 @@ ConsensusOPLSCV <- function(K, Y,
     # Get sens/spec for each y-orth component
     for (i in 1:(oax + 1)) {
       if (drRule == "max") {
-        predClass <- koplsMaxClassify(YhatDaSave[i,1])
+        predClass <- koplsMaxClassify(data = YhatDaSave[[i,1]])
       } else if (drRule == "fixed") {
-        predClass <- koplsBasicClassify(YhatDaSave[i,1], 1/nclasses)
+        predClass <- koplsBasicClassify(data = YhatDaSave[[i,1]], 
+                                        k = 1/nclasses)
       } else {
         warning(paste0('Decision rule given: ', drRule, 
                       ' is not valid/implemented.'))
       }
       
       # Calculate sensitivity and specificity
-      daMetrics <- koplsSensSpec(classVect[cvTestIndex], predClass)
+      ########## BUG ICI ##########
+      daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex], 
+                                 predClass = predClass)
       da$sensAllOsc[i] <- daMetrics$sens
       da$specAllOsc[i] <- daMetrics$spec
       da$classvecAllOsc[i] <- daMetrics$classvec
@@ -361,15 +371,21 @@ ConsensusOPLSCV <- function(K, Y,
   }
   
   return(modelMain = list("release" = release,
-                          "cv" = list("Yhat" = modelMain_cv_Yhat,
-                                      "Tcv" = modelMain_cv_Tcv),
-                          "arg" = list("oax" = oax,
-                                       "A" = A),
+                          "cv" = list("Q2Yhat" = xx,
+                                      "Q2YhatVars" = xx,
+                                      "Yhat" = modelMain_cv_Yhat,
+                                      "Tcv" = modelMain_cv_Tcv,
+                                      "cvTrainIndex" = xx,
+                                      "cvTestIndex" = xx),
+                          "da" = list("predClass" = xx,
+                                      "trueClass" = xx,
+                                      "sensSpec" = xx,
+                                      "confusionMatrix" = xx,
+                                      "nclasses" = xx,
+                                      "decisionRule" = xx,
+                                      "arg" = list("oax" = oax,
+                                                   "A" = A)),
                           "class" = "koplscv"))
 }
-
-
-
-
 
 
