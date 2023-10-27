@@ -91,32 +91,32 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
     }
     
     # Find all class labels
-    uniqueClass <- unique(classVect)
+    uniqueClass <- base::unique(classVect)
     
     # For each class
-    for(i in 1:length(uniqueClass)){
+    for(i in 1: base::length(uniqueClass)){
       # Find samples of current class
-      ind <- which(classVect == uniqueClass[i])
+      ind <- base::which(classVect == uniqueClass[i])
       
       # Create a random indices
-      randomSeq <- stats::rnorm(length(ind))
-      rand_ind <- base::sort(randomSeq, index.return = TRUE)$ix
+      randomSeq <- stats::rnorm(n = base::length(ind), mean = 0, sd = 1)
+      rand_ind <- base::sort(x = randomSeq, index.return = TRUE)$ix
       ind <- ind[rand_ind]
       
       # Calculates the sample size of the training data
-      trainSize <- base::floor(length(ind)*modelFrac)
+      trainSize <- base::floor( base::length(ind)*modelFrac)
       
       # Divides the sample into train and test
       trainInd <- c(trainInd, ind[1:trainSize])
-      predInd <- c(predInd, ind[(trainSize+1):length(ind)])
+      predInd <- c(predInd, ind[(trainSize+1): base::length(ind)])
     }
   }
   
   # Define Monte-Carlos Cross Validation
   if(type == "mccv"){
     # Create a random indices
-    randomSeq <- stats::rnorm(nrow(K))
-    rand_ind <- base::sort(randomSeq, index.return = TRUE)$ix
+    randomSeq <- stats::rnorm(n = nrow(K), mean = 0, sd = 1)
+    rand_ind <- base::sort(x = randomSeq, index.return = TRUE)$ix
     
     # Calculates the sample size of the training data
     trainSize <- base::floor(nrow(K)*modelFrac)
@@ -128,8 +128,8 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
   
   # Define N-fold Cross Validation
   if(type == "nfold"){
-    predInd <- base::seq(from = nfoldRound, to = nrow(K), by = nfold)
-    trainInd <- base::setdiff(x = 1:nrow(K), y = predInd)
+    predInd <- base::seq(from = nfoldRound, to = nrow(Y), by = nfold)
+    trainInd <- base::setdiff(x = 1:nrow(Y), y = predInd)
   }
   
   # Construct Kernel/Y matrices for training/test
