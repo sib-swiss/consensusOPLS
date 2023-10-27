@@ -12,24 +12,25 @@
 #' Public License version 2 as published by the Free Software Foundation.
 #' # ------------------------------------------------------------------------ #
 #'
-#' @param scaleS: a list containing scaling parameters 
-#' @param varargin: If defined, this matrix will be scaled and returned.
+#' @param scaleS: list. It contains scaling parameters 
+#' @param varargin: matrix. If defined, this matrix will be scaled and returned.
 #' Otherwise the original data set in the scaleS object will be scaled and 
 #' returned. 
 #'
 #' @return
 #' A list containing the following entries:
-#' `centerType`: 'mc' (mean-centering) or 'no' (no centering).
-#' `scaleType`: 'uv' (unit variance), 'pa' (pareto) or 'no' (no scaling).
-#' `meanV`: vector with mean values for all columns in X.
-#' `stdV`: vector with standard deviations for all columns in X.
-#' `X`: Scaled version of 'varargin', if defined, otherwise, scaled version of 
-#' 'scaleS$matrix' from input. Scaling is done according to 'centerType' and 
-#' 'scaleType'.
+#' `centerType`: character. 'mc' (mean-centering) or 'no' (no centering).
+#' `scaleType`: character. 'uv' (unit variance), 'pa' (pareto) or 'no' (no scaling).
+#' `meanV`: vector. It contains the mean values for all columns in X.
+#' `stdV`: vector. It contains the standard deviations for all columns in X.
+#' `X`: matrix. Scaled version of 'varargin', if defined, otherwise, scaled 
+#' version of 'scaleS$matrix' from input. Scaling is done according to 
+#' 'centerType' and 'scaleType'.
 #'
 #' @examples
-#' data <- matrix(c(-1.732051, 0, 1.732051, 2, 0, -2, -1.732051, 0, 1.732051), 
-#'                   nrow = 3, ncol = 3)
+#' data <- base::matrix(data = c(-1.732051, 0, 1.732051, 2, 0, 
+#'                               -2, -1.732051, 0, 1.732051), 
+#'                      nrow = 3, ncol = 3)
 #' scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
 #'                "stdV" = 1.581139, "matrix" = data)
 #' test <- koplsRescale(scaleS)
@@ -48,21 +49,21 @@ koplsRescale <- function(scaleS, varargin = NULL){
   
   # Center the matrix
   if(scaleS$centerType == "mc"){
-    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X + scaleS$meanV})
+    X <- X+scaleS$meanV
   }
   
   # Scale the matrix
   if(scaleS$scaleType == "uv"){
-    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/scaleS$stdV})
+    X <- X*scaleS$stdV
   }
   if(scaleS$scaleType == "pa"){
-    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/sqrt(scaleS$stdV)})
+    X <- X*sqrt(scaleS$stdV)
   }
   
   # Return the list of parameters
-  return(scaleS = list("centerType" = scaleS$centerType,
-                       "scaleType" = scaleS$scaleType,
-                       "meanV" = mean(X), 
-                       "stdV" = sd(X),
+  return(scaleS = list("centerType" = "no",
+                       "scaleType" = "no",
+                       "meanV" = scaleS$meanV, 
+                       "stdV" = scaleS$stdV,
                        "X" = X))
 }
