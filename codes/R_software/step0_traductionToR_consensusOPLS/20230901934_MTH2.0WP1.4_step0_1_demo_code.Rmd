@@ -40,7 +40,7 @@ installed (the code chunks are not shown) and to define define the localisation
 of the codes and the files.
 
 ```{r packages_installation, class.source='fold-hide', warning=FALSE, include=FALSE, message=FALSE}
-#install.packages(c("R.matlab", "DiagrammeR"))
+#install.packages(c("R.matlab", "DiagrammeR", "kopls"))
 #update.packages(ask = FALSE)
 ```
 
@@ -69,6 +69,8 @@ path_functions <- "../functions"
 In this file, the aim is to translate the `MATLAB` functions used in Julien 
 Boccard's OPLS-DA consensus method (DOI: `10.1016/j.aca.2013.01.022`).
 
+
+
 In this code example, the aim is to perform a discriminant analysis of NCI-60
 cancer cell lines from two origins: colon versus ovary.
 The data is divided into 3 blocks, evaluated on the same observations:
@@ -83,40 +85,14 @@ The data is divided into 3 blocks, evaluated on the same observations:
 
 # Mind map of functions used
 
-```{r mermaid_mindMap, echo=FALSE, class.source='fold-hide'}
-# mindmap
-#     root((Consensus OPLS-DA <br/> method))
-#         (matrix2saisir)
-#             addcode
-#         {{RVConsensusOPLS}}
-#             1 koplsScale
-#             2 koplsKernel
-#             3 koplsModel
-#             4 RV_modified
-#             5 ConsensusOPLSCV
-#             (6 DQ2)
-#         {{RVConsensusOPLSPerm}}
-#             1 RVConsensusOPLS
-#             2 RV_modified
-#         {{ConsensusOPLSCV}}
-#             koplsDummy/ koplsReDummy
-#             koplsCrossValSet
-#             koplsScale/ koplsScaleApply
-#             koplsCenterKT*
-#             koplsModel
-#             koplsPredict
-#             koplsRescale
-#             koplsMaxClassify/ koplsBasicClassify
-#             koplsSensSpec
-#             koplsConfusionMatrix
-# ", height = '100%', width = '100%')
-```
+To see the function tree and how they relate to each other, see the README for 
+the project's MIA forge.
 
 
 
 
 
-# Data preprocessing
+# Loading functions
 
 ## Function `matrix2saisir`
 
@@ -124,57 +100,177 @@ The data is divided into 3 blocks, evaluated on the same observations:
 source(file = file.path(path_functions, "Step0_1_matrix2saisir.R"))
 ```
 
-## `Demo_data` file
+## Function called by `ConcensusOPLSCV`
+
+```{r kopls_functions_for_ConsensusOPLSCV}
+#source(file = file.path(path_functions, "Step0_2_ConsensusOPLSCV.R"))
+#source(file = file.path(path_functions, "Step0_2_1_koplsDummy.R"))
+source(file = file.path(path_functions, "Step0_2_2_koplsReDummy.R"))
+source(file = file.path(path_functions, "Step0_2_3_koplsCrossValSet.R"))
+source(file = file.path(path_functions, "Step0_2_4_koplsScale.R"))
+source(file = file.path(path_functions, "Step0_2_5_koplsCenterKTeTe.R"))
+source(file = file.path(path_functions, "Step0_2_6_koplsCenterKTeTr.R"))
+source(file = file.path(path_functions, "Step0_2_7_koplsCenterKTrTr.R"))
+source(file = file.path(path_functions, "Step0_2_8_koplsModel.R"))
+source(file = file.path(path_functions, "Step0_2_9_koplsPredict.R"))
+source(file = file.path(path_functions, "Step0_2_10_koplsReScale.R"))
+#source(file = file.path(path_functions, "Step0_2_11_koplsMaxClassify.R"))
+#source(file = file.path(path_functions, "Step0_2_12_koplsBasicClassify.R"))
+#source(file = file.path(path_functions, "Step0_2_13_koplsConfusionMatrix.R"))
+#source(file = file.path(path_functions, "Step0_2_14_koplsSensSpec.R"))
+source(file = file.path(path_functions, "Step0_2_15_koplsScaleApply.R"))
+```
+
+## Function called by `RVConcensusOPLS`
+
+This function also uses `koplsModel` and `koplsScale`, which have already been loaded to run `ConcensusOPLSCV`.
+
+```{r kopls_functions_for_RVConsensusOPLS}
+#source(file = file.path(path_functions, "Step0_3_RVConsensusOPLS.R"))
+source(file = file.path(path_functions, "Step0_3_1_koplsKernel.R"))
+source(file = file.path(path_functions, "Step0_3_2_RVmodified.R"))
+#source(file = file.path(path_functions, "Step0_3_3_DQ2.R"))
+```
+
+## Function called by `RVConcensusOPLSPerm`
+
+This function also uses `RVmodified`, which have already been loaded to run 
+`RVConsensusOPLS`. 
+
+```{r kopls_functions}
+# source(file = file.path(path_functions, "Step0_4_RVConcensusOPLSPerm.R"))
+```
+
+
+
+
+
+# Data preprocessing on `Demo_data` file
 
 ```{r import_demo_data.mat}
-demo_data <- R.matlab::readMat(con = file.path(path_data,
-                                               "demo_data.mat"))
+demo_data <- R.matlab::readMat(con = file.path(path_data, "demo_data.mat"))
 ```
 
 This file corresponds to a `r class(demo_data)` of size `r length(demo_data)`.
 It contains the data of `r ls(demo_data)`.
 
-### Rename Block names
+## Rename Block names
 
 ```{r names_data}
 demo_data$BlockNames <- c("MetaboData", "MicroData", "ProteoData")
 ```
 
-### Unit variance scaling
+## Unit variance scaling
 
-To use the OPLS-DA consensus method, it is necessary to normalize the data.
+To use the OPLS-DA consensus method, it is necessary to calculate the Z-score of 
+the data, i.e. each columns of the data are centered to have mean 0 and scaled
+to have standard deviation 1.
 
 ```{r created_collection_data}
 # Extract the 3 blocks of data
 collection <- lapply(X = 1:length(demo_data$BlockNames), 
                      FUN = function(X){
+                       # Extract the tables of data
                        name_data <- demo_data$BlockNames[X]
-                       scaled_data <- as.data.frame(scale(demo_data[[name_data]],
-                                                          center = TRUE,
-                                                          scale = TRUE))
-                       matrix <- matrix2saisir(as.matrix(scaled_data))
+                       
+                       # Check identical values for all subjects and delete
+                       col_identic_val <- base::apply(X = demo_data[[name_data]],
+                                                      MARGIN = 2, 
+                                                      FUN = function(X){
+                                                        base::length(base::unique(X)) < 2})
+                       if(length(which(col_identic_val)) != 0){
+                         print(paste0("The columns ", paste(which(col_identic_val),
+                                                            sep = " ", 
+                                                            collapse = ", "), 
+                                      " of the ", name_data, 
+                                      " data contained identical values."))
+                         data <- demo_data[[name_data]][, -which(col_identic_val)]
+                       } else{
+                         print(paste0("The ", name_data, 
+                                      " data does not contain columns with identical values"))
+                         data <- demo_data[[name_data]]
+                       }
+                       
+                       # Calculate the Z-score 
+                       # (mean centering and standard deviations scaling)
+                       scaled_data <- base::scale(data, center = TRUE,
+                                                  scale = TRUE)
+                       # Apply the function matrix2saisir
+                       matrix <- matrix2saisir(data = scaled_data,
+                                               coderow = NA, codecol = NA,
+                                               position_coderow = NA,
+                                               position_codecol = NA)
                        return(matrix)
-                     })
+                       })
 
 # Rename blocks with BlokNames
 names(collection) <- demo_data$BlockNames
 ls(collection)
 ```
 
+The results were observed (results not shown).
+
+```{r check_collection_objects, class.source='fold-hide'}
+# View(collection[[names(collection)[1]]])
+# View(collection[[names(collection)[2]]])
+# View(collection[[names(collection)[3]]])
+```
+
+Missing data were observed in relation to the Matlab data. This is due to columns 
+having strictly identical values for all individuals, resulting in an error when 
+using the `scale` function. A check has therefore been added against the source 
+code demonstrating the use of the method. The dimensions of the data after 
+verification were therefore:
+
+```{r new_dim_collection}
+lapply(X = 1:length(collection),
+       FUN = function(X){dim(collection[[X]])})
+```
+
+Another check: all data blocks must be the same size. So, implement a code stop
+if this is not the case:
+
 ```{r verif_size}
 size <- lapply(X = 1:length(collection),
                FUN = function(X){
                  dim(collection[[X]])[1]
                })
-size <- size[[1]]
+if (all(size == size[[1]])) {
+  size <- size[[1]]
+  paste0("All data sets have the same number of subjects: ", size)
+} else {
+  stop("Data sets do not have the same number of subjects: ", size)
+}
 ```
 
-```{r not_understand}
-# je ne sais pas à quoi correspond ça :
-# collection(1).i=MetaboVarNames;
-# collection(2).i=MicroVarNames;
-# collection(3).i=ProteoVarNames;
-# ni quand c'est utilisé..
+The next step in the source code is to extract the variable names (columns from 
+the previous table) according to the data table concerned.
+As the dimensions differ from those in Matlab following the previous 
+modifications, a new list is created to contain this information:
+
+```{r extract_variables_names}
+# Extraction of names matches for each data block
+list_var <- names(demo_data)[grep("VarNames", names(demo_data))]
+
+var_names <- lapply(X = 1:length(list_var), 
+                    FUN = function(X){
+                      name_var <- list_var[X]
+                      extract <- as.data.frame(demo_data[[name_var]])
+                      
+                      # Modifies input format
+                      apply(extract[1, ], MARGIN = 2,
+                            FUN = function(X){
+                              extract[1, ] <- as.character(unlist(X))
+                            })
+                      return(extract[1, ])
+                    })
+
+# Rename blocks with BlokNames
+names(var_names) <- list_var
+ls(var_names)
+length(var_names[[1]])
+length(var_names[[2]])
+length(var_names[[3]])
 ```
 
 
@@ -185,11 +281,7 @@ size <- size[[1]]
 
 Computation of a consensusOPLS model with leave-one-out cross-validation.
 
-## Define parameters
-
-To start the method, we need to define some parameters:
-
-```{r init_parameters}
+```{r define_cv_parameters}
 # Number of predictive component(s)
 LVsPred <- 1
 
@@ -198,13 +290,39 @@ LVsOrtho <- 1
 
 # Number of cross-validation folds
 CVfolds <- size
+CVfolds
+```
+
+```{r run_consensusOPLSmodel}
+data = collection ; Y = demo_data$Y ; A = LVsPred
+maxOrtholvs = LVsOrtho ; nrcv = CVfolds ; cvType = "nfold"
+modelType = "da" ; verbose = TRUE
+
+# RVConsensusOPLSModelCV <- RVConsensusOPLS(data = collection,
+#                                           Y = demo_data$Y,
+#                                           A = LVsPred,
+#                                           maxOrtholvs = LVsOrtho,
+#                                           nrcv = CVfolds,
+#                                           cvType = "nfold",
+#                                           modelType = "da",
+#                                           verbose = TRUE)
+```
+
+
+
+## Define parameters
+
+To start the method, we need to define some parameters:
+
+```{r init_parameters}
+
 ```
 
 
 ## Main function
 
 ```{r}
-# traduction fonction RVConsensusOPLS
+# translation of RVConsensusOPLS function
 ```
 
 

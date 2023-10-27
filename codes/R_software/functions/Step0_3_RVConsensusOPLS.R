@@ -50,17 +50,31 @@ RVConsensusOPLS <- function(data = collection,
       stop("modelType must be `reg` or `da`.")
     }
   }
-  if(is.logical(verbose)){stop("verbose must be logical `TRUE` or `FALSE`.")}
+  if(!is.logical(verbose)){stop("verbose must be logical `TRUE` or `FALSE`.")}
+  
+  # Function loading control
+  if (!exists("koplsScale", mode = "function")) {
+    warning("Remember to load the source code for the `koplsScale` function.")
+  }
+  if (!exists("koplsKernel", mode = "function")) {
+    warning("Remember to load the source code for the `koplsKernel` function.")
+  }
+  if (!exists("RVmodified", mode = "function")) {
+    warning("Remember to load the source code for the `RVmodified` function.")
+  }
+  if (!exists("ConsensusOPLSCV", mode = "function")) {
+    warning("Remember to load the source code for the `ConsensusOPLSCV` function.")
+  }
   
   # Evaluate time ellapse
   tStart <- Sys.time()
   
   # Check collection dimension
-  ntable <- length(collection)
+  ntable <- base::length(collection)
   nrow <- nrow(collection[[1]])
   
   # Initialize parameters
-  W_mat <- matrix(0, nrow = nrow, ncol = nrow)
+  W_mat <- base::matrix(data = 0, nrow = nrow, ncol = nrow)
   preProcK <- "mc"
   preProcY <- "mc"
   
@@ -75,20 +89,28 @@ RVConsensusOPLS <- function(data = collection,
   }
   
   # For each data block
+  xnorm <- list() ; AMat <- list() ; RV <- list()
   for (ta in 1:ntable) {
     # Produce the kernel of the data block
     temp <- koplsKernel(X1 = collection[[ta]], X2 = NULL, Ktype = 'p', params = 1)
     # Frobenius norm of the kernel
-    xnorm[ta] <- c(xnorm, base::norm(x = temp, type = 'F'))
+    xnorm[[ta]] <- base::norm(x = temp, type = "F")
     # Normalize the Kernel
-    AMat[ta] <- c(AMat, temp/xnorm)
+    AMat[[ta]] <- temp/xnorm[[ta]]
     # RV coefficient for AMat
-    RV[ta] <- c(RV, (RV_modified(X = AMat, Y = Yc) + 1) / 2)
+    RV[[ta]] <- (RVmodified(X = AMat[[ta]], Y = Yc) + 1) / 2
     # calculates the weighted sum of blocks kernel by the RV coeff
-    W_mat <- W_mat + RV[ta] * AMat[ta]
+    W_mat <- W_mat + RV[[ta]] * AMat[[ta]]
   }
   
   # Performs a Kernel-OPLS cross-validation for W_mat
+  K = W_mat; Y = Y; A = A; oax = maxOrtholvs; 
+  nbrcv = nrcv; cvType = cvType; preProcK = preProcK; 
+  preProcY = preProcY; cvFrac = cvFrac; 
+  modelType = modelType; verbose = verbose
+  
+  # ----- stop ici pour test
+  
   modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
                              nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
                              preProcY = preProcY, cvFrac = cvFrac, 
