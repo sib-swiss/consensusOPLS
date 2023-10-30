@@ -10,7 +10,7 @@ For this purpose, a mind map of the method's functions was created:
 graph TD
 classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
 
-0[Functions of ConsensusOPLS-DA method]
+0[Functions of ConsensusOPLS method]
     subgraph Number1[Step 0 : Translate MATLAB function into R]
     0 --> 1
     1(Step0_1_matrix2saisir) 
@@ -21,17 +21,17 @@ classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
     3(add code)
 
     2 --> 4(RVConsensusOPLS)
-    2 --> 5(RV_modified)
+    2 --> 5(2 RV_modified)
 
     4 --> 6
     6[koplsScale]
     4 --> 7
-    7[koplsKernel]
+    7[1 koplsKernel]
     4 --> 8
     8[koplsModel]
-    4 -->|use| 5
+    4 --> 5
     4 --> 9
-    9[ConsensusOPLSCV]
+    9[3 ConsensusOPLSCV]
     4 --> 10
     10[DQ2]
 
@@ -47,7 +47,7 @@ ConsensusOPLSCV function only.
 graph TB
 classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
 
-0[Functions of ConsensusOPLS-DA method]
+0[Other functions of <br> ConsensusOPLS method]
     subgraph Number1[Step 0 : from the ConsensusOPLSCV]
     0 --> 1
     1(ConsensusOPLSCV) 
@@ -74,14 +74,20 @@ classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
     11(koplsConfusionMatrix)
     1 --> 12
     12(koplsCrossValSet)
-    6 --> 13
-    13(koplsRescale)
+    1 --> 14
+    14(koplsModel)
+    1 --> 15
+    15(koplsScale)
 
-    1 ---|use koplsModel <br> koplsScale | 1
+    1 ---|use koplsModel <br> and koplsScale as <br>  RVConsensusOPLS <br> function| 1
     12 --> 3
     5 ---|KTeTe, KTeTr, KTrTr|5
     6 --> 5
-
+    6 --> 7
+    14 --> 5
+    10 --> 2
+    11 --> 2
+	14 --> 15
 
     end
     class Number1 Title;
