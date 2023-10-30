@@ -60,10 +60,9 @@ koplsSensSpec <- function(trueClass, predClass){
   }
   
   # To make sure dummy is correct dimension for prediction data set
-  tmp1 <- base:: unique(as.vector(trueClass))
+  tmp1 <- base::unique(as.vector(trueClass))
   if(ncol(trueClass) == 1){
     trueClassDummy <- koplsDummy(class = trueClass, numClasses = NA)
-    ########## BUG ICI ##########
     predClassDummy <- koplsDummy(class = predClass, 
                                  numClasses = ncol(trueClassDummy$matrix))
   }
@@ -78,7 +77,7 @@ koplsSensSpec <- function(trueClass, predClass){
   }
   
   # Define classes to compare
-  nclasses <- ncol(trueClassDummy)
+  nclasses <- ncol(trueClassDummy$matrix)
   
   # Define TruePositifs
   TP <- base::rowSums(x = trueClass & predClass)
