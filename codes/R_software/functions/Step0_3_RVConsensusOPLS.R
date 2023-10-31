@@ -104,34 +104,31 @@ RVConsensusOPLS <- function(data = collection,
   }
   
   # Performs a Kernel-OPLS cross-validation for W_mat
-  K = W_mat; Y = Y; A = A; oax = maxOrtholvs; 
-  nbrcv = nrcv; cvType = cvType; preProcK = preProcK; 
-  preProcY = preProcY; cvFrac = cvFrac; 
-  modelType = modelType; verbose = verbose
-  
-  # ----- stop ici pour test
-  
   modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
                              nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
                              preProcY = preProcY, cvFrac = cvFrac, 
                              modelType = modelType, verbose = verbose)
   
   Ylarg <- ncol(Y)  
+  
   # Search for the optimal model based on DQ2
   if (modelType == 'da') {
-    dqq <- matrix(0, nrow = maxOrtholvs + 1, ncol = Ylarg)
-    PRESSD <- matrix(0, nrow = maxOrtholvs + 1, ncol = Ylarg)
+    dqq <- base::matrix(data = 0, nrow = maxOrtholvs+1, ncol = Ylarg)
+    PRESSD <- base::matrix(data = 0, nrow = maxOrtholvs+1, ncol = Ylarg)
     
     for (i in 0:maxOrtholvs) {
       for (j in 1:Ylarg) {
         # For each Y column, perform the DQ2
-        result <- DQ2(modelCV$cv$AllYhat[, Ylarg*i+j], Y[, j])
+        result <- DQ2(Ypred = base::matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
+                                           ncol = 1), 
+                      Y = base::matrix(data = Y[, j], 
+                                       ncol = 1))
         dqq[i+1, j] <- result$dqq  
         PRESSD[i+1, j] <- result$PRESSD
       }
     }
     
-    dq2 <- means(dqq) 
+    dq2 <- base::apply(X = dqq, MARGIN = 1, FUN = function(X) mean(X))
     index <- A  
     
     # Finds the optimal number of orthogonal components as a function of DQ2
@@ -164,53 +161,54 @@ RVConsensusOPLS <- function(data = collection,
   }
   
   # Recompute the optimal model using OrthoLVsNum parameters
-  modelCV$koplsModel <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
-                                   preProcK = preProcK, preProcY = preProcY)
+  modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
+                              preProcK = preProcK, preProcY = preProcY)
   
   # Adjust Yhat to the selected model size
-  modelCV$cv$Yhat <- modelCV$cv$AllYhat[, (Ylarg*A)+(OrthoLVsNum*A)+1 : 
-                                          (Ylarg*A)+(OrthoLVsNum*A)+Ylarg]
+  modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) : 
+                                          ((Ylarg*A)+(OrthoLVsNum*A)+Ylarg-1)]
   
   # Compute the blocks contributions for the selected model
+  lambda <- base::matrix(data = 0, nrow = ntable, ncol = A+OrthoLVsNum)
   for (j in 1:ntable) {
     for (k in 1:A) {
-      T <- modelCV$koplsModel$T[, k]
-      lambda[j, k] <- t(T)%*%AMat[j]%*%T
+      T <- modelCV$Model$T[, k]
+      lambda[j, k] <- t(T) %*% AMat[[j]] %*% T
     }
     for (l in 1:OrthoLVsNum) {
-      To <- modelCV$koplsModel$To[, l]
-      lambda[j, l+A] <- t(To)%*%AMat[j]%*%To
+      To <- modelCV$Model$To[, l]
+      lambda[j, l+A] <- t(To) %*% AMat[[j]] %*%To
     }
   }
   # Stores raw lambda coefficient values in the model object
-  modelCV$koplsModel$lambda_raw <- lambda 
+  modelCV$Model$lambda_raw <- lambda 
   
   # Normalize the lambda coefficients
   for (nb in 1:ncol(lambda)) {
-    lambda[, nb] <- lambda[, nb] / sum(lambda)
+    lambda[, nb] <- lambda[, nb] / base::sum(lambda[, nb])
   }
   # Stores normalized lambda values in the model object
-  modelCV$koplsModel$lambda <- lambda 
+  modelCV$Model$lambda <- lambda 
   
   # Compute the loadings for the selected model size
-  loadings <- list()
+  loadings <-  base::matrix(data = list(), nrow = ntable, ncol = (A+OrthoLVsNum))
   for (ta in 1:ntable) {
     for (m in 1:A) {
-      T <- modelCV$koplsModel$T[, m]
-      loadings[ta, m] <- t(collection[[ta]]) %*% T / t(T)%*%T
+      T <- base::matrix(modelCV$Model$T[, m], ncol = 1)
+      loadings[[ta, m]] <- t(collection[[ta]]) %*% T %*% base::solve(t(T) %*% T)
     }
     for (n in 1:OrthoLVsNum) {
-      To <- modelCV$koplsModel$To[, n]
-      loadings[ta, n+m] <- t(collection[[ta]]) %*% To / t(To)%*%To
+      To <- modelCV$Model$To[, n]
+      loadings[[ta, n+m]] <- list(t(collection[[ta]]) %*% To %*% base::solve(t(To) %*% To))
     }
   }
   
   # Add RV coefficients in the model objects
   modelCV$RV <- RV  
   # Add the loadings in the model objects
-  modelCV$koplsModel$loadings <- loadings 
+  modelCV$Model$loadings <- loadings 
   
   tStop <- Sys.time()
   return(list("execution_time" = as.numeric(tStop - tStart), 
-              "model" = model))
+              "model" = modelCV))
 }
