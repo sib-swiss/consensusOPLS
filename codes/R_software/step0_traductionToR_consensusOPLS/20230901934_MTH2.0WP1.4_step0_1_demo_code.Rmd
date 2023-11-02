@@ -140,7 +140,7 @@ This function also uses `RVmodified`, which have already been loaded to run
 `RVConsensusOPLS`. 
 
 ```{r permutation_function}
-# source(file = file.path(path_functions, "Step0_4_RVConcensusOPLSPerm.R"))
+source(file = file.path(path_functions, "Step0_4_RVConsensusOPLSPerm.R"))
 ```
 
 
@@ -426,12 +426,22 @@ ggplot2::ggplot(data = data_loads) +
 # Permutations
 
 ```{r run_permutations}
-PermRes <- RVConsensusOPLSPerm(collection = collection, 
-                               Y = Y, 
-                               nbruns = 1000, 
-                               PredLVs = LVsPred, 
+PermRes <- RVConsensusOPLSPerm(data = collection,
+                               Y = demo_data$Y,
+                               nbruns = 1000,
+                               PredLVs = LVsPred,
                                maxOrtholvs = LVsOrtho)
 ```
+
+```{r plot1_perm}
+PermRes$plot_R2val
+```
+
+```{r plot2_perm}
+PermRes$plot_Q2val
+```
+
+
 
 
 les sorties complètes des permutations (pas seulement Q2 mais aussi loadings et VIP)
