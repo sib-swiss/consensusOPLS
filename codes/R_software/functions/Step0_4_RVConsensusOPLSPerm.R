@@ -88,27 +88,68 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
   # Plot the results
   PermRes_df <- data.frame(
     "RV" = PermRes$RV,
-    "R2val" = PermRes$R2val,
-    "Q2val" = PermRes$Q2val
+    "Values" = c(PermRes$R2val, PermRes$Q2val),
+    "Type" = c(rep("RV", times = length(PermRes$R2val)),
+               rep("Q2", times = length(PermRes$Q2val)))
   )
   
-  p1 <- ggplot2::ggplot(data = PermRes_df,
-                        aes(x = RV, y = R2val)) +
+  # Scatterplots
+  p1 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "RV"), ],
+                        aes(x = RV, y = Values)) +
     ggplot2::geom_point(size = 2.5)+
     ggplot2::geom_smooth(method = 'lm')+
     ggplot2::xlab("RV") +
-    ggplot2::ylab("R2val") +
+    ggplot2::ylab("R2 values") +
     theme_graphs
   
-  p2 <- ggplot2::ggplot(data = PermRes_df,
-                        aes(x = RV, y = Q2val)) +
+  p2 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "Q2"), ],
+                        aes(x = RV, y = Values)) +
     ggplot2::geom_point(size = 2.5)+
     ggplot2::geom_smooth(method = 'lm')+
     ggplot2::xlab("RV") +
-    ggplot2::ylab("Q2val") +
+    ggplot2::ylab("Q2 values") +
+    theme_graphs
+  
+  # Scatterplots all in one
+  p3 <- ggplot2::ggplot(data = PermRes_df,
+                        aes(x = RV, y = Values, col = Type)) +
+    ggplot2::geom_point(size = 2.5)+
+    ggplot2::xlab("RV") +
+    ggplot2::ylab("R2 and Q2 values") +
+    theme_graphs
+  
+  # Histograms
+  p4 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "RV"), ],
+                        aes(x = Values)) +
+    ggplot2::geom_histogram(color="black", fill="white")+
+    ggplot2::geom_density(alpha=.2)+
+    ggplot2::xlab("Frequency") +
+    ggplot2::ylab("R2 values") +
+    theme_graphs
+  
+  p5 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "Q2"), ],
+                        aes(x = Values)) +
+    ggplot2::geom_histogram(color="black", fill="white")+
+    ggplot2::geom_density(alpha=.2)+
+    ggplot2::xlab("Frequency") +
+    ggplot2::ylab("Q2 values") +
+    theme_graphs
+  
+  # Histograms all in one
+  p6 <- ggplot2::ggplot(data = PermRes_df,
+                        aes(x = Values, col = Type)) +
+    ggplot2::geom_histogram(size = 2.5)+
+    ggplot2::geom_density(alpha=.2)+
+    ggplot2::xlab("RV") +
+    ggplot2::ylab("Q2 values") +
     theme_graphs
   
   # Return the result
-  return(list("plot_R2val" = p1, 
-              "plot_Q2val" = p2))
+  return(list("Permut_results" = PermRes,
+              "Plots" = list("R2val" = p1, 
+                             "Q2val" = p2,
+                             "R2_and_Q2" = p3,
+                             "R2val_hist" = p4, 
+                             "Q2val_hist" = p5,
+                             "R2_and_Q2_hist" = p6)))
 }
