@@ -1,0 +1,542 @@
+---
+title: 'A consensus orthogonal partial least squares discriminant analysis
+(OPLS-DA) strategy for multiblock Omics data fusion.'
+author: "Celine Bougel"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+bibliography: 20230901934_MTH2.0WP1.4_step1_1_vignette.bib
+biblio-style: apalike
+link-citations: yes
+nocite: '@*'
+output:
+  html_document:
+    code_folding: show
+    df_print: kable
+    highlight: pygments
+    number_sections: yes
+    self_contained: yes
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  editor_options:
+    chunk_output_type: console
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+# The Consensus OPLS method
+
+The `ConsensusOPLS` R package implements the translated `Matlab` version of the 
+**Consensus OPLS(-DA)** approach [@BOCCARD2013] (available at [Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)), with the 
+kernel-based reformulations of the **NIPALS** algorithm [@LINDGREN1993]. It 
+includes updated codes from the `KOPLS` R package: codes translated from the 
+`Matlab` version  were then compared and corrected, if necessary, according to 
+the package source codes [@BYLESJO2008] (available at [Github repository](https://github.com/sdechaumet/ramopls/tree/master/inst/package)).
+
+<span style="color:blue"> Fortement inspiré de la vignette ropls!</span> The 
+current package includes some quality metrics for the permutation models, as 
+**R2**, **Q2**, **DQ2** [@WESTERHUIS2008], <span style="color:blue"> the 
+permutation **diagnostics** (Szymanska et al. 2012), the computation of the 
+**VIP values** (Wold, Sjostrom, and Eriksson 2001), the score and orthogonal 
+distances to detect outliers (Hubert, Rousseeuw, and Vanden Branden 2005), as 
+well as many graphics (scores, loadings, predictions, diagnostics, outliers, 
+etc).</span>
+
+
+
+
+
+# Context
+
+Once the functions have been implemented on R, the aim was to perform a 
+discriminant analysis on the `demo_data` set proposed by Julien Boccard in his 
+method. This analysis concerned a selection of data from a publicly available repository of the National Cancer Institute, i.e. the NCI-60 dataset. This data set provides experimental data obtained from 60 human cancer cell lines derivated from nine tissus origins [@SHOEMAKER2006]. Two tissus were selected in this study: colon versus ovary.
+The data were divided into 3 blocks, evaluated on the same observations:
+
+- Metabolomics: 14x 150 variables
+- Microarray: 14x 200 variables
+- Proteomics: 14x 100 variables
+
+
+
+
+
+# R environment preparation
+
+```{r setup, class.source='fold-hide'}
+#install.packages("knitr")
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+
+# To ensure repeatability
+set.seed(12)
+```
+
+Before any action, it is necessary to verify that the needed packages are 
+installed (the code chunks are not shown) and to define define the localisation
+of the codes and the files.
+
+```{r access}
+path_data <- "../../../data/data_brut" 
+path_results <- "../../../results" 
+path_functions <- "../functions"
+```
+
+The code below has been designed to have as few dependencies as possible on R 
+packages, except for the stable packages.
+
+```{r packages_installation, class.source='fold-hide', warning=FALSE, include=FALSE, message=FALSE}
+#install.packages(c("R.matlab", "ggplot2", "ggrepel", "stats", "utils"))
+#update.packages(ask = FALSE)
+```
+
+```{r packages_load, warning=FALSE, message=FALSE, class.source='fold-hide'}
+library(R.matlab) # to read MATLAB data
+library(ggplot2) # to make beautiful graphs
+library(ggrepel) # to annotate ggplot2 graph
+library(stats) # to use R statistical functions
+library(utils) # to use R utility functions
+```
+
+Then we create a uniform theme that will be used for all graphic output.
+
+```{r theme_ggplot2, class.source='fold-hide'}
+theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
+                                   axis.title = element_text(size=16),
+                                   axis.text = element_text(size=14),
+                                   plot.title = element_text(size = 16),
+                                   legend.title = element_text(size = 14))
+```
+
+
+
+
+
+# Loading functions
+
+To execute the ConsensusOPLS method, the user must load all its functions.
+
+**Function `matrix2saisir`**
+
+```{r matrix2saisir, class.source='fold-hide'}
+source(file = file.path(path_functions, "Step0_1_matrix2saisir.R"))
+```
+
+**Functions called by `ConcensusOPLSCV`**
+
+```{r kopls_functions_for_ConsensusOPLSCV, class.source='fold-hide'}
+source(file = file.path(path_functions, "Step0_2_ConsensusOPLSCV.R"))
+source(file = file.path(path_functions, "Step0_2_1_koplsDummy.R"))
+source(file = file.path(path_functions, "Step0_2_2_koplsReDummy.R"))
+source(file = file.path(path_functions, "Step0_2_3_koplsCrossValSet.R"))
+source(file = file.path(path_functions, "Step0_2_4_koplsScale.R"))
+source(file = file.path(path_functions, "Step0_2_5_koplsCenterKTeTe.R"))
+source(file = file.path(path_functions, "Step0_2_6_koplsCenterKTeTr.R"))
+source(file = file.path(path_functions, "Step0_2_7_koplsCenterKTrTr.R"))
+source(file = file.path(path_functions, "Step0_2_8_koplsModel.R"))
+source(file = file.path(path_functions, "Step0_2_9_koplsPredict.R"))
+source(file = file.path(path_functions, "Step0_2_10_koplsReScale.R"))
+source(file = file.path(path_functions, "Step0_2_11_koplsMaxClassify.R"))
+source(file = file.path(path_functions, "Step0_2_12_koplsBasicClassify.R"))
+source(file = file.path(path_functions, "Step0_2_13_koplsConfusionMatrix.R"))
+source(file = file.path(path_functions, "Step0_2_14_koplsSensSpec.R"))
+source(file = file.path(path_functions, "Step0_2_15_koplsScaleApply.R"))
+```
+
+**Functions called by `RVConcensusOPLS`**
+
+This function also uses `koplsModel` and `koplsScale`, which have already been 
+loaded to run `ConcensusOPLSCV`.
+
+```{r kopls_functions_for_RVConsensusOPLS, class.source='fold-hide'}
+source(file = file.path(path_functions, "Step0_3_RVConsensusOPLS.R"))
+source(file = file.path(path_functions, "Step0_3_1_koplsKernel.R"))
+source(file = file.path(path_functions, "Step0_3_2_RVmodified.R"))
+source(file = file.path(path_functions, "Step0_3_3_DQ2.R"))
+```
+
+**Function called by `RVConcensusOPLSPerm`**
+
+This function also uses `RVmodified`, which have already been loaded to run 
+`RVConsensusOPLS`. 
+
+```{r permutation_function, class.source='fold-hide'}
+source(file = file.path(path_functions, "Step0_4_RVConsensusOPLSPerm.R"))
+```
+
+
+
+
+
+# Data preprocessing on `Demo_data` file
+
+As mentioned earlier, we use the demonstration dataset proposed by Julien 
+Boccard:
+
+```{r import_demo_data.mat}
+demo_data <- R.matlab::readMat(con = file.path(path_data, "demo_data.mat"))
+```
+
+This file corresponds to a `r class(demo_data)` of size `r length(demo_data)`.
+It contains the data of `r ls(demo_data)`.
+
+## Rename Block names
+
+```{r names_data}
+demo_data$BlockNames <- c("MetaboData", "MicroData", "ProteoData")
+```
+
+## Unit variance scaling
+
+To use the OPLS-DA consensus method, it is necessary to calculate the Z-score of 
+the data, i.e. each columns of the data are centered to have mean 0 and scaled
+to have standard deviation 1.
+
+```{r created_collection_data}
+# Extract the 3 blocks of data
+collection <- lapply(X = 1:length(demo_data$BlockNames), 
+                     FUN = function(X){
+                       # Extract the tables of data
+                       name_data <- demo_data$BlockNames[X]
+                       
+                       # Extract columns length for all subjects
+                       col_identic_val <- base::apply(X = demo_data[[name_data]],
+                                                      MARGIN = 2, 
+                                                      FUN = function(X){
+                                                        base::length(base::unique(X)) < 2})
+                       # Check identical values for all subjects and delete
+                       if(length(which(col_identic_val)) != 0){
+                         print(paste0("The columns ", paste(which(col_identic_val),
+                                                            sep = " ", 
+                                                            collapse = ", "), 
+                                      " of the ", name_data, 
+                                      " data contained columns with identical values."))
+                         data <- demo_data[[name_data]][, -which(col_identic_val)]
+                       } else{
+                         print(paste0("The ", name_data, 
+                                      " data doesn't contain columns with identical values."))
+                         data <- demo_data[[name_data]]
+                       }
+                       
+                       # Calculate the Z-score 
+                       # (mean centering and standard deviations scaling)
+                       scaled_data <- base::scale(data, center = TRUE,
+                                                  scale = TRUE)
+                       # Apply the function matrix2saisir
+                       matrix <- matrix2saisir(data = scaled_data,
+                                               coderow = NA, codecol = NA,
+                                               position_coderow = NA,
+                                               position_codecol = NA)
+                       
+                       # Return the result
+                       return(matrix)
+                       })
+```
+
+```{r rename_blocks}
+# Rename blocks with BlokNames
+names(collection) <- demo_data$BlockNames
+ls(collection)
+```
+
+The results were observed (results not shown).
+
+```{r check_collection_objects, class.source='fold-hide'}
+# View(collection[[names(collection)[1]]])
+# View(collection[[names(collection)[2]]])
+# View(collection[[names(collection)[3]]])
+```
+
+Missing data were observed in relation to the `Matlab` data. This is due to 
+columns having strictly identical values for all individuals, resulting in an 
+error when using the `scale` function. A check has therefore been added against 
+the source code demonstrating the use of the method. The dimensions of the data 
+after verification were therefore:
+
+```{r new_dim_collection}
+lapply(X = 1:length(collection),
+       FUN = function(X){dim(collection[[X]])})
+```
+
+Another check: all data blocks must be the same size. The user can see it in the 
+output above, but let's set up a code stop if this is not the case:
+
+```{r verif_size}
+size <- lapply(X = 1:length(collection),
+               FUN = function(X){
+                 dim(collection[[X]])[1]
+               })
+if (all(size == size[[1]])) {
+  size <- size[[1]]
+  paste0("All data sets have the same number of subjects: ", size, ".")
+} else {
+  stop("Data sets do not have the same number of subjects: ", size, ".")
+}
+```
+
+The next step in the source code is to extract the variable names (columns from 
+the previous table) according to the data table concerned.
+As the dimensions differ from those in Matlab following the previous 
+modifications, a new list is created to contain this information:
+
+```{r extract_variables_names}
+# Extraction of names matches for each data block
+list_var <- names(demo_data)[grep("VarNames", names(demo_data))]
+
+var_names <- lapply(X = 1:length(list_var), 
+                    FUN = function(X){
+                      name_var <- list_var[X]
+                      extract <- as.data.frame(demo_data[[name_var]])
+                      
+                      # Modifies input format
+                      base::apply(X = extract[1, ], MARGIN = 2,
+                                  FUN = function(X){
+                                    extract[1, ] <- as.character(unlist(X))
+                                  })
+                      return(extract[1, ])
+                    })
+
+# Rename blocks with BlokNames
+names(var_names) <- list_var
+ls(var_names)
+length(var_names[[1]])
+length(var_names[[2]])
+length(var_names[[3]])
+```
+
+
+
+
+
+# Consensus OPLS model
+
+Computation of a consensusOPLS model with leave-one-out cross-validation.
+
+```{r define_cv_parameters}
+# Number of predictive component(s)
+LVsPred <- 1
+
+# Maximum number of orthogonal components
+LVsOrtho <- 1
+
+# Number of cross-validation folds
+CVfolds <- size
+CVfolds
+```
+
+```{r run_consensusOPLSmodel}
+RVConsensusOPLSModelCV <- RVConsensusOPLS(data = collection,
+                                          Y = demo_data$Y,
+                                          A = LVsPred,
+                                          maxOrtholvs = LVsOrtho,
+                                          nrcv = CVfolds,
+                                          cvType = "nfold",
+                                          modelType = "da",
+                                          verbose = TRUE)
+```
+
+
+
+# Display the main results
+
+```{r print_main_results}
+position <- RVConsensusOPLSModelCV$model$cv$OrthoLVsOptimalNum+1
+paste0('R2: ', round(RVConsensusOPLSModelCV$model$Model$R2Yhat[position], 4))
+paste0('Q2: ', round(RVConsensusOPLSModelCV$model$cv$Q2Yhat[position], 4))
+paste0('DQ2: ', round(RVConsensusOPLSModelCV$model$cv$DQ2Yhat[position], 4))
+
+#Confusion matrix
+RVConsensusOPLSModelCV$model$da$confusMatrix
+```
+
+
+# Plot the results
+
+## Consensus Score plot
+
+```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
+ggplot2::ggplot(data = data.frame("x" = RVConsensusOPLSModelCV$model$Model$T,
+                                  "y" = RVConsensusOPLSModelCV$model$Model$To,
+                                  "Labels" = as.matrix(base::unlist(demo_data$ObsNames[, 1]))),
+                aes(x = x, y = y, label = Labels, 
+                    shape = Labels, colour = Labels)) +
+  ggplot2::xlim(-0.5, 0.5)+
+  ggplot2::ylim(-1, 1)+
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("ConsensusOPLS Score plot")+
+  ggplot2::geom_point(size = 2.5) + 
+  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs
+```
+
+## Block contributions to the predictive component
+
+```{r ggplot_data_pred_compo, class.source='fold-hide'}
+ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$lambda[,1],
+                                  "Blocks" = as.factor(labels(collection))),
+                aes(x = Blocks, y = Values,
+                    fill = Blocks, labels = Values)) +
+  ggplot2::geom_bar(stat = 'identity') + 
+  ggplot2::xlab("Data blocks") +
+  ggplot2::ylab("Weight") +
+  ggplot2::ggtitle("Block contributions to the predictive component")+
+  theme_graphs
+```
+
+## Block contributions to the first orthogonal component
+
+```{r ggplot_data_1st_ortho_compo, class.source='fold-hide'}
+ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$lambda[,2],
+                                  "Blocks" = as.factor(labels(collection))),
+                aes(x = Blocks, y = Values,
+                    fill = Blocks, labels = Values)) +
+  ggplot2::geom_bar(stat = 'identity') + 
+  ggplot2::xlab("Data blocks") +
+  ggplot2::ylab("Weight") +
+  ggplot2::ggtitle("Block contributions to the first orthogonal component")+
+  theme_graphs
+```
+
+## Block contributions: the two previous plots into one
+
+```{r ggplot_data_pred_ortho, class.source='fold-hide'}
+data_two_plots <- data.frame("Values" = RVConsensusOPLSModelCV$model$Model$lambda[,1],
+                             "Type" = "Pred",
+                             "Blocks" = labels(collection))
+data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
+                                          RVConsensusOPLSModelCV$model$Model$lambda[,2]),
+                             "Type" = c(data_two_plots$Type,
+                                        rep("1st_ortho", times = length(RVConsensusOPLSModelCV$model$Model$lambda[,2]))),
+                             "Blocks" = c(data_two_plots$Blocks,
+                                          labels(collection)))
+
+ggplot2::ggplot(data = data_two_plots,
+                aes(x = factor(Type), y = Values, fill = Blocks)) +
+  ggplot2::geom_bar(stat = 'identity') + 
+  ggplot2::xlab("Data blocks") +
+  ggplot2::ylab("Weight") +
+  ggplot2::ggtitle("Block contributions to each component")+
+  facet_wrap(. ~ Blocks)+
+  theme_graphs
+```
+
+
+
+## Block contributions predictive vs. orthogonal
+
+```{r ggplot_data_pred_vs_ortho, class.source='fold-hide'}
+ggplot2::ggplot(data = data.frame("Pred" = RVConsensusOPLSModelCV$model$Model$lambda[,1],
+                                  "Ortho" = RVConsensusOPLSModelCV$model$Model$lambda[,2],
+                                  "Labels" = labels(collection)),
+                aes(x = Pred, y = Ortho, label = Labels, 
+                    shape = Labels, colour = Labels)) +
+  ggplot2::xlim(0, 0.5)+
+  ggplot2::ylim(0, 0.5)+
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("Block contributions predictive vs. orthogonal")+
+  ggplot2::geom_point(size = 2.5) + 
+  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs
+```
+
+## Loading plots (one for each table)
+
+```{r create_data_loadings}
+loadings <- RVConsensusOPLSModelCV$model$Model$loadings
+data_loads <- sapply(X = 1:length(collection),
+                     FUN = function(X){
+                       data.frame("Pred" = loadings[X,1][[1]],
+                                  "Ortho" = loadings[X,2][[1]][[1]],
+                                  "Labels" = labels(collection)[[X]])
+                     })
+data_loads <- as.data.frame(data_loads)
+```
+
+```{r ggplot_data_loadings, class.source='fold-hide'}
+ggplot2::ggplot(data = data_loads) +
+  ggplot2::geom_point(data = as.data.frame(data_loads$V1),
+                      aes(x = Pred, y = Ortho, colour = Labels), 
+                      size = 2.5) + 
+  ggplot2::geom_point(data = as.data.frame(data_loads$V2),
+                      aes(x = Pred, y = Ortho, colour = Labels),
+                      size = 2.5) +
+  ggplot2::geom_point(data = as.data.frame(data_loads$V3),
+                      aes(x = Pred, y = Ortho, colour = Labels),
+                      size = 2.5) +
+  ggplot2::xlim(-4, 4)+
+  ggplot2::ylim(-3, 3)+
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("ConsensusOPLS Loading plot")+
+  theme_graphs
+```
+
+
+
+
+
+# Permutations
+
+```{r run_permutations}
+# data = collection; Y = demo_data$Y; nbruns = 1000; PredLVs = LVsPred; maxOrtholvs = LVsOrtho;
+PermRes <- RVConsensusOPLSPerm(data = collection,
+                               Y = demo_data$Y,
+                               nbruns = 1000,
+                               PredLVs = LVsPred,
+                               maxOrtholvs = LVsOrtho)
+```
+
+```{r plot1_perm}
+PermRes$Plots$R2val
+```
+
+```{r plot2_perm}
+PermRes$Plots$Q2val
+```
+
+```{r plot3_perm}
+PermRes$Plots$R2_and_Q2
+```
+
+```{r plot4_perm}
+PermRes$Plots$R2val_hist
+```
+
+```{r plot5_perm}
+PermRes$Plots$Q2val_hist
+```
+
+```{r plot6_perm}
+PermRes$Plots$R2_and_Q2_hist
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Reproducibility
+
+Here is the output of `sessionInfo()` on the system on which this document was compiled:
+
+```{r reproducibility}
+sessionInfo()
+```
+
+# References
