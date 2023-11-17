@@ -16,6 +16,8 @@ classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
     1(Step0_1_matrix2saisir) 
     0 --> 2
     2(RVConsensusOPLSPerm)
+	0 --> 11
+	11(VIP)
 
     1 --- |include in matrix2saisir| 3
     3(add code)
@@ -97,6 +99,11 @@ This structure has been reproduced for the git tree: one branch per function
 and per code file. Next, the functions were tested on example datasets 
 (`demo_data` proposed by Julien Boccard in its Matlab version) and verified. 
 Finally, all the branches will be merged to finalize the method.
+
+A second folder has also been created. It is named `ConsensusOPLS`. It contains 
+the publishable version of the R code, with the structure of a CRAN R package. 
+In this folder, the previous codes are grouped by functionality. They have 
+also been optimized.
 
 # KOPLS R package
 
