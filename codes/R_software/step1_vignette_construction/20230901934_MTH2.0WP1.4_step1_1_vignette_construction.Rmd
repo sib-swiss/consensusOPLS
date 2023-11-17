@@ -55,12 +55,22 @@ etc).</span>
 
 Once the functions have been implemented on R, the aim was to perform a 
 discriminant analysis on the `demo_data` set proposed by Julien Boccard in his 
-method. This analysis concerned a selection of data from a publicly available repository of the National Cancer Institute, i.e. the NCI-60 dataset. This data set provides experimental data obtained from 60 human cancer cell lines derivated from nine tissus origins [@SHOEMAKER2006]. Two tissus were selected in this study: colon versus ovary.
-The data were divided into 3 blocks, evaluated on the same observations:
+method. This analysis concerned a selection of data from a publicly available 
+repository of the National Cancer Institute, i.e. the NCI-60 dataset. This data 
+set provides experimental data obtained from 60 human cancer cell lines derived 
+from nine tissue origins [@SHOEMAKER2006]. Two tissue were selected in this 
+study (colon versus ovary), and three data sources were chosen: transcriptomics,
+proteomics and metabolomics data (3 blocks of data, evaluated on the same 
+observations):
 
 - Metabolomics: 14x 150 variables
 - Microarray: 14x 200 variables
 - Proteomics: 14x 100 variables
+
+The combinaison of these data sources was excepted to provide a global profiling 
+of the cell lines in an integrative systems biology perspective. The Consensus 
+OPLS-DA strategy was applied for the differential analysis of the two selected 
+tumour origins and the simultaneous analysis of the three blocks of data.
 
 
 
@@ -159,6 +169,12 @@ source(file = file.path(path_functions, "Step0_3_1_koplsKernel.R"))
 source(file = file.path(path_functions, "Step0_3_2_RVmodified.R"))
 source(file = file.path(path_functions, "Step0_3_3_DQ2.R"))
 ```
+
+**Function for VIP**
+```{r VIP_function, class.source='fold-hide'}
+source(file = file.path(path_functions, "Step0_5_VariableImportanceProjection.R"))
+```
+
 
 **Function called by `RVConcensusOPLSPerm`**
 
@@ -340,6 +356,9 @@ RVConsensusOPLSModelCV <- RVConsensusOPLS(data = collection,
                                           verbose = TRUE)
 ```
 
+The execution time for this part of the method takes `r RVConsensusOPLSModelCV$execution_time`.
+
+
 
 
 # Display the main results
@@ -353,6 +372,13 @@ paste0('DQ2: ', round(RVConsensusOPLSModelCV$model$cv$DQ2Yhat[position], 4))
 #Confusion matrix
 RVConsensusOPLSModelCV$model$da$confusMatrix
 ```
+
+```{r print_VIP, class.source='fold-hide'}
+VIP <- MBVIP(collection = collection, Y = demo_data$Y, 
+             model = RVConsensusOPLSModelCV)
+names(VIP) <- demo_data$BlockNames
+```
+
 
 
 # Plot the results
@@ -372,7 +398,8 @@ ggplot2::ggplot(data = data.frame("x" = RVConsensusOPLSModelCV$model$Model$T,
   ggplot2::ggtitle("ConsensusOPLS Score plot")+
   ggplot2::geom_point(size = 2.5) + 
   ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
-  theme_graphs
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
 ```
 
 ## Block contributions to the predictive component
@@ -386,7 +413,8 @@ ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$
   ggplot2::xlab("Data blocks") +
   ggplot2::ylab("Weight") +
   ggplot2::ggtitle("Block contributions to the predictive component")+
-  theme_graphs
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 ## Block contributions to the first orthogonal component
@@ -400,7 +428,8 @@ ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$
   ggplot2::xlab("Data blocks") +
   ggplot2::ylab("Weight") +
   ggplot2::ggtitle("Block contributions to the first orthogonal component")+
-  theme_graphs
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 ## Block contributions: the two previous plots into one
@@ -417,13 +446,15 @@ data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
                                           labels(collection)))
 
 ggplot2::ggplot(data = data_two_plots,
-                aes(x = factor(Type), y = Values, fill = Blocks)) +
+                aes(x = factor(Type), y = Values, fill = factor(Type))) +
   ggplot2::geom_bar(stat = 'identity') + 
   ggplot2::xlab("Data blocks") +
   ggplot2::ylab("Weight") +
   ggplot2::ggtitle("Block contributions to each component")+
   facet_wrap(. ~ Blocks)+
-  theme_graphs
+  theme_graphs+
+  ggplot2::scale_fill_discrete(name = "Component")+
+  ggplot2::scale_fill_manual(values = c("#7F3C8D", "#11A579"))
 ```
 
 
@@ -443,7 +474,8 @@ ggplot2::ggplot(data = data.frame("Pred" = RVConsensusOPLSModelCV$model$Model$la
   ggplot2::ggtitle("Block contributions predictive vs. orthogonal")+
   ggplot2::geom_point(size = 2.5) + 
   ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
-  theme_graphs
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 ## Loading plots (one for each table)
@@ -463,19 +495,20 @@ data_loads <- as.data.frame(data_loads)
 ggplot2::ggplot(data = data_loads) +
   ggplot2::geom_point(data = as.data.frame(data_loads$V1),
                       aes(x = Pred, y = Ortho, colour = Labels), 
-                      size = 2.5) + 
+                      size = 2.5, alpha = 0.5) + 
   ggplot2::geom_point(data = as.data.frame(data_loads$V2),
                       aes(x = Pred, y = Ortho, colour = Labels),
-                      size = 2.5) +
+                      size = 2.5, alpha = 0.5) +
   ggplot2::geom_point(data = as.data.frame(data_loads$V3),
                       aes(x = Pred, y = Ortho, colour = Labels),
-                      size = 2.5) +
+                      size = 2.5, alpha = 0.5) +
   ggplot2::xlim(-4, 4)+
   ggplot2::ylim(-3, 3)+
   ggplot2::xlab("Predictive component") +
   ggplot2::ylab("Orthogonal component") +
   ggplot2::ggtitle("ConsensusOPLS Loading plot")+
-  theme_graphs
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 
@@ -484,7 +517,7 @@ ggplot2::ggplot(data = data_loads) +
 
 # Permutations
 
-```{r run_permutations}
+```{r run_permutations, warning=FALSE}
 # data = collection; Y = demo_data$Y; nbruns = 1000; PredLVs = LVsPred; maxOrtholvs = LVsOrtho;
 PermRes <- RVConsensusOPLSPerm(data = collection,
                                Y = demo_data$Y,
@@ -492,6 +525,8 @@ PermRes <- RVConsensusOPLSPerm(data = collection,
                                PredLVs = LVsPred,
                                maxOrtholvs = LVsOrtho)
 ```
+
+The execution time for this part of the method takes `r PermRes$execution_time`.
 
 ```{r plot1_perm}
 PermRes$Plots$R2val
