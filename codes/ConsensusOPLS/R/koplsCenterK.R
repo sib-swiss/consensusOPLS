@@ -28,11 +28,10 @@
 #' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
 #' KteTe <- matrix(1:25, nrow = 5, ncol = 5)
 #' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
-#' test <- koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
+#' test <- ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
 #' test
 #' 
 #' @keywords internal
-
 koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
   # Variable format control
   if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr)) {
@@ -71,11 +70,10 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
 #' @examples
 #' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
 #' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
-#' test <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
+#' test <- ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' test
 #' 
 #' @keywords internal
-
 koplsCenterKTeTr <- function(KteTr, KtrTr){
   # Variable format control
   if (!is.matrix(KteTr) || !is.matrix(KtrTr)) {
@@ -108,11 +106,10 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
 #'
 #' @examples
 #' K <- matrix(1:25, nrow = 5, ncol = 5)
-#' test <- koplsCenterKTrTr(K = K)
+#' test <- ConsensusOPLS:::koplsCenterKTrTr(K = K)
 #' test
 #' 
 #' @keywords internal
-
 koplsCenterKTrTr <- function(K){
   # Variable format control
   if(!is.matrix(K)){stop("K is not a matrix.")}
@@ -120,7 +117,7 @@ koplsCenterKTrTr <- function(K){
   # Define parameters
   I <- diag(nrow(K))
   scaling_matrix <- (1/nrow(K)) * (rep(x = 1, times = nrow(K)) %*% 
-                                     t(rep(x = 1, times = nrow(K))))
+                                       t(rep(x = 1, times = nrow(K))))
   
   # Center the kernel
   K <- (I- scaling_matrix) %*% K %*% (I - scaling_matrix)

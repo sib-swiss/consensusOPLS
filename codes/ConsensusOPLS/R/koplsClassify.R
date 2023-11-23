@@ -26,11 +26,10 @@
 #'                              x3 = c(9, 5, 4, 9),
 #'                              x4 = c(3, 4, 1, 2)))
 #' k <- 4
-#' test <- koplsBasicClassify(X = data, k = k)
+#' test <- ConsensusOPLS:::koplsBasicClassify(X = data, k = k)
 #' test
 #' 
 #' @keywords internal
-
 koplsBasicClassify <- function(X, k){
   # Variable format control
   if(!is.matrix(X)){stop("X is not a matrix.")}
@@ -61,11 +60,10 @@ koplsBasicClassify <- function(X, k){
 #'                              x2 = c(7, 1, 1, 5),
 #'                              x3 = c(9, 5, 4, 9),
 #'                              x4 = c(3, 4, 1, 2)))
-#' test <- koplsMaxClassify(X = data)
+#' test <- ConsensusOPLS:::koplsMaxClassify(X = data)
 #' test
 #' 
 #' @keywords internal
-
 koplsMaxClassify <- function(X){
   # Variable format control
   if(!is.matrix(X)){stop("X is not a matrix.")}

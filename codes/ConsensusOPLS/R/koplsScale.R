@@ -26,12 +26,12 @@
 #' \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
 #' \item{matrix}{ matrix. Original input matrix X, scaled according to 
 #' \code{centerType} and \code{scaleType}.}
-#'
+#' 
 #' @examples
 #' X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-#' Y <- koplsScale(X, centerType = "mc", scaleType = "pa")
+#' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
-#' 
+#' @importFrom stats sd
 #' @keywords internal
 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
@@ -98,7 +98,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
 #' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
 #' according to \code{centerType} and \code{scaleType}.
-#' 
+#' }
 #' @examples
 #' data <- matrix(data = c(-1.732051, 0, 1.732051, 
 #'                         2, 0,-2,
@@ -106,7 +106,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #'                nrow = 3, ncol = 3)
 #' scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
 #'                "stdV" = 1.581139, "matrix" = data)
-#' test <- koplsRescale(scaleS)
+#' test <- ConsensusOPLS:::koplsRescale(scaleS)
 #' test
 #' test$X
 #' 
@@ -155,11 +155,11 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
 #' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
 #' according to \code{centerType} and \code{scaleType}.
-#'
+#' }
 #' @examples
 #' X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-#' Y <- koplsScale(X, centerType = "mc", scaleType = "pa")
-#' Z <- koplsScaleApply(model = Y, X = Y$matrix)
+#' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
+#' Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$matrix)
 #' Z$matrix
 #' 
 #' @keywords internal
