@@ -1,16 +1,6 @@
 #' @title koplsBasicClassify
 #' @description Classification function that assesses class belonging of a 
-#' predicted response in 'data' based on a fixed threshold 'k'.
-#' 
-#' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
-#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-#' 
-#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-#' 
-#' This code has been extended and adapted under the terms of the GNU General 
-#' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
+#' predicted response in \code{data} based on a fixed threshold \code{k}.
 #'
 #' @param X matrix. It contains the predicted response matrix Y,
 #' where columns denote classes and rows observations.
@@ -30,6 +20,7 @@
 #' test
 #' 
 #' @keywords internal
+
 koplsBasicClassify <- function(X, k){
   # Variable format control
   if(!is.matrix(X)){stop("X is not a matrix.")}
@@ -37,7 +28,7 @@ koplsBasicClassify <- function(X, k){
   
   # Search predicted class(es)
   predClass <- apply(X > k, MARGIN = 1, 
-                     FUN = function(row) {which(row)})
+                     FUN = function(row){which(row)})
   
   # Return the predicted class(es).
   return(predClass)
@@ -46,8 +37,8 @@ koplsBasicClassify <- function(X, k){
 
 
 #' @title koplsMaxClassify
-#' @description Classification function that assesses class belonging of 'data' 
-#' based on the maximum value.
+#' @description Classification function that assesses class belonging of 
+#' \code{data} based on the maximum value.
 #' 
 #' @param X matrix. It contains the predicted response matrix Y, where 
 #' columns denote classes and rows observations.
@@ -64,6 +55,7 @@ koplsBasicClassify <- function(X, k){
 #' test
 #' 
 #' @keywords internal
+
 koplsMaxClassify <- function(X){
   # Variable format control
   if(!is.matrix(X)){stop("X is not a matrix.")}

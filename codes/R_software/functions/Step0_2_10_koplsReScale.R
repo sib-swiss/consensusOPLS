@@ -1,6 +1,6 @@
-#' koplsRescale
-#' Scales a matrix based on pre-defined parameters from a scaling
-#' object defined in a list (result of 'koplsScale' function).
+#' @title koplsRescale
+#' @description Scales a matrix based on pre-defined parameters from a scaling
+#' object defined in a list (result of \code{koplsScale} function).
 #' 
 #' # ------------------------------------------------------------------------ #
 #' This file is part of the K-OPLS package, developed by Max Bylesjo, 
@@ -12,20 +12,21 @@
 #' Public License version 2 as published by the Free Software Foundation.
 #' # ------------------------------------------------------------------------ #
 #'
-#' @param scaleS: list. It contains scaling parameters 
-#' @param varargin: matrix. If defined, this matrix will be scaled and returned.
-#' Otherwise the original data set in the scaleS object will be scaled and 
+#' @param scaleS list. It contains scaling parameters.
+#' @param varargin matrix. If defined, this matrix will be scaled and returned.
+#' Otherwise the original data set in the \code{scaleS} object will be scaled and 
 #' returned. 
 #'
-#' @return
-#' A list containing the following entries:
-#' `centerType`: character. 'mc' (mean-centering) or 'no' (no centering).
-#' `scaleType`: character. 'uv' (unit variance), 'pa' (pareto) or 'no' (no scaling).
-#' `meanV`: vector. It contains the mean values for all columns in X.
-#' `stdV`: vector. It contains the standard deviations for all columns in X.
-#' `X`: matrix. Scaled version of 'varargin', if defined, otherwise, scaled 
-#' version of 'scaleS$matrix' from input. Scaling is done according to 
-#' 'centerType' and 'scaleType'.
+#' @return A list containing the following entries:
+#' \item{centerType}{ character. Indicates the centering method of the X matrix:
+#' \code{mc} (mean-centering) or \code{no} (no centering).}
+#' \item{scaleType}{ character. Indicates the scaling method of the X matrix: 
+#' \code{uv} (unit variance), \code{pa} (pareto) or \code{no} (no scaling).}
+#' \item{meanV}{ vector. Contains the mean values for all columns in X.}
+#' \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
+#' \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
+#' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
+#' according to \code{centerType} and \code{scaleType}.
 #'
 #' @examples
 #' data <- base::matrix(data = c(-1.732051, 0, 1.732051, 2, 0, 
@@ -36,6 +37,8 @@
 #' test <- koplsRescale(scaleS)
 #' test
 #' test$X
+#' 
+#' @keywords internal
 
 koplsRescale <- function(scaleS, varargin = NULL){
   # Variable format control
@@ -48,22 +51,16 @@ koplsRescale <- function(scaleS, varargin = NULL){
   }
   
   # Center the matrix
-  if(scaleS$centerType == "mc"){
-    X <- X+scaleS$meanV
-  }
+  if(scaleS$centerType == "mc"){X <- X + scaleS$meanV}
   
   # Scale the matrix
-  if(scaleS$scaleType == "uv"){
-    X <- X*scaleS$stdV
-  }
-  if(scaleS$scaleType == "pa"){
-    X <- X*sqrt(scaleS$stdV)
-  }
+  if(scaleS$scaleType == "uv"){X <- X * scaleS$stdV}
+  if(scaleS$scaleType == "pa"){X <- X * sqrt(scaleS$stdV)}
   
   # Return the list of parameters
-  return(scaleS = list("centerType" = "no",
-                       "scaleType" = "no",
-                       "meanV" = scaleS$meanV, 
-                       "stdV" = scaleS$stdV,
-                       "X" = X))
+  return(list("centerType" = "no",
+              "scaleType" = "no",
+              "meanV" = scaleS$meanV, 
+              "stdV" = scaleS$stdV,
+              "X" = X))
 }

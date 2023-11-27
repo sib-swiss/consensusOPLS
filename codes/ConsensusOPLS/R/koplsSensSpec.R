@@ -1,15 +1,5 @@
 #' @title koplsSensSpec
 #' @description Calculates sensitivity and specificity in a class-wise fashion.
-#' 
-#' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
-#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-#' 
-#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-#' 
-#' This code has been extended and adapted under the terms of the GNU General 
-#' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
 #'
 #' @param trueClass matrix. Row vector of true class assignments (template). 
 #' @param predClass matrix. Matrix (or row vector) of class assignments to be 
@@ -24,11 +14,12 @@
 #' sensitivity \code{meanSens} and mean specificity \code{meanSpec} (which are 
 #' equals to the value for each class). The last line shows the total values for 
 #' each column (named \code{tot}).}
-#'
+#' 
 #' @examples
-#' trueClass <- base::sample(x = 2:6, size = 100, replace = TRUE)
-#' predClass <- base::sample(x = 1:5, size = 100, replace = TRUE)
-#' test <- koplsSensSpec(trueClass = trueClass, predClass = predClass)
+#' trueClass <- sample(x = 2:6, size = 100, replace = TRUE)
+#' predClass <- sample(x = 1:5, size = 100, replace = TRUE)
+#' test <- ConsensusOPLS:::koplsSensSpec(trueClass = trueClass, 
+#'                                       predClass = predClass)
 #' test
 #' 
 #' @keywords internal
@@ -57,7 +48,7 @@ koplsSensSpec <- function(trueClass, predClass){
     predClass <- as.matrix(predClass)
   } else{
     if(is.vector(trueClass) & is.matrix(predClass)){
-      if(nrow(predClass) != base::length(trueClass)){
+      if(nrow(predClass) != length(trueClass)){
         stop("Template vector (trueClass) differs in length from the matrix 
              (predClass) to be compared.")
       }
@@ -65,38 +56,37 @@ koplsSensSpec <- function(trueClass, predClass){
   }
   
   # Contingency table
-  contingency <- base::table(trueClass, predClass)
-  label_class <- as.character(base::sort(base::union(x = trueClass, 
-                                                     y = predClass)))
+  contingency <- table(trueClass, predClass)
+  label_class <- as.character(sort(union(x = trueClass, y = predClass)))
   
   # Define TruePositifs
-  TP <- base::sapply(label_class,
-                     FUN = function(x) {
-                       if(x %in% rownames(contingency) && x %in% colnames(contingency)){
-                         contingency[x, x]
-                       } else{0}
-                     })
+  TP <- sapply(label_class,
+               FUN = function(x) {
+                 if(x %in% rownames(contingency) && x %in% colnames(contingency)){
+                   contingency[x, x]
+                 } else{0}
+               })
   # Define TrueNegatifs
-  TN <- base::sapply(label_class,
-                     FUN = function(x) {
-                       sum(TP) - if(x %in% rownames(contingency) && x %in% colnames(contingency)){
-                         contingency[x, x]
-                       } else{0}
-                     })
+  TN <- sapply(label_class,
+               FUN = function(x) {
+                 sum(TP) - if(x %in% rownames(contingency) && x %in% colnames(contingency)){
+                   contingency[x, x]
+                 } else{0}
+               })
   # Define FalsePositifs
-  FN <- base::sapply(label_class,
-                     FUN = function(x) {
-                       if(x %in% rownames(contingency)){
-                         sum(contingency[x, colnames(contingency) != x])
-                       } else{0}
-                     })
+  FN <- sapply(label_class,
+               FUN = function(x) {
+                 if(x %in% rownames(contingency)){
+                   sum(contingency[x, colnames(contingency) != x])
+                 } else{0}
+               })
   # Define FalseNegatifs
-  FP <- base::sapply(label_class,
-                     FUN = function(x) {
-                       if(x %in% colnames(contingency)){
-                         sum(contingency[rownames(contingency) != x, x])
-                       } else{0}
-                     })
+  FP <- sapply(label_class,
+               FUN = function(x) {
+                 if(x %in% colnames(contingency)){
+                   sum(contingency[rownames(contingency) != x, x])
+                 } else{0}
+               })
   
   # Sensitivity for each class
   sens <- TP / (TP + FN)

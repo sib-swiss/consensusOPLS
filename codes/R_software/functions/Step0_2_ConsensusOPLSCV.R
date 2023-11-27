@@ -259,9 +259,9 @@ ConsensusOPLSCV <- function(K, Y,
     YScaleObjTest <- koplsScaleApply(model = YScaleObj, X = cvSet$yTest)
     
     if(preProcK == "mc"){
-      KteTe <- koplsCenterKTeTe(KteTe,KteTr,KtrTr)
-      KteTr <- koplsCenterKTeTr(KteTr,KtrTr)
-      KtrTr <- koplsCenterKTrTr(KtrTr)
+      KteTe <- koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
+      KteTr <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
+      KtrTr <- koplsCenterKTrTr(K = KtrTr)
     }
     
     # Estimate K-OPLS model

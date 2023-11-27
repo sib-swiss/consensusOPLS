@@ -1,8 +1,9 @@
-#' @title blabla
+#' @title ConsensusOPLS
 #' @description
 #' A short description...
+#' 
 #' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
+#' This package uses functions from the K-OPLS package, developed by Max Bylesjo, 
 #' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
 #' 
 #' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 

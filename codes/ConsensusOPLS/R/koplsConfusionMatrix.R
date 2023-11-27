@@ -1,16 +1,6 @@
 #' @title koplsConfusionMatrix
 #' @description Calculates a confusion matrix from classification results.
 #' 
-#' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
-#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-#' 
-#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-#' 
-#' This code has been extended and adapted under the terms of the GNU General 
-#' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
-#'
 #' @param true_class vector. Indicates the true class belonging.
 #' @param pred matrix. predicted class assignment. 
 #'
@@ -20,7 +10,7 @@
 #' @examples
 #' true_class <- c(1, 2, 1, 2, 3, 3)
 #' pred <- base::matrix(c(1, 2, 3, 2, 3, 3), nrow = length(true_class), ncol = 1)
-#' test <- koplsConfusionMatrix(true_class, pred)
+#' test <- ConsensusOPLS:::koplsConfusionMatrix(true_class, pred)
 #' test
 
 
@@ -34,19 +24,14 @@ koplsConfusionMatrix <- function(true_class, pred){
   
   # Check uniqueClass format
   if (!is.numeric(uniqueClass)){
-    # Function loading control
-    if (!exists("koplsDummy", mode = "function")) {
-      warning("Remember to load the source code for the `koplsDummy` function.")
-    }
-    
-    a1 <- koplsDummy(X = true_class, numClasses = NA)
+    a1 <- ConsensusOPLS:::koplsDummy(X = true_class, numClasses = NA)
     colnames(a1) <- 1:nrow(a1)
     
     true2 <- base::matrix(data = NA, nrow = nrow(a1), ncol = 1)
     true_class <- base::apply(X = a1, MARGIN = 2,
                               FUN = function(X){
                                 true2[X > 0, 1] <- colnames(X)
-                              })
+                                })
   }
   
   # Initialize parameters

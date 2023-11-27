@@ -1,5 +1,5 @@
-#' koplsScale
-#' Function for mean-centering and scaling of a matrix.
+#' @title koplsScale
+#' @description Function for mean-centering and scaling of a matrix.
 #' 
 #' # ------------------------------------------------------------------------ #
 #' This file is part of the K-OPLS package, developed by Max Bylesjo, 
@@ -11,26 +11,28 @@
 #' Public License version 2 as published by the Free Software Foundation.
 #' # ------------------------------------------------------------------------ #
 #'
-#' @param X: matrix. The matrix to be centered and scaled.
-#' @param centerType: character. Indicates the centering method of the X matrix: 
-#' mean centering (`mc`) or no centering (`no`). Default is `no` centering.
-#' @param scaleType: character. Indicates the scaling method of the X matrix: 
-#' `uv` for unit variance scaling (`pa`) for Pareto scaling or `no` for no 
-#' scaling. Default is 'no' scaling.
+#' @param X matrix. The matrix to be centered and scaled.
+#' @param centerType character. Indicates the centering method of the \code{X} 
+#' matrix: mean centering (\code{mc}) or no centering (\code{no}). Default is 
+#' \code{no} centering.
+#' @param scaleType character. Indicates the scaling method of the \code{X} 
+#' matrix: \code{uv} for unit variance scaling (\code{pa}) for Pareto scaling or 
+#' \code{no} for no scaling. Default is \code{no} scaling.
 #'
-#' @return
-#' a list with:
-#' `centerType`: character. Indicates the centering method of the X matrix.
-#' `scaleType`: character. Indicates the scaling method of the X matrix.
-#' `meanV`: vector. Contains the mean values for all columns in X.
-#' `stdV`: vector. Contains the standard deviations for all columns in X.
-#' `matrix`: matrix. Original input matrix X, scaled according to 
-#' 'centerType' and 'scaleType'.
+#' @return A list containing the following entries:
+#' \item{centerType}{ character. Indicates the centering method of the X matrix.}
+#' \item{scaleType}{ character. Indicates the scaling method of the X matrix.}
+#' \item{meanV}{ vector. Contains the mean values for all columns in X.}
+#' \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
+#' \item{matrix}{ matrix. Original input matrix X, scaled according to 
+#' \code{centerType} and \code{scaleType}.}
 #'
 #' @examples
 #' X <- base::matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 #' Y <- koplsScale(X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
+#'  
+#' @keywords internal
 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
   # Variable format control
@@ -45,22 +47,23 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
     if(!(scaleType %in% c("uv", "pa", "no"))){
       stop("scaleType must be `uv`, `pa` or `no`.")}
   }
+  #scaleType <- match.arg(scaleType, c("uv", "pa", "no"))
   
   # Calculation of dispersion parameters before center and scale matrix
-  meanV <- base::apply(X = X, 2, FUN = function(X){mean(X)})
-  stdV <- base::apply(X = X, 2, FUN = function(X){sd(X)})
+  meanV <- base::colMeans(X)
+  stdV <- base::apply(X = X, 2, FUN = function(X){stats::sd(X)})
   
   # Center the matrix
   if(centerType == "mc"){
-    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X - mean(X)})
+    X <- base::scale(x = X, center = TRUE, scale = FALSE)
   }
   
   # Scale the matrix
   if(scaleType == "uv"){
-    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/sd(X)})
+    X <- base::scale(x = X, center = FALSE, scale = TRUE)
   }
   if(scaleType == "pa"){
-    X <- base::apply(X = X, MARGIN = 2, FUN = function(X){X/sqrt(sd(X))})
+    X <- base::apply(X = X, MARGIN = 2, FUN = function(col){ col/sqrt(stats::sd(col))})
   }
   
   # Return a list with all parameters

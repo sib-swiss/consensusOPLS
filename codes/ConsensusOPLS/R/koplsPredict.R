@@ -3,16 +3,6 @@
 #' The function projects the Y-predictive and Y-orthogonal scores components 
 #' to predict a value of the response matrix Y. The dimensions of the 
 #' parameters is determined from the specified model.
-#' 
-#' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
-#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-#' 
-#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-#' 
-#' This code has been extended and adapted under the terms of the GNU General 
-#' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
 #'
 #' @param KteTr matrix. The hybrid test/training kernel matrix. 
 #' KteTr = <phi(Xte),phi(Xtr)>.
@@ -65,32 +55,23 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     rescaleY <- 0
   } else{if(!is.logical(rescaleY)){stop("rescaleY is not logical.")}}
   
-  # Function loading control
-  if (!exists("koplsCenterKTeTe", mode = "function")) {
-    warning("Remember to load the source code for the `koplsCenterKTeTe` function.")
-  }
-  if (!exists("koplsCenterKTeTr", mode = "function")) {
-    warning("Remember to load the source code for the `koplsCenterKTeTr` function.")
-  }
-  if (!exists("koplsRescale", mode = "function")) {
-    warning("Remember to load the source code for the `koplsRescale` function.")
-  }
-  
   # Step1: mean centering of K matrices
   # the order of the code below is important
   KteTeMc <- Ktest
   if (model$preProc$K == "mc") {
-    KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
+    KteTeMc <- ConsensusOPLS:::koplsCenterKTeTe(KteTe = Ktest, 
+                                                KteTr = KteTr, 
+                                                KtrTr = Ktrain)
   }
-  KteTe <- base::matrix(data = list(NULL), nrow = model$nox+1, ncol = model$nox+1)
+  KteTe <- matrix(data = list(NULL), nrow = model$nox+1, ncol = model$nox+1)
   KteTe[1,1][[1]] <- KteTeMc
   
   KteTrMc <- KteTr
   if (model$preProc$K == "mc") {
-    KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
+    KteTrMc <- ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
   }
-  KteTrTmp <- base::matrix(data = list(NULL), nrow = model$nox+1, 
-                           ncol = model$nox+1)
+  KteTrTmp <- matrix(data = list(NULL), nrow = model$nox+1, 
+                     ncol = model$nox+1)
   KteTrTmp[1,1][[1]] <- KteTrMc
   KteTr <- KteTrTmp
   
@@ -115,16 +96,19 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
       KteTe[i+1,i+1][[1]] <- KteTe[i,i][[1]] - 
         KteTr[i,i][[1]] %*% model$to[[i]] %*% t(to[[i]]) - 
         to[[i]] %*% t(model$to[[i]]) %*% t(KteTr[i,i][[1]]) + 
-        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] %*% model$to[[i]] %*% t(to[[i]])
+        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] %*% model$to[[i]] %*% 
+        t(to[[i]])
       
       # Step2.5: Update KTeTr
-      KteTr[i+1,1][[1]] <- KteTr[i,1][[1]] - to[[i]] %*% t(model$to[[i]]) %*% t(model$K[1,i][[1]])
+      KteTr[i+1,1][[1]] <- KteTr[i,1][[1]] - to[[i]] %*% t(model$to[[i]]) %*% 
+        t(model$K[1,i][[1]])
       
       # Step2.6: Update KTeTr
       KteTr[i+1,i+1][[1]] <- KteTr[i,i][[1]] - 
         KteTr[i,i][[1]] %*% model$to[[i]] %*% t(model$to[[i]]) - 
         to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] + 
-        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] %*% model$to[[i]] %*% t(model$to[[i]])
+        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] %*% model$to[[i]] %*% 
+        t(model$to[[i]])
     } # Step2.7: end loop
   }
   
@@ -144,7 +128,8 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
       } else{
         scaleParams <- model$preProc$paramsY
       }
-      YhatRescaled <- koplsRescale(scaleS = scaleParams, varargin = Yhat)
+      YhatRescaled <- ConsensusOPLS:::koplsRescale(scaleS = scaleParams, 
+                                                   varargin = Yhat)
       Yhat <- YhatRescaled$X
     } else{
       warning("Attempted re-scale of Yhat although no pre-processing 

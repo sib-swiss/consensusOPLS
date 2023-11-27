@@ -3,16 +3,6 @@
 #' from the test matrix Xte as KteTe = <phi(Xte), phi(Xte)>.
 #' Requires additional (un-centered) kernels KteTr and KteTr to estimate mean 
 #' values.
-#' 
-#' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
-#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-#' 
-#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-#' 
-#' This code has been extended and adapted under the terms of the GNU General 
-#' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
 #'
 #' @param KteTe matrix. Contains the test kernel matrix, 
 #' KteTe = <phi(Xte), phi(Xte)>.  
@@ -25,13 +15,17 @@
 #' \item{KteTe}{ matrix. The centered test kernel matrix.}
 #'
 #' @examples
-#' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
-#' KteTe <- matrix(1:25, nrow = 5, ncol = 5)
-#' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
-#' test <- ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
+#' KteTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
+#' KteTe <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
+#' KtrTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
+#' test <- ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, 
+#'                                          KteTr = KteTr, 
+#'                                          KtrTr = KtrTr)
 #' test
 #' 
 #' @keywords internal
+#' @import stats
+
 koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
   # Variable format control
   if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr)) {
@@ -39,13 +33,12 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
   }
   
   # Define parameters
-  scaling_matrix <- (1/ncol(KteTr)) * rep(x = 1, 
-                                          times = nrow(KteTr)) %*% 
-    t(rep(x = 1, times = ncol(KteTr)))
+  scaling_matrix <- matrix(1/nrow(KteTr), nrow = nrow(KteTr), ncol = ncol(KteTr))
   
   # Center the kernel
-  KteTe <- KteTe - scaling_matrix %*% t(KteTr) - KteTr %*% t(scaling_matrix) + 
-    scaling_matrix %*% KtrTr %*% t(scaling_matrix)
+  KteTe <- KteTe - tcrossprod(scaling_matrix, KteTr) - 
+    tcrossprod(KteTr, scaling_matrix) + 
+    tcrossprod(scaling_matrix, tcrossprod(scaling_matrix, KtrTr))
   
   # Return the centered test kernel matrix
   return(KteTe)
@@ -68,12 +61,14 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
 #' \item{KteTr}{ matrix. The centered kernel matrix.}
 #' 
 #' @examples
-#' KteTr <- matrix(1:25, nrow = 5, ncol = 5)
-#' KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
+#' KteTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
+#' KtrTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
 #' test <- ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' test
 #' 
 #' @keywords internal
+#' @import stats
+
 koplsCenterKTeTr <- function(KteTr, KtrTr){
   # Variable format control
   if (!is.matrix(KteTr) || !is.matrix(KtrTr)) {
@@ -82,12 +77,13 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
   
   # Define parameters
   I_nTrain <- rep(x = 1, times = nrow(KtrTr))
-  scaling_matrix <- (1/nrow(KtrTr)) * rep(x = 1, 
-                                          times = nrow(KteTr)) %*% t(I_nTrain)
+  scaling_matrix <- (1/nrow(KtrTr)) * tcrossprod(rep(x = 1, 
+                                                     times = nrow(KteTr)), 
+                                                 I_nTrain)
   
   # Center the kernel
-  KteTr <- (KteTr - scaling_matrix %*% KtrTr) %*% 
-    (diag(nrow(KtrTr)) - 1/nrow(KtrTr) * I_nTrain %*% t(I_nTrain))
+  KteTr <- tcrossprod(KteTr - tcrossprod(scaling_matrix, t(KtrTr)),
+                      diag(nrow(KtrTr)) - 1/nrow(KtrTr) * tcrossprod(I_nTrain))
   
   # Return the centered kernel matrix.
   return(KteTr)
@@ -110,17 +106,18 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
 #' test
 #' 
 #' @keywords internal
+#' @import stats
+
 koplsCenterKTrTr <- function(K){
   # Variable format control
   if(!is.matrix(K)){stop("K is not a matrix.")}
   
   # Define parameters
   I <- diag(nrow(K))
-  scaling_matrix <- (1/nrow(K)) * (rep(x = 1, times = nrow(K)) %*% 
-                                       t(rep(x = 1, times = nrow(K))))
+  scaling_matrix <- matrix(1/nrow(K), nrow = nrow(K), ncol = ncol(K))
   
   # Center the kernel
-  K <- (I- scaling_matrix) %*% K %*% (I - scaling_matrix)
+  K <- crossprod(I- scaling_matrix, crossprod(t(K), I - scaling_matrix))
   
   # Return the centered kernel matrix
   return(K)

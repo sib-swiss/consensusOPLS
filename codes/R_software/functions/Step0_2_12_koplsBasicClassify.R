@@ -1,6 +1,6 @@
-#' koplsBasicClassify
-#' Classification function that assesses class belonging of a predicted
-#' response in 'data' based on a fixed threshold 'k'.
+#' @title koplsBasicClassify
+#' @description Classification function that assesses class belonging of a 
+#' predicted response in \code{data} based on a fixed threshold \code{k}.
 #' 
 #' # ------------------------------------------------------------------------ #
 #' This file is part of the K-OPLS package, developed by Max Bylesjo, 
@@ -12,12 +12,13 @@
 #' Public License version 2 as published by the Free Software Foundation.
 #' # ------------------------------------------------------------------------ #
 #'
-#' @param data: matrix containing the predicted response matrix Y,
+#' @param X matrix. It contains the predicted response matrix Y,
 #' where columns denote classes and rows observations.
-#' @param k: threshold value used to assign class categories.
+#' @param k numeric. Threshold value used to assign class categories.
 #'
 #' @return
-#' `predClass`: the predicted class(es) of `data` given `k`.
+#' \item{predClass}{ matrix. The predicted class(es) of \code{data} given 
+#' \code{k}.}
 #'
 #' @examples
 #' data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),
@@ -25,23 +26,20 @@
 #'                              x3 = c(9, 5, 4, 9),
 #'                              x4 = c(3, 4, 1, 2)))
 #' k <- 4
-#' test <- koplsBasicClassify(data = data, k = k)
+#' test <- koplsBasicClassify(X = data, k = k)
 #' test
+#' 
+#' @keywords internal
 
-koplsBasicClassify <- function(data, k){
+koplsBasicClassify <- function(X, k){
   # Variable format control
-  if(!is.matrix(data)){stop("data is not a matrix.")}
+  if(!is.matrix(X)){stop("X is not a matrix.")}
   if(!is.numeric(k)){stop("k is not numeric.")}
   
-  # Initialization
-  predClass <- base::matrix(NA, nrow = nrow(data), ncol = ncol(data))
-  
   # Search predicted class(es)
-  for (i in 1:nrow(data)) {
-    tmp <- base::which(data[i, ] > k)
-    predClass[i, 1:length(tmp)] <- tmp
-  }
+  predClass <- base::apply(X > k, MARGIN = 1, 
+                           FUN = function(row) {base::which(row)})
   
-  # Return the predicted class(es) of 'data' given 'k'.
+  # Return the predicted class(es).
   return(predClass)
 }

@@ -1,15 +1,5 @@
 #' @title koplsScale
 #' @description Function for mean-centering and scaling of a matrix.
-#' 
-#' # ------------------------------------------------------------------------ #
-#' This file is part of the K-OPLS package, developed by Max Bylesjo, 
-#' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-#' 
-#' Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-#' 
-#' This code has been extended and adapted under the terms of the GNU General 
-#' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
 #'
 #' @param X matrix. The matrix to be centered and scaled.
 #' @param centerType character. Indicates the centering method of the \code{X} 
@@ -31,12 +21,11 @@
 #' X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 #' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
-#' @importFrom stats sd
+#' 
+#' @importFrom stats
 #' @keywords internal
 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
-  tStart <- Sys.time()
-  
   # Variable format control
   if(!is.matrix(X)){stop("X is not a matrix.")}
   if(!is.character(centerType)){stop("centerType is not a character.")
@@ -52,7 +41,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
   
   # Calculation of dispersion parameters before center and scale matrix
   meanV <- colMeans(X)
-  stdV <- apply(X = X, MARGIN = 2, FUN = function(X){sd(X)})
+  stdV <- apply(X = X, MARGIN = 2, FUN = function(X){stats::sd(X)})
   
   # Center the matrix
   if(centerType == "mc"){
@@ -66,15 +55,13 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
   if(scaleType == "pa"){
     X <- apply(X = X, MARGIN = 2, FUN = function(col){ col/sqrt(sd(col))})
   }
-  
-  tStop <- Sys.time()
+
   # Return a list with all parameters
   return(list("centerType" = centerType,
               "scaleType" = scaleType,
               "meanV" = meanV,
               "stdV" = stdV,
-              "matrix" = X,
-              "execution_time" = as.numeric(tStop - tStart)))
+              "matrix" = X))
 }
 
 
@@ -85,8 +72,8 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' 
 #' @param scaleS list. It contains scaling parameters.
 #' @param varargin matrix. If defined, this matrix will be scaled and returned.
-#' Otherwise the original data set in the \code{scaleS} object will be scaled and 
-#' returned. 
+#' Otherwise the original data set in the \code{scaleS} object will be scaled 
+#' and returned. 
 #'
 #' @return A list containing the following entries:
 #' \item{centerType}{ character. Indicates the centering method of the X matrix:
@@ -99,6 +86,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
 #' according to \code{centerType} and \code{scaleType}.
 #' }
+#' 
 #' @examples
 #' data <- matrix(data = c(-1.732051, 0, 1.732051, 
 #'                         2, 0,-2,
@@ -156,6 +144,7 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
 #' according to \code{centerType} and \code{scaleType}.
 #' }
+#' 
 #' @examples
 #' X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 #' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
