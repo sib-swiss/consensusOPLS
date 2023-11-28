@@ -187,34 +187,35 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
   }## step 11: end loop
   
   ## step 12: Tp[[nox+1]]
-  Tp[[nox+1]] <- t(K[1, nox+1][[1]]) %*% Up %*% Sps
+  Tp[[nox+1]] <- base::crossprod(K[1, nox+1][[1]], base::crossprod(t(Up), Sps))
   
   ## step 13: Bt[[nox+1]]
-  Bt[[nox+1]] <- base::solve( t(Tp[[nox+1]]) %*% Tp[[nox+1]] ) %*% t(Tp[[nox+1]]) %*% Up
+  Bt[[nox+1]] <- base::crossprod( t(base::solve( base::crossprod(Tp[[nox+1]]) )),
+                                  base::crossprod(Tp[[nox+1]], Up))
   
   # ---------- extra stuff -----------------
   # should work but not fully tested (MB 2007-02-19)
   sstot_Y <- base::sum( base::sum(Y**2))
-  F <- Y - Up %*% t(Cp)
+  F <- Y - base::tcrossprod(Up, Cp)
   R2Y <- 1 - base::sum( base::sum( F**2 ))/sstot_Y
   # --------- #
   
-  EEprime <- K[nox+1, nox+1][[1]] - Tp[[nox+1]] %*% t(Tp[[nox+1]])
+  EEprime <- K[nox+1, nox+1][[1]] - base::tcrossprod(Tp[[nox+1]])
   sstot_K <- base::sum( base::diag(K[1,1][[1]]))
   
   R2X <- c(); R2XO <- c(); R2XC <- c(); R2Yhat <- c();
   for(i in 1:(nox+1)){
-    rss <- base::sum( base::diag(K[i,i][[1]] -  Tp[[i]]%*%t(Tp[[i]])) )
+    rss <- base::sum( base::diag(K[i,i][[1]] -  base::tcrossprod(Tp[[nox+1]])) )
     R2X <- c(R2X, 1- rss/sstot_K)
     
-    rssc <- base::sum( base::diag( K[1,1][[1]] - Tp[[i]]%*%t(Tp[[i]]) ) )
+    rssc <- base::sum( base::diag( K[1,1][[1]] - base::tcrossprod(Tp[[nox+1]]) ) )
     R2XC <- c(R2XC, 1- rssc/sstot_K)
     
     rsso <- base::sum( base::diag( K[i,i][[1]] ))    
     R2XO <- c(R2XO, 1- rsso/sstot_K)
     
     # R2Yhat 22 Jan 2010 / MR - not fully tested
-    Yhat <- Tp[[i]] %*% Bt[[i]] %*% t(Cp)
+    Yhat <- base::crossprod(t(Tp[[i]]), base::tcrossprod(Bt[[i]], Cp))
     R2Yhat <- c(R2Yhat, 1 - sum( sum((Yhat - Y)**2) )/sstot_Y )
   } # fin K-OPLS model
   
