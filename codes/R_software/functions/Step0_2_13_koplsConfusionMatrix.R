@@ -50,22 +50,30 @@ koplsConfusionMatrix <- function(true_class, pred){
   }
   
   # Initialize parameters
-  A <- base::matrix(data = 0, nrow = length(uniqueClass),
-                    ncol = length(uniqueClass))
+  A <- base::matrix(data = 0, nrow = base::length(uniqueClass),
+                    ncol = base::length(uniqueClass))
   
-  # For each class
-  for(i in 1: base::length(uniqueClass)){
-    # Find the indices where uniqueClass equals the current class
-    indTrue <- base::which(true_class == uniqueClass[i])
-    for(j in 1: base::length(indTrue)){
-      # Find the corresponding prediction
-      predIndex <- base::which(uniqueClass == pred[indTrue[j]])
-      # Update the co-occurrence matrix
-      A[i, predIndex] <- A[i, predIndex] + 1
-    }
-    # Normalize the row by dividing by the number of occurrences
-    A[i, ] <- A[i, ] / base::length(indTrue)
-  }
+  # For each class, find the true class indices
+  indTrue <- base::lapply(X = uniqueClass, 
+                          FUN = function(cls) which(true_class == cls))
+  
+  # For each class, find the corresponding prediction
+  predIndex <- base::match(pred, uniqueClass)
+  
+  # Calculating the occurrences of each unique class
+  pred_freqs <- base::sapply(X = indTrue,
+                             FUN = function(indices){
+                               if(length(indices) > 0){
+                                 pred_classes <- predIndex[indices]
+                                 pred_counts <- base::table(pred_classes)
+                                 pred_counts/ base::length(indices)
+                               } else{
+                                 base::rep(x = 0, times = base::length(uniqueClass))
+                               }
+                             })
+  
+  #bug here..
+  A[] <- t(pred_freqs)
   
   # Return the confusion matrix
   return(A)
