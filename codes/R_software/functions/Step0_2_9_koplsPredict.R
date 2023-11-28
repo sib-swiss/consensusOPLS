@@ -31,8 +31,8 @@
 #' \code{nox} of Y-orthogonal vectors.}
 #' \item{to}{ vector. Predicted Y-orthogonal score vectors.}
 #' \item{T}{ matrix. Predictive score matrix for the final model.}
-#' \item{KteTr}{ matrix. Predictive score matrix for the final model with 'nox' 
-#' Y-orthogonal vectors.}
+#' \item{KteTr}{ matrix. Predictive score matrix for the final model with 
+#' \code{nox} Y-orthogonal vectors.}
 #' \item{EEprime}{ matrix. Calculated residuals for the test kernel \code{Ktest}, 
 #' useful e.g. for residual statistics.}
 #' \item{Yhat}{ matrix. Predicted values of the response matrix.}
@@ -45,9 +45,9 @@
 koplsPredict <- function(KteTr, Ktest, Ktrain,
                          model, nox, rescaleY){
   # Variable format control
-  if(!is.matrix(KteTr)){stop("KteTr is not a matrix.")}
-  if(!is.matrix(Ktest)){stop("Ktest is not a matrix.")}
-  if(!is.matrix(Ktrain)){stop("Ktrain is not a matrix.")}
+  if (!is.matrix(KteTr) || !is.matrix(Ktest) || !is.matrix(Ktrain)) {
+    stop("One or more kernel inputs are not matrices.")
+  }
   if(!is.list(model)){
     stop("model is not a list containing model parameters.")
   } else{if(model$class != "kopls"){stop("Model must be of type `kopls`.")}}
@@ -102,29 +102,44 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
   if(nox > 0){
     for(i in 1:nox){
       ## Step2.2: Predicted predictive score matrix
-      Tp[[i]] <- KteTr[i,1][[1]] %*% model$Up %*% model$Sps
+      Tp[[i]] <- base::tcrossprod(KteTr[i,1][[1]],
+                                  base:tcrossprod( t(model$Sps), t(model$Up)))
       
       # Step2.3: Predicted Y-orthogonal score vectors
-      to[[i]] <- (KteTr[i,i][[1]] - Tp[[i]]%*%t(model$Tp[[i]])) %*% 
-        model$Tp[[i]] %*% model$co[[i]] %*% model$so[[i]]**(-1/2)
+      to[[i]] <- base::crossprod(t((KteTr[i,i][[1]] - base::tcrossprod(Tp[[i]], 
+                                                                       model$Tp[[i]]))),
+                                 base::tcrossprod(model$Tp[[i]], 
+                                                  base::tcrossprod(t(base::sqrt(model$so[[i]])), 
+                                                                   t(model$co[[i]]))))
       
       # Step2.4: Normalize to
       to[[i]] <- to[[i]]/model$toNorm[[i]]
       
       # Step2.4.5: deflate KteTe (this is an EXTRA feature - not in alg. in paper)
       KteTe[i+1,i+1][[1]] <- KteTe[i,i][[1]] - 
-        KteTr[i,i][[1]] %*% model$to[[i]] %*% t(to[[i]]) - 
-        to[[i]] %*% t(model$to[[i]]) %*% t(KteTr[i,i][[1]]) + 
-        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] %*% model$to[[i]] %*% t(to[[i]])
+        base::crossprod(t(KteTr[i,i][[1]]), base::tcrossprod(model$to[[i]], to[[i]])) - 
+        base::crossprod(t(to[[i]]), base::crossprod(model$to[[i]], t(KteTr[i,i][[1]]))) +
+        base::crossprod(t(to[[i]]),
+                        base::crossprod(model$to[[i]],
+                                        base::crossprod(t(model$K[i,i][[1]]),
+                                                        base::tcrossprod(model$to[[i]],
+                                                                         to[[i]]))))
       
       # Step2.5: Update KTeTr
-      KteTr[i+1,1][[1]] <- KteTr[i,1][[1]] - to[[i]] %*% t(model$to[[i]]) %*% t(model$K[1,i][[1]])
+      KteTr[i+1,1][[1]] <- KteTr[i,1][[1]] - 
+        base::crossprod(t(to[[i]]),
+                        base::crossprod(model$to[[i]], t(model$K[1,i][[1]])))
       
       # Step2.6: Update KTeTr
       KteTr[i+1,i+1][[1]] <- KteTr[i,i][[1]] - 
-        KteTr[i,i][[1]] %*% model$to[[i]] %*% t(model$to[[i]]) - 
-        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] + 
-        to[[i]] %*% t(model$to[[i]]) %*% model$K[i,i][[1]] %*% model$to[[i]] %*% t(model$to[[i]])
+        base::crossprod(t(KteTr[i,i][[1]]),
+                        base::tcrossprod(model$to[[i]])) - 
+        base::crossprod(t(to[[i]]),
+                        base::crossprod(model$to[[i]], model$K[i,i][[1]])) + 
+        base::crossprod(t(to[[i]]), 
+                        base::crossprod(model$to[[i]], 
+                                        base::crossprod(t(model$K[i,i][[1]]), 
+                                                        base::tcrossprod(model$to[[i]]))))
     } # Step2.7: end loop
   }
   
@@ -132,8 +147,10 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     i <- 0
   }
   
-  Tp[[i+1]] <- KteTr[i+1,1][[1]] %*% model$Up %*% model$Sps
-  Yhat <- Tp[[i+1]] %*% model$Bt[[i+1]] %*% t(model$Cp)
+  Tp[[i+1]] <- base::tcrossprod(KteTr[i+1,1][[1]],
+                                base::tcrossprod(t(model$Sps), t(model$Up)))
+  Yhat <- base::crossprod(t(Tp[[i+1]]),
+                          base::tcrossprod(model$Bt[[i+1]], model$Cp))
   
   if(!is.null(rescaleY)){
     if(model$preProc$Y == "no"){
@@ -153,8 +170,7 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
   }
   
   #---- Extra stuff ----------------------------------
-  #this appears to be correct - but does not match previous code...
-  EEprime <- KteTe[i+1,i+1][[1]] - Tp[[i+1]] %*% t(Tp[[i+1]])
+  EEprime <- KteTe[i+1,i+1][[1]] - base::tcrossprod(Tp[[i+1]])
   #--------------------------------------------------
   
   # Return the list of prediction parameters

@@ -84,7 +84,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
   
   # Check kernel centering
   if(preProcK == "mc"){
-    Kmc <- koplsCenterKTrTr(K = K)
+    Kmc <- ConsensusOPLS:::koplsCenterKTrTr(K = K)
   } else{
     Kmc <- K
   }
@@ -96,11 +96,13 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
   
   # Preprocess Y
   if(preProcY != "no"){
-    scaleParams <- koplsScale(X = Y_old, 
-                              centerType = ifelse(preProcY == "mc", 
-                                                  yes = "mc", no = "no"), 
-                              scaleType = ifelse(preProcY == "mc", 
-                                                 yes = "no", no = preProcY))
+    scaleParams <- ConsensusOPLS:::koplsScale(X = Y_old, 
+                                              centerType = 
+                                                ifelse(preProcY == "mc", 
+                                                       yes = "mc", no = "no"), 
+                                              scaleType = 
+                                                ifelse(preProcY == "mc", 
+                                                       yes = "no", no = preProcY))
     Y <- scaleParams$matrix
   }
   
