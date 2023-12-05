@@ -24,93 +24,93 @@
 #' 
 #' @keywords internal
 
-koplsSensSpec <- function(trueClass, predClass){
-  # Variable format control
-  if(!is.data.frame(trueClass) & !is.matrix(trueClass)){
-    warning("trueClass is neither a matrix nor a data.frame,
+koplsSensSpec <- function(trueClass, predClass) {
+    # Variable format control
+    if (!is.data.frame(trueClass) & !is.matrix(trueClass)) {
+        warning("trueClass is neither a matrix nor a data.frame,
             so it was converted into a matrix.")
-    trueClass <- as.matrix(trueClass)
-  }
-  if(!is.data.frame(predClass) & !is.matrix(predClass)){
-    warning("predClass is neither a matrix nor a data.frame, 
+        trueClass <- as.matrix(trueClass)
+    }
+    if (!is.data.frame(predClass) & !is.matrix(predClass)) {
+        warning("predClass is neither a matrix nor a data.frame, 
             so it was converted into a matrix.")
-    predClass <- as.matrix(predClass)
-  }
-  
-  # Check dimensions
-  if(is.vector(trueClass) & is.vector(predClass)){
-    if(length(predClass) != length(trueClass)){
-      stop("Template vector (trueClass) differs in length from the vector 
-           (predClass) to be compared.")
+        predClass <- as.matrix(predClass)
     }
     
-    # Forces matrix conversion for the code below
-    predClass <- as.matrix(predClass)
-  } else{
-    if(is.vector(trueClass) & is.matrix(predClass)){
-      if(nrow(predClass) != length(trueClass)){
-        stop("Template vector (trueClass) differs in length from the matrix 
+    # Check dimensions
+    if (is.vector(trueClass) & is.vector(predClass)) {
+        if (length(predClass) != length(trueClass)) {
+            stop("Template vector (trueClass) differs in length from the vector 
+           (predClass) to be compared.")
+        }
+        
+        # Forces matrix conversion for the code below
+        predClass <- as.matrix(predClass)
+    } else {
+        if (is.vector(trueClass) & is.matrix(predClass)) {
+            if (nrow(predClass) != length(trueClass)) {
+                stop("Template vector (trueClass) differs in length from the matrix 
              (predClass) to be compared.")
-      }
+            }
+        }
     }
-  }
-  
-  # Contingency table
-  contingency <- table(trueClass, predClass)
-  label_class <- as.character(sort(union(x = trueClass, y = predClass)))
-  
-  # Define TruePositifs
-  TP <- sapply(label_class,
-               FUN = function(x) {
-                 if(x %in% rownames(contingency) && x %in% colnames(contingency)){
-                   contingency[x, x]
-                 } else{0}
-               })
-  # Define TrueNegatifs
-  TN <- sapply(label_class,
-               FUN = function(x) {
-                 sum(TP) - if(x %in% rownames(contingency) && x %in% colnames(contingency)){
-                   contingency[x, x]
-                 } else{0}
-               })
-  # Define FalsePositifs
-  FN <- sapply(label_class,
-               FUN = function(x) {
-                 if(x %in% rownames(contingency)){
-                   sum(contingency[x, colnames(contingency) != x])
-                 } else{0}
-               })
-  # Define FalseNegatifs
-  FP <- sapply(label_class,
-               FUN = function(x) {
-                 if(x %in% colnames(contingency)){
-                   sum(contingency[rownames(contingency) != x, x])
-                 } else{0}
-               })
-  
-  # Sensitivity for each class
-  sens <- TP / (TP + FN)
-  # Specificity for each class
-  spec <- TN / (TN + FP)
-  
-  # Correct missing values
-  sens[is.na(sens)] <- 0
-  spec[is.na(spec)] <- 0
-  
-  # Results for each class
-  results <- data.frame(TP = c(TP, sum(TP)),
-                        TN = c(TN, sum(TN)),
-                        FP = c(FP, sum(FP)),
-                        FN = c(FN, sum(FN)),
-                        N = c(TP+TN+FP+FN, sum(TP+FP)),
-                        sens = c(sens, sum(TP)/ sum(TP + FN)),
-                        spec = c(spec, sum(TN)/ sum(TN + FP)),
-                        meanSens = c(sens, mean(sens)),
-                        meanSpec = c(spec, mean(spec)))
-  
-  # Change rownames
-  rownames(results) <- c(label_class, "tot")
-  
-  #Return the data frame
-  return(results)
+    
+    # Contingency table
+    contingency <- table(trueClass, predClass)
+    label_class <- as.character(sort(union(x = trueClass, y = predClass)))
+    
+    # Define TruePositifs
+    TP <- sapply(label_class,
+                 FUN = function(x) {
+                     if (x %in% rownames(contingency) && x %in% colnames(contingency)) {
+                         contingency[x, x]
+                     } else{0}
+                 })
+    # Define TrueNegatifs
+    TN <- sapply(label_class,
+                 FUN = function(x) {
+                     sum(TP) - if(x %in% rownames(contingency) && x %in% colnames(contingency)){
+                         contingency[x, x]
+                     } else{0}
+                 })
+    # Define FalsePositifs
+    FN <- sapply(label_class,
+                 FUN = function(x) {
+                     if(x %in% rownames(contingency)) {
+                         sum(contingency[x, colnames(contingency) != x])
+                     } else 0
+                 })
+    # Define FalseNegatifs
+    FP <- sapply(label_class,
+                 FUN = function(x) {
+                     if (x %in% colnames(contingency)) {
+                         sum(contingency[rownames(contingency) != x, x])
+                     } else 0
+                 })
+    
+    # Sensitivity for each class
+    sens <- TP / (TP + FN)
+    # Specificity for each class
+    spec <- TN / (TN + FP)
+    
+    # Correct missing values
+    sens[is.na(sens)] <- 0
+    spec[is.na(spec)] <- 0
+    
+    # Results for each class
+    results <- data.frame(TP = c(TP, sum(TP)),
+                          TN = c(TN, sum(TN)),
+                          FP = c(FP, sum(FP)),
+                          FN = c(FN, sum(FN)),
+                          N = c(TP+TN+FP+FN, sum(TP+FP)),
+                          sens = c(sens, sum(TP)/ sum(TP + FN)),
+                          spec = c(spec, sum(TN)/ sum(TN + FP)),
+                          meanSens = c(sens, mean(sens)),
+                          meanSpec = c(spec, mean(spec)))
+    
+    # Change rownames
+    rownames(results) <- c(label_class, "tot")
+    
+    #Return the data frame
+    return (results)
 }

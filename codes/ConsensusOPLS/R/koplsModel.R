@@ -51,8 +51,8 @@
 #' \item{preProc$paramsY}{ character. Pre-processing scaling parameters for Y.}
 #'
 #' @examples
-#' K <- matrix(26:50, nrow = 5)
-#' Y <- matrix(1:15, nrow = 5)
+#' K <- ConsensusOPLS:::koplsKernel(X1=matrix(rnorm(20), nrow = 5), Ktype='g', params=c(sigma=1.0))
+#' Y <- matrix(rnorm(15), nrow = 5)
 #' A <- 2
 #' nox <- 4
 #' preProcK <- "mc"
@@ -63,185 +63,183 @@
 #' 
 #' @keywords internal
 
-koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
-  # Variable format control
-  if(!is.matrix(K)){stop("K is not a matrix.")}
-  if(!is.matrix(Y)){stop("Y is not a matrix.")}
-  if(!is.numeric(A)){stop("A is not a numeric.")}
-  if(!is.numeric(nox)){stop("nox is not a numeric.")}
-  if(!is.character(preProcK)){stop("preProcK is not a character.")
-  } else{
-    if(!(preProcK %in% c("mc", "no"))){stop("preProcK must be `mc` or `no`.")}
-  }
-  if(!is.character(preProcY)){stop("preProcY is not a character.")
-  } else{ 
-    if(!(preProcY %in% c("mc", "uv", "pa", "no"))){
-      stop("preProcY must be `mc`, `uv`, `pa` or `no`.")}
-  }
-  
-  # Initialize parameters
-  I <- diag(ncol(K))
-  
-  # Check kernel centering
-  if(preProcK == "mc"){
-    Kmc <- ConsensusOPLS:::koplsCenterKTrTr(K = K)
-  } else{
-    Kmc <- K
-  }
-  K <- matrix(data = list(), ncol = nox+1, nrow = nox+1)
-  K[1,1] <- list(Kmc)
-  
-  # Save a copy of Y
-  Y_old <- Y
-  
-  # Preprocess Y
-  if(preProcY != "no"){
-    scaleParams <- ConsensusOPLS:::koplsScale(X = Y_old, 
-                                              centerType = 
-                                                ifelse(preProcY == "mc", 
-                                                       yes = "mc", no = "no"), 
-                                              scaleType = 
-                                                ifelse(preProcY == "mc", 
-                                                       yes = "no", no = preProcY))
-    Y <- scaleParams$matrix
-  }
-  
-  # KOPLS model estimation
-  ## step 1: SVD of Y'KY
-  CSV <- svd(x = crossprod(Y, crossprod(t(K[1,1][[1]]), Y)),
-             nu = A, nv = A)
-  # Extract left singular vectors
-  Cp <- CSV$u
-  # Extract the singular values
-  if( A > 1){
-    Sp <- diag(CSV$d[1:A])
-    Sps <- diag(CSV$d[1:A]^(-1/2)) #scaled version
-  } else{
-    Sp <- CSV$d[1]
-    Sps <- CSV$d[1]^(-1/2) #scaled version
-  }
-  
-  ## step 2: Define Up
-  Up <- crossprod(t(Y), Cp)
-  
-  # Initiate Yorth related variables
-  to <- list(); co <- list(); so <- list(); toNorm <- list();
-  Tp <- list(); Bt <- list();
-  i <- 1
-  
-  ## step3: Loop over nox iterations
-  while(i <= nox){
-    ## step 4: Compute Tp
-    Tp[[i]] <- crossprod(K[1,i][[1]], tcrossprod(Up, t(Sps)) )
-    Bt[[i]] <- crossprod( t(solve( crossprod(Tp[[i]]) )), 
-                          crossprod(Tp[[i]], Up))
+koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
+    # Variable format control
+    if (!is.matrix(K)) stop("K is not a matrix.")
+    if (!is.matrix(Y)) stop("Y is not a matrix.")
+    if (!is.numeric(A)) stop("A is not a numeric.")
+    if (!is.numeric(nox)) stop("nox is not a numeric.")
+    if (!is.character(preProcK))
+        stop("preProcK is not a character.")
+    else if (!(preProcK %in% c("mc", "no"))) 
+        stop("preProcK must be `mc` or `no`.")
+    if (!is.character(preProcY))
+        stop("preProcY is not a character.")
+    else if(!(preProcY %in% c("mc", "uv", "pa", "no")))
+        stop("preProcY must be `mc`, `uv`, `pa` or `no`.")
     
-    ## step 5: SVD of T'KT
-    temp <- svd(x = 
-                  crossprod(Tp[[i]], 
-                            tcrossprod(K[i,i][[1]] -
-                                         tcrossprod(Tp[[i]]), 
-                                       t(Tp[[i]]))),
-                nu = 1, nv = 1) 
-    co[[i]] <- temp$u
-    so[[i]] <- temp$d[1]
+    # Initialize parameters
+    I <- diag(ncol(K))
     
-    ## step 6: to
-    to[[i]] <- tcrossprod(tcrossprod(tcrossprod(K[i,i][[1]] - 
-                                                  tcrossprod(Tp[[i]]), 
-                                                t(Tp[[i]])),
-                                     t(co[[i]])), t(so[[i]]**(-1/2)))
+    # Check kernel centering
+    if (preProcK == "mc") {
+        Kmc <- koplsCenterKTrTr(K = K)
+    } else{
+        Kmc <- K
+    }
+    K <- matrix(data = list(), ncol = nox+1, nrow = nox+1)
+    K[1,1] <- list(Kmc)
     
-    ## step 7: toNorm
-    toNorm[[i]] <- c(sqrt( crossprod(to[[i]]) ))
+    # Save a copy of Y
+    Y_old <- Y
     
-    ## step 8: Normalize to
-    to[[i]] <- to[[i]] / toNorm[[i]]
+    # Preprocess Y
+    if (preProcY != "no") {
+        scaleParams <- koplsScale(X = Y_old, 
+                                  centerType = 
+                                      ifelse(preProcY == "mc", 
+                                             yes = "mc", no = "no"), 
+                                  scaleType = 
+                                      ifelse(preProcY == "mc", 
+                                             yes = "no", no = preProcY))
+        Y <- scaleParams$matrix
+    }
     
-    ## step 9: Update K
-    scale_matrix <- I - tcrossprod(to[[i]])
-    K[1, i+1][[1]] <- tcrossprod(K[1,i][[1]], t(scale_matrix))
+    # KOPLS model estimation
+    ## step 1: SVD of Y'KY
+    CSV <- svd(x = crossprod(Y, crossprod(t(K[1,1][[1]]), Y)),
+               nu = A, nv = A)
+    # Extract left singular vectors
+    Cp <- CSV$u
+    # Extract the singular values
+    if( A > 1){
+        Sp <- diag(CSV$d[1:A])
+        Sps <- diag(CSV$d[1:A]^(-1/2)) #scaled version
+    } else{
+        Sp <- CSV$d[1]
+        Sps <- CSV$d[1]^(-1/2) #scaled version
+    }
     
-    ## step 10: Update Kii
-    K[i+1, i+1][[1]] <- tcrossprod(scale_matrix, tcrossprod(t(scale_matrix),
-                                                            t(K[i, i][[1]])))
+    ## step 2: Define Up
+    Up <- crossprod(t(Y), Cp)
     
-    # Update i
-    i <- i + 1
-  }## step 11: end loop
-  
-  ## step 12: Tp[[nox+1]]
-  Tp[[nox+1]] <- crossprod(K[1, nox+1][[1]], crossprod(t(Up), Sps))
-  
-  ## step 13: Bt[[nox+1]]
-  Bt[[nox+1]] <- crossprod( t(solve( crossprod(Tp[[nox+1]]) )),
-                            crossprod(Tp[[nox+1]], Up))
-  
-  # ---------- extra stuff -----------------
-  # should work but not fully tested (MB 2007-02-19)
-  sstot_Y <- sum( sum(Y**2))
-  F <- Y - tcrossprod(Up, Cp)
-  R2Y <- 1 - sum( sum( F**2 ))/sstot_Y
-  # --------- #
-  
-  EEprime <- K[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
-  sstot_K <- sum( diag(K[1,1][[1]]))
-  
-  R2X <- c(); R2XO <- c(); R2XC <- c(); R2Yhat <- c();
-  for(i in 1:(nox+1)){
-    rss <- sum( diag(K[i,i][[1]] -  tcrossprod(Tp[[nox+1]])) )
-    R2X <- c(R2X, 1- rss/sstot_K)
+    # Initiate Yorth related variables
+    to <- list(); co <- list(); so <- list(); toNorm <- list();
+    Tp <- list(); Bt <- list();
+    i <- 1
     
-    rssc <- sum( diag( K[1,1][[1]] - tcrossprod(Tp[[nox+1]]) ) )
-    R2XC <- c(R2XC, 1- rssc/sstot_K)
+    ## step3: Loop over nox iterations
+    while (i <= nox) {
+        ## step 4: Compute Tp
+        Tp[[i]] <- crossprod(K[1,i][[1]], tcrossprod(Up, t(Sps)))
+        Bt[[i]] <- crossprod(t(solve(crossprod(Tp[[i]]))), 
+                              crossprod(Tp[[i]], Up))
+        
+        ## step 5: SVD of T'KT
+        temp <- svd(x = crossprod(Tp[[i]], 
+                                  tcrossprod(K[i,i][[1]] -
+                                                 tcrossprod(Tp[[i]]), 
+                                             t(Tp[[i]]))),
+                    nu = 1, nv = 1) 
+        co[[i]] <- temp$u
+        so[[i]] <- temp$d[1]
+        
+        ## step 6: to
+        to[[i]] <- tcrossprod(tcrossprod(tcrossprod(K[i,i][[1]] - 
+                                                        tcrossprod(Tp[[i]]), 
+                                                    t(Tp[[i]])),
+                                         t(co[[i]])), t(so[[i]]**(-1/2)))
+        
+        ## step 7: toNorm
+        toNorm[[i]] <- c(sqrt(crossprod(to[[i]])))
+        
+        ## step 8: Normalize to
+        to[[i]] <- to[[i]] / toNorm[[i]]
+        
+        ## step 9: Update K
+        scale_matrix <- I - tcrossprod(to[[i]])
+        K[1, i+1][[1]] <- tcrossprod(K[1,i][[1]], t(scale_matrix))
+        
+        ## step 10: Update Kii
+        K[i+1, i+1][[1]] <- tcrossprod(scale_matrix, tcrossprod(t(scale_matrix),
+                                                                t(K[i, i][[1]])))
+        
+        # Update i
+        i <- i + 1
+    }## step 11: end loop
     
-    rsso <- sum( diag( K[i,i][[1]] ))    
-    R2XO <- c(R2XO, 1- rsso/sstot_K)
+    ## step 12: Tp[[nox+1]]
+    Tp[[nox+1]] <- crossprod(K[1, nox+1][[1]], crossprod(t(Up), Sps))
     
-    # R2Yhat 22 Jan 2010 / MR - not fully tested
-    Yhat <- crossprod(t(Tp[[i]]), tcrossprod(Bt[[i]], Cp))
-    R2Yhat <- c(R2Yhat, 1 - sum( sum((Yhat - Y)**2) )/sstot_Y )
-  } # fin K-OPLS model
-  
-  # Convert to matrix structure
-  if (nox > 0) {
-    To <- matrix(data = unlist(to), nrow = nrow(Tp[[nox+1]]), 
-                 ncol = nox, byrow = FALSE)
-  } else {
-    To <- NULL
-  }
-  
-  return(list("Cp" = Cp, 
-              "Sp" = Sp, 
-              "Sps" = Sps, 
-              "Up" = Up,
-              "Tp" = Tp, 
-              "T" = as.matrix(Tp[[nox+1]]), 
-              "co" = co,
-              "so" = so, 
-              "to" = to, 
-              "To" = To,
-              "toNorm" = toNorm, 
-              "Bt" = Bt, 
-              "A" = A, 
-              "nox" = nox, 
-              "K" = K, 
-              
-              #extra stuff
-              "EEprime" =EEprime, 
-              "sstot_K" = sstot_K, 
-              "R2X" = R2X, 
-              "R2XO" = R2XO, 
-              "R2XC" = R2XC, 
-              "sstot_Y" = sstot_Y, 
-              "R2Y" = R2Y,
-              "R2Yhat" = R2Yhat, # R2Yhat 22 Jan 2010 / MR
-              
-              #pre-processing
-              "preProc" = list("K" = preProcK, 
-                               "Y" = preProcY, 
-                               "paramsY" = ifelse(test = (preProcY != "no"),
-                                                  yes = scaleParams,
-                                                  no = "no")),
-              "class" = "kopls"))
+    ## step 13: Bt[[nox+1]]
+    Bt[[nox+1]] <- crossprod( t(solve( crossprod(Tp[[nox+1]]) )),
+                              crossprod(Tp[[nox+1]], Up))
+    
+    # ---------- extra stuff -----------------
+    # should work but not fully tested (MB 2007-02-19)
+    sstot_Y <- sum( sum(Y**2))
+    F <- Y - tcrossprod(Up, Cp)
+    R2Y <- 1 - sum( sum( F**2 ))/sstot_Y
+    # --------- #
+    
+    EEprime <- K[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
+    sstot_K <- sum( diag(K[1,1][[1]]))
+    
+    R2X <- c(); R2XO <- c(); R2XC <- c(); R2Yhat <- c();
+    for(i in 1:(nox+1)){
+        rss <- sum( diag(K[i,i][[1]] -  tcrossprod(Tp[[nox+1]])) )
+        R2X <- c(R2X, 1- rss/sstot_K)
+        
+        rssc <- sum( diag( K[1,1][[1]] - tcrossprod(Tp[[nox+1]]) ) )
+        R2XC <- c(R2XC, 1- rssc/sstot_K)
+        
+        rsso <- sum( diag( K[i,i][[1]] ))    
+        R2XO <- c(R2XO, 1- rsso/sstot_K)
+        
+        # R2Yhat 22 Jan 2010 / MR - not fully tested
+        Yhat <- crossprod(t(Tp[[i]]), tcrossprod(Bt[[i]], Cp))
+        R2Yhat <- c(R2Yhat, 1 - sum( sum((Yhat - Y)**2) )/sstot_Y )
+    } # fin K-OPLS model
+    
+    # Convert to matrix structure
+    if (nox > 0) {
+        To <- matrix(data = unlist(to), nrow = nrow(Tp[[nox+1]]), 
+                     ncol = nox, byrow = FALSE)
+    } else {
+        To <- NULL
+    }
+    
+    return(list("Cp" = Cp, 
+                "Sp" = Sp, 
+                "Sps" = Sps, 
+                "Up" = Up,
+                "Tp" = Tp, 
+                "T" = as.matrix(Tp[[nox+1]]), 
+                "co" = co,
+                "so" = so, 
+                "to" = to, 
+                "To" = To,
+                "toNorm" = toNorm, 
+                "Bt" = Bt, 
+                "A" = A, 
+                "nox" = nox, 
+                "K" = K, 
+                
+                #extra stuff
+                "EEprime" =EEprime, 
+                "sstot_K" = sstot_K, 
+                "R2X" = R2X, 
+                "R2XO" = R2XO, 
+                "R2XC" = R2XC, 
+                "sstot_Y" = sstot_Y, 
+                "R2Y" = R2Y,
+                "R2Yhat" = R2Yhat, # R2Yhat 22 Jan 2010 / MR
+                
+                #pre-processing
+                "preProc" = list("K" = preProcK, 
+                                 "Y" = preProcY, 
+                                 "paramsY" = ifelse(test = (preProcY != "no"),
+                                                    yes = scaleParams,
+                                                    no = "no")),
+                "class" = "kopls"))
 }

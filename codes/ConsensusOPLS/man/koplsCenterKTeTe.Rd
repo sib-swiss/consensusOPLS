@@ -17,30 +17,22 @@ KteTr = <phi(Xte), phi(Xtr)>.}
 KtrTr = <phi(Xtr), phi(Xtr)>.}
 }
 \value{
-\item{KteTe}{ matrix. The centered test kernel matrix.}
+The centered test kernel matrix.
 }
 \description{
 Centering function for the test kernel, which is constructed
 from the test matrix Xte as KteTe = <phi(Xte), phi(Xte)>.
 Requires additional (un-centered) kernels KteTr and KteTr to estimate mean 
 values.
-
-# ------------------------------------------------------------------------ #
-This file is part of the K-OPLS package, developed by Max Bylesjo, 
-University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-
-Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-
-This code has been extended and adapted under the terms of the GNU General 
-Public License version 2 as published by the Free Software Foundation.
-# ------------------------------------------------------------------------ #
 }
 \examples{
-KteTr <- matrix(1:25, nrow = 5, ncol = 5)
-KteTe <- matrix(1:25, nrow = 5, ncol = 5)
-KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
-test <- ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
-test
-
+Xte <- matrix(rnorm(20), ncol=5)
+Xtr <- matrix(rnorm(25), ncol=5)
+KteTe <- ConsensusOPLS:::koplsKernel(Xte, Xte, Ktype='g', params=c(sigma=1.0))
+KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
+KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, 
+                                 KteTr = KteTr, 
+                                 KtrTr = KtrTr)
 }
 \keyword{internal}

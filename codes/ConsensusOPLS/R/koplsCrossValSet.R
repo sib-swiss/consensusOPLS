@@ -42,98 +42,92 @@
 
 koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold", 
                              nfold = NA, nfoldRound = NA){
-  # Variable format control
-  if(!is.matrix(K)){stop("K is not a matrix.")}
-  if(!is.matrix(Y)){stop("Y is not a matrix.")}
-  if(!is.numeric(modelFrac)){stop("modelFrac is not numeric.")}
-  if(!is.character(type)){stop("type is not a character.")
-  } else{
-    if(!(type %in% c("nfold", "mccv", "mccvb"))){
-      stop("type must be `nfold`, `mccv` or `mccvb`.")
+    # Variable format control
+    if (!is.matrix(K)) stop("K is not a matrix.")
+    if (!is.matrix(Y)) stop("Y is not a matrix.")
+    if (!is.numeric(modelFrac)) stop("modelFrac is not numeric.")
+    if (!is.character(type)) stop("type is not a character.")
+    else if(!(type %in% c("nfold", "mccv", "mccvb")))
+        stop("type must be `nfold`, `mccv` or `mccvb`.")
+    
+    if (!is.na(nfold)) {
+        if (!is.numeric(nfold)) stop("nfold is not a number.")
+    } else if(type != "nfold")
+        warning("type is not nfold, nfold is not defined (missing argument).")
+    
+    if (!is.na(nfoldRound)) {
+        if (!is.numeric(nfoldRound)) stop("nfoldRound is not a number.")
+    } else if(type != "nfold")
+        warning("type is not nfold, nfoldRound is not defined (missing argument).")
+    
+    # Define Monte-Carlos Cross Validation - class Balanced
+    if (type == "mccvb") {
+        # check if Y is dummy or labels
+        if (all(unique(x = Y) == c(0, 1))) {
+            classVect <- koplsReDummy(Y = Y)
+        } else{
+            classVect <- Y
+        }
+        
+        # Find all class labels
+        uniqueClass <- unique(x = classVect)
+        
+        # Find samples of each class
+        indList <- parallel::mclapply(X = uniqueClass, 
+                                      mc.cores = detectCores(),
+                                      FUN = function(i){
+                                          ind <- which(classVect == i)
+                                          rand_ind <- sample(x = ind)
+                                          trainSize <- floor(length(ind)*modelFrac)
+                                          c(rand_ind[1:trainSize], 
+                                            rand_ind[(trainSize+1): length(ind)])
+                                      })
+        
+        # Combine indices for all classes
+        trainInd <- unlist(indList)
+        predInd <- setdiff(x = seq_len(nrow(Y)), y = trainInd)
     }
-  }
-  if(!is.na(nfold)){
-    if(!is.numeric(nfold)){stop("nfold is not a number.")}
-  } else{
-    if(type != "nfold"){
-      warning("type is not nfold, nfold is not defined (missing argument).")}
-  }
-  if(!is.na(nfoldRound)){
-    if(!is.numeric(nfoldRound)){stop("nfoldRound is not a number.")}
-  } else{
-    if(type != "nfold"){
-      warning("type is not nfold, nfoldRound is not defined (missing argument).")
-    }
-  }
-  
-  # Define Monte-Carlos Cross Validation - class Balanced
-  if(type == "mccvb"){
-    # check if Y is dummy or labels
-    if(all(unique(x = Y) == c(0, 1))){
-      classVect <- ConsensusOPLS:::koplsReDummy(Y = Y)
-    } else{
-      classVect <- Y
+    
+    # Define Monte-Carlos Cross Validation
+    if (type == "mccv") {
+        # Create a random indices
+        rand_ind <- sample(seq_len(nrow(K)))
+        
+        # Calculates the sample size of the training data
+        trainSize <- floor(nrow(K)*modelFrac)
+        
+        # Divides the sample into train and test
+        trainInd <- rand_ind[1:trainSize]
+        predInd <- rand_ind[(trainSize+1):nrow(K)]
     }
     
-    # Find all class labels
-    uniqueClass <- unique(x = classVect)
+    # Define N-fold Cross Validation
+    if (type == "nfold") {
+        predInd <- seq(from = nfoldRound, to = nrow(Y), by = nfold)
+        trainInd <- setdiff(x = seq_len(nrow(Y)), y = predInd)
+    }
     
-    # Find samples of each class
-    indList <- parallel::mclapply(X = uniqueClass, 
-                                  mc.cores = detectCores(),
-                                  FUN = function(i){
-                                    ind <- which(classVect == i)
-                                    rand_ind <- sample(x = ind)
-                                    trainSize <- floor(length(ind)*modelFrac)
-                                    c(rand_ind[1:trainSize], 
-                                      rand_ind[(trainSize+1): length(ind)])
-                                  })
+    # Construct Kernel/Y matrices for training/test
+    if (nrow(K) == ncol(K)) {
+        KTrTr <- K[trainInd, trainInd, drop=FALSE]
+        KTeTr <- K[predInd, trainInd, drop=FALSE]
+        KTeTe <- K[predInd, predInd, drop=FALSE]
+    } else {
+        KTrTr <- NA
+        KTeTr <- NA
+        KTeTe <- NA
+    }
     
-    # Combine indices for all classes
-    trainInd <- unlist(indList)
-    predInd <- setdiff(x = seq_len(nrow(Y)), y = trainInd)
-  }
-  
-  # Define Monte-Carlos Cross Validation
-  if(type == "mccv"){
-    # Create a random indices
-    rand_ind <- sample(seq_len(nrow(K)))
-    
-    # Calculates the sample size of the training data
-    trainSize <- floor(nrow(K)*modelFrac)
-    
-    # Divides the sample into train and test
-    trainInd <- rand_ind[1:trainSize]
-    predInd <- rand_ind[(trainSize+1):nrow(K)]
-  }
-  
-  # Define N-fold Cross Validation
-  if(type == "nfold"){
-    predInd <- seq(from = nfoldRound, to = nrow(Y), by = nfold)
-    trainInd <- setdiff(x = seq_len(nrow(Y)), y = predInd)
-  }
-  
-  # Construct Kernel/Y matrices for training/test
-  if(nrow(K) == ncol(K)){
-    KTrTr <- K[trainInd, trainInd, drop=FALSE]
-    KTeTr <- K[predInd, trainInd, drop=FALSE]
-    KTeTe <- K[predInd, predInd, drop=FALSE]
-  } else{
-    KTrTr <- NA
-    KTeTr <- NA
-    KTeTe <- NA
-  }
-  
-  # Return the final CV Set
-  return(list("type" = type,
-              "nfold" = nfold,
-              "nfoldRound" = nfoldRound,
-              "KTrTr" = KTrTr,
-              "KTeTr" = KTeTr,
-              "KTeTe" = KTeTe,
-              "yTraining" = Y[trainInd, , drop=FALSE],
-              "yTest" = Y[predInd, , drop=FALSE],
-              "trainingIndex" = trainInd,
-              "testIndex" = predInd,
-              "class" = "crossValSet"))
+    # Return the final CV Set
+    return(list("type" = type,
+                "nfold" = nfold,
+                "nfoldRound" = nfoldRound,
+                "KTrTr" = KTrTr,
+                "KTeTr" = KTeTr,
+                "KTeTe" = KTeTe,
+                "yTraining" = Y[trainInd, , drop=FALSE],
+                "yTest" = Y[predInd, , drop=FALSE],
+                "trainingIndex" = trainInd,
+                "testIndex" = predInd,
+                "class" = "crossValSet"))
 }

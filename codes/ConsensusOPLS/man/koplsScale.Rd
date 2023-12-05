@@ -28,20 +28,11 @@ A list containing the following entries:
 }
 \description{
 Function for mean-centering and scaling of a matrix.
-
-# ------------------------------------------------------------------------ #
-This file is part of the K-OPLS package, developed by Max Bylesjo, 
-University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-
-Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-
-This code has been extended and adapted under the terms of the GNU General 
-Public License version 2 as published by the Free Software Foundation.
-# ------------------------------------------------------------------------ #
 }
 \examples{
 X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
 Y$matrix
+
 }
 \keyword{internal}

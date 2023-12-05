@@ -14,7 +14,7 @@ KteTr = <phi(Xte), phi(Xtr)>.}
 Ktrain = <phi(Xtr), phi(Xtr)>.}
 }
 \value{
-\item{KteTr}{ matrix. The centered kernel matrix.}
+The centered kernel matrix.
 }
 \description{
 Centering function for the hybrid test/training kernel, which
@@ -23,10 +23,11 @@ Xtr as KteTr = <phi(Xte), phi(Xtr)>. Requires additional
 (un-centered) training kernel to estimate mean values.
 }
 \examples{
-KteTr <- matrix(1:25, nrow = 5, ncol = 5)
-KtrTr <- matrix(1:25, nrow = 5, ncol = 5)
-test <- ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
-test
+Xte <- matrix(rnorm(20), ncol=5)
+Xtr <- matrix(rnorm(25), ncol=5)
+KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
+KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 
 }
 \keyword{internal}

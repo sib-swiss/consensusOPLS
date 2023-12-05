@@ -10,7 +10,7 @@ koplsReDummy(Y)
 \item{Y}{matrix. A dummy matrix to be transformed into a numeric vector.}
 }
 \value{
-\item{classVect}{ matrix. The reconstructed integer class vector.}
+The reconstructed integer class vector.
 }
 \description{
 Reconstructs a (integer) class vector from a binary (dummy) 
@@ -18,7 +18,7 @@ matrix. This function is the inverse of \code{koplsDummy} function.
 }
 \examples{
 class <- matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
-Y <- ConsensusOPLS:::koplsDummy(X = class, numClasses = NA)
+Y <- ConsensusOPLS:::koplsDummy(X = class)
 X <- ConsensusOPLS:::koplsReDummy(Y)
 X
 

@@ -22,46 +22,40 @@
 #' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
 #' 
-#' @importFrom stats
+#' @importFrom stats sd
 #' @keywords internal
 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
-  # Variable format control
-  if(!is.matrix(X)){stop("X is not a matrix.")}
-  if(!is.character(centerType)){stop("centerType is not a character.")
-  } else{ 
-    if(!(centerType %in% c("mc", "no"))){
-      stop("centerType must be `mc` or `no`.")}
-  }
-  if(!is.character(scaleType)){stop("scaleType is not a character.")
-  } else{ 
-    if(!(scaleType %in% c("uv", "pa", "no"))){
-      stop("scaleType must be `uv`, `pa` or `no`.")}
-  }
-  
-  # Calculation of dispersion parameters before center and scale matrix
-  meanV <- colMeans(X)
-  stdV <- apply(X = X, MARGIN = 2, FUN = function(X){stats::sd(X)})
-  
-  # Center the matrix
-  if(centerType == "mc"){
-    X <- scale(x = X, center = TRUE, scale = FALSE)
-  }
-  
-  # Scale the matrix
-  if(scaleType == "uv"){
-    X <- scale(x = X, center = FALSE, scale = TRUE)
-  }
-  if(scaleType == "pa"){
-    X <- apply(X = X, MARGIN = 2, FUN = function(col){ col/sqrt(sd(col))})
-  }
-
-  # Return a list with all parameters
-  return(list("centerType" = centerType,
-              "scaleType" = scaleType,
-              "meanV" = meanV,
-              "stdV" = stdV,
-              "matrix" = X))
+    # Variable format control
+    if (!is.matrix(X)) stop("X is not a matrix.")
+    if (!is.character(centerType)) stop("centerType is not a character.")
+    else if(!(centerType %in% c("mc", "no")))
+        stop("centerType must be `mc` or `no`.")
+    
+    if (!is.character(scaleType)) stop("scaleType is not a character.")
+    else if(!(scaleType %in% c("uv", "pa", "no")))
+        stop("scaleType must be `uv`, `pa` or `no`.")
+    
+    # Calculation of dispersion parameters before center and scale matrix
+    meanV <- colMeans(X)
+    stdV <- apply(X = X, MARGIN = 2, FUN = function(X) sd(X))
+    
+    # Center the matrix
+    if (centerType == "mc")
+        X <- scale(x = X, center = TRUE, scale = FALSE)
+    
+    # Scale the matrix
+    if (scaleType == "uv")
+        X <- scale(x = X, center = FALSE, scale = TRUE)
+    else if (scaleType == "pa")
+        X <- apply(X = X, MARGIN = 2, FUN = function(col){ col/sqrt(sd(col))})
+    
+    # Return a list with all parameters
+    return(list("centerType" = centerType,
+                "scaleType" = scaleType,
+                "meanV" = meanV,
+                "stdV" = stdV,
+                "matrix" = X))
 }
 
 
@@ -101,28 +95,31 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' @keywords internal
 
 koplsRescale <- function(scaleS, varargin = NULL){
-  # Variable format control
-  if(!is.list(scaleS)){stop("scaleS must be a list (result of 'koplsScale()').")}
-  if(!is.null(varargin)){
-    if(!is.matrix(varargin)){stop("varargin must be a matrix.")}
-    X <- varargin
-  } else{
-    X <- scaleS$matrix
-  }
-  
-  # Center the matrix
-  if(scaleS$centerType == "mc"){X <- X + scaleS$meanV}
-  
-  # Scale the matrix
-  if(scaleS$scaleType == "uv"){X <- X * scaleS$stdV}
-  if(scaleS$scaleType == "pa"){X <- X * sqrt(scaleS$stdV)}
-  
-  # Return the list of parameters
-  return(list("centerType" = "no",
-              "scaleType" = "no",
-              "meanV" = scaleS$meanV, 
-              "stdV" = scaleS$stdV,
-              "X" = X))
+    # Variable format control
+    if (!is.list(scaleS)) stop("scaleS must be a list (result of 'koplsScale()').")
+    if (!is.null(varargin)) {
+        if (!is.matrix(varargin)) stop("varargin must be a matrix.")
+        X <- varargin
+    } else {
+        X <- scaleS$matrix
+    }
+    
+    # Center the matrix
+    if (scaleS$centerType == "mc") 
+        X <- X + scaleS$meanV
+    
+    # Scale the matrix
+    if (scaleS$scaleType == "uv") 
+        X <- X * scaleS$stdV
+    if (scaleS$scaleType == "pa") 
+        X <- X * sqrt(scaleS$stdV)
+    
+    # Return the list of parameters
+    return(list("centerType" = "no",
+                "scaleType" = "no",
+                "meanV" = scaleS$meanV, 
+                "stdV" = scaleS$stdV,
+                "X" = X))
 }
 
 
@@ -154,21 +151,21 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' @keywords internal
 
 koplsScaleApply <- function(model, X){
-  # Variable format control
-  if(!is.list(model)){stop("model is not a list with scaling parameters.")}
-  if(!is.matrix(X)){stop("X is not a matrix.")}
-  
-  # Center the matrix
-  if(model$centerType == "mc"){X <- X - model$meanV}
-  
-  # Scale the matrix
-  if(model$scaleType == "uv"){X <- X / model$stdV}
-  if(model$scaleType == "pa"){X <- X / sqrt(model$stdV)}
-  
-  # Return a list with all parameters
-  return(list("centerType" = model$centerType,
-              "scaleType" = model$scaleType,
-              "meanV" = model$meanV,
-              "stdV" = model$stdV,
-              "X" = X))
+    # Variable format control
+    if(!is.list(model)){stop("model is not a list with scaling parameters.")}
+    if(!is.matrix(X)){stop("X is not a matrix.")}
+    
+    # Center the matrix
+    if(model$centerType == "mc"){X <- X - model$meanV}
+    
+    # Scale the matrix
+    if(model$scaleType == "uv"){X <- X / model$stdV}
+    if(model$scaleType == "pa"){X <- X / sqrt(model$stdV)}
+    
+    # Return a list with all parameters
+    return(list("centerType" = model$centerType,
+                "scaleType" = model$scaleType,
+                "meanV" = model$meanV,
+                "stdV" = model$stdV,
+                "X" = X))
 }

@@ -11,37 +11,36 @@
 #' @param KtrTr matrix. Contains the training kernel matrix, 
 #' KtrTr = <phi(Xtr), phi(Xtr)>.
 #'
-#' @return
-#' \item{KteTe}{ matrix. The centered test kernel matrix.}
-#'
-#' @examples
-#' KteTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
-#' KteTe <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
-#' KtrTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
-#' test <- ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, 
-#'                                          KteTr = KteTr, 
-#'                                          KtrTr = KtrTr)
-#' test
-#' 
-#' @keywords internal
+#' @return The centered test kernel matrix.
 #' @import stats
+#' @examples
+#' Xte <- matrix(rnorm(20), ncol=5)
+#' Xtr <- matrix(rnorm(25), ncol=5)
+#' KteTe <- ConsensusOPLS:::koplsKernel(Xte, Xte, Ktype='g', params=c(sigma=1.0))
+#' KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
+#' KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+#' ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, 
+#'                                  KteTr = KteTr, 
+#'                                  KtrTr = KtrTr)
+#' @keywords internal
 
-koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
-  # Variable format control
-  if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr)) {
-    stop("One or more inputs are not matrices.")
-  }
-  
-  # Define parameters
-  scaling_matrix <- matrix(1/nrow(KteTr), nrow = nrow(KteTr), ncol = ncol(KteTr))
-  
-  # Center the kernel
-  KteTe <- KteTe - tcrossprod(scaling_matrix, KteTr) - 
-    tcrossprod(KteTr, scaling_matrix) + 
-    tcrossprod(scaling_matrix, tcrossprod(scaling_matrix, KtrTr))
-  
-  # Return the centered test kernel matrix
-  return(KteTe)
+koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
+    # Variable format control
+    if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr)) {
+        stop("One or more inputs are not matrices.")
+    }
+    
+    # Define parameters
+    scaling_matrix <- matrix(1/nrow(KteTr), nrow = nrow(KteTr), ncol = ncol(KteTr))
+    
+    # Center the kernel
+    KteTe <- KteTe - 
+        tcrossprod(scaling_matrix, KteTr) - 
+        tcrossprod(KteTr, scaling_matrix) + 
+        tcrossprod(scaling_matrix, tcrossprod(scaling_matrix, KtrTr))
+    
+    # Return the centered test kernel matrix
+    return(KteTe)
 }
 
 
@@ -57,36 +56,35 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr){
 #' @param KtrTr matrix. Contains the training kernel matrix; 
 #' Ktrain = <phi(Xtr), phi(Xtr)>.
 #' 
-#' @return
-#' \item{KteTr}{ matrix. The centered kernel matrix.}
-#' 
+#' @return The centered kernel matrix.
+#' @import stats
 #' @examples
-#' KteTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
-#' KtrTr <- matrix(rnorm(n = 25), nrow = 5, ncol = 5)
-#' test <- ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
-#' test
+#' Xte <- matrix(rnorm(20), ncol=5)
+#' Xtr <- matrix(rnorm(25), ncol=5)
+#' KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
+#' KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+#' ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' 
 #' @keywords internal
-#' @import stats
 
-koplsCenterKTeTr <- function(KteTr, KtrTr){
-  # Variable format control
-  if (!is.matrix(KteTr) || !is.matrix(KtrTr)) {
-    stop("One or more inputs are not matrices.")
-  }
-  
-  # Define parameters
-  I_nTrain <- rep(x = 1, times = nrow(KtrTr))
-  scaling_matrix <- (1/nrow(KtrTr)) * tcrossprod(rep(x = 1, 
-                                                     times = nrow(KteTr)), 
-                                                 I_nTrain)
-  
-  # Center the kernel
-  KteTr <- tcrossprod(KteTr - tcrossprod(scaling_matrix, t(KtrTr)),
-                      diag(nrow(KtrTr)) - 1/nrow(KtrTr) * tcrossprod(I_nTrain))
-  
-  # Return the centered kernel matrix.
-  return(KteTr)
+koplsCenterKTeTr <- function(KteTr, KtrTr) {
+    # Variable format control
+    if (!is.matrix(KteTr) || !is.matrix(KtrTr) || !is.numeric(KteTr) || !is.numeric(KtrTr)) {
+        stop("One or more inputs are not numeric matrices.")
+    }
+    
+    # Define parameters
+    I_nTrain <- rep(x = 1, times = nrow(KtrTr))
+    scaling_matrix <- (1/nrow(KtrTr)) * tcrossprod(rep(x = 1, 
+                                                       times = nrow(KteTr)), 
+                                                   I_nTrain)
+    
+    # Center the kernel
+    KteTr <- tcrossprod(KteTr - tcrossprod(scaling_matrix, t(KtrTr)),
+                        diag(nrow(KtrTr)) - 1/nrow(KtrTr) * tcrossprod(I_nTrain))
+    
+    # Return the centered kernel matrix.
+    return(KteTr)
 }
 
 
@@ -97,28 +95,25 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
 #'
 #' @param K matrix. Contains the training kernel matrix; K = <phi(Xtr), phi(Xtr)>. 
 #'
-#' @return
-#' \item{K}{ matrix. The centered kernel matrix.}
-#'
+#' @return The centered kernel matrix.
+#' @import stats
 #' @examples
-#' K <- matrix(1:25, nrow = 5, ncol = 5)
-#' test <- ConsensusOPLS:::koplsCenterKTrTr(K = K)
-#' test
+#' Xtr <- matrix(rnorm(20), ncol = 5)
+#' K <- ConsensusOPLS:::koplsKernel(Xtr, Ktype='g', params=c(sigma=1.0))
+#' ConsensusOPLS:::koplsCenterKTrTr(K = K)
 #' 
 #' @keywords internal
-#' @import stats
-
-koplsCenterKTrTr <- function(K){
-  # Variable format control
-  if(!is.matrix(K)){stop("K is not a matrix.")}
-  
-  # Define parameters
-  I <- diag(nrow(K))
-  scaling_matrix <- matrix(1/nrow(K), nrow = nrow(K), ncol = ncol(K))
-  
-  # Center the kernel
-  K <- crossprod(I- scaling_matrix, crossprod(t(K), I - scaling_matrix))
-  
-  # Return the centered kernel matrix
-  return(K)
+#TODO: so K should be symmetric?
+koplsCenterKTrTr <- function(K) {
+    # Variable format control
+    if (!is.matrix(K)) stop("K is not a matrix.")
+    
+    # Define parameters
+    scaling_matrix <- diag(nrow(K)) - 1/nrow(K)
+    
+    # Center the kernel
+    K <- crossprod(scaling_matrix, crossprod(t(K), scaling_matrix))
+    
+    # Return the centered kernel matrix
+    return (K)
 }

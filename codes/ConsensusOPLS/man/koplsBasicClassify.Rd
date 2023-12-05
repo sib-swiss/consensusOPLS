@@ -18,17 +18,7 @@ where columns denote classes and rows observations.}
 }
 \description{
 Classification function that assesses class belonging of a 
-predicted response in 'data' based on a fixed threshold 'k'.
-
-# ------------------------------------------------------------------------ #
-This file is part of the K-OPLS package, developed by Max Bylesjo, 
-University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-
-Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen 
-
-This code has been extended and adapted under the terms of the GNU General 
-Public License version 2 as published by the Free Software Foundation.
-# ------------------------------------------------------------------------ #
+predicted response in \code{data} based on a fixed threshold \code{k}.
 }
 \examples{
 data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),

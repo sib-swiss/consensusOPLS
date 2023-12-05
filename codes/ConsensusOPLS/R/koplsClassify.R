@@ -21,17 +21,17 @@
 #' 
 #' @keywords internal
 
-koplsBasicClassify <- function(X, k){
-  # Variable format control
-  if(!is.matrix(X)){stop("X is not a matrix.")}
-  if(!is.numeric(k)){stop("k is not numeric.")}
-  
-  # Search predicted class(es)
-  predClass <- apply(X > k, MARGIN = 1, 
-                     FUN = function(row){which(row)})
-  
-  # Return the predicted class(es).
-  return(predClass)
+koplsBasicClassify <- function(X, k) {
+    # Variable format control
+    if (!is.matrix(X)) stop("X is not a matrix.")
+    if (!is.numeric(k)) stop("k is not numeric.")
+    
+    # Search predicted class(es)
+    predClass <- apply(X > k, MARGIN = 1, 
+                       FUN = function(row){which(row)})
+    
+    # Return the predicted class(es).
+    return(predClass)
 }
 
 
@@ -56,15 +56,15 @@ koplsBasicClassify <- function(X, k){
 #' 
 #' @keywords internal
 
-koplsMaxClassify <- function(X){
-  # Variable format control
-  if(!is.matrix(X)){stop("X is not a matrix.")}
-  
-  # Search max position
-  predClass <- matrix(data = apply(X = X, MARGIN = 1,
-                                   FUN = function(row){which.max(row)}),
-                      ncol = 1)
-  
-  # Return the predicted class(es)
-  return(predClass)
+koplsMaxClassify <- function(X) {
+    # Variable format control
+    if (!is.matrix(X)) stop("X is not a matrix.")
+    
+    # Search max position
+    predClass <- matrix(data = apply(X = X, MARGIN = 1,
+                                     FUN = function(row) which.max(row)),
+                        ncol = 1)
+    
+    # Return the predicted class(es)
+    return(predClass)
 }

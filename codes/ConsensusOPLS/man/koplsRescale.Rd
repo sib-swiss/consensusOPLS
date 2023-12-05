@@ -10,8 +10,8 @@ koplsRescale(scaleS, varargin = NULL)
 \item{scaleS}{list. It contains scaling parameters.}
 
 \item{varargin}{matrix. If defined, this matrix will be scaled and returned.
-Otherwise the original data set in the \code{scaleS} object will be scaled and 
-returned.}
+Otherwise the original data set in the \code{scaleS} object will be scaled 
+and returned.}
 }
 \value{
 A list containing the following entries:

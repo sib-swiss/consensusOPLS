@@ -14,8 +14,8 @@ columns denote classes and rows observations.}
 \item{predClass}{ matrix. It contains the predicted class(es) of \code{data}.}
 }
 \description{
-Classification function that assesses class belonging of 'data' 
-based on the maximum value.
+Classification function that assesses class belonging of 
+\code{data} based on the maximum value.
 }
 \examples{
 data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),

@@ -10,16 +10,16 @@ koplsCenterKTrTr(K)
 \item{K}{matrix. Contains the training kernel matrix; K = <phi(Xtr), phi(Xtr)>.}
 }
 \value{
-\item{K}{ matrix. The centered kernel matrix.}
+The centered kernel matrix.
 }
 \description{
 Centering function for the training kernel, which is constructed
 from the training matrix Xtr as K = <phi(Xtr), phi(Xtr)>.
 }
 \examples{
-K <- matrix(1:25, nrow = 5, ncol = 5)
-test <- ConsensusOPLS:::koplsCenterKTrTr(K = K)
-test
+Xtr <- matrix(rnorm(20), ncol = 5)
+K <- ConsensusOPLS:::koplsKernel(Xtr, Ktype='g', params=c(sigma=1.0))
+ConsensusOPLS:::koplsCenterKTrTr(K = K)
 
 }
 \keyword{internal}

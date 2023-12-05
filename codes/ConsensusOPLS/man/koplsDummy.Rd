@@ -9,9 +9,9 @@ koplsDummy(X, numClasses = NA)
 \arguments{
 \item{X}{numeric vector with classes to define.}
 
-\item{numClasses}{numeric. Pre-defined the number of classes in the output.
-By default (if numClasses is missing), is equal to the length of \code{class}
-vector. Otherwise, the class vector is split into \code{numclasse} pieces.}
+\item{numClasses}{numeric. Pre-defined number of classes in the output.
+By default, numClasses, number of unique values in \code{X}. Otherwise,
+classes 1,...,numClasses are considered}
 }
 \value{
 \item{X}{matrix. Results of the dummy matrix, with rows corresponding to
@@ -20,16 +20,6 @@ observations and columns to classes. Each element in matrix is either one
 }
 \description{
 Transform a vector into a dummy (binary) matrix.
-
-# ------------------------------------------------------------------------ #
-This file is part of the K-OPLS package, developed by Max Bylesjo,
-University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
-
-Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen
-
-This code has been extended and adapted under the terms of the GNU General
-Public License version 2 as published by the Free Software Foundation.
-# ------------------------------------------------------------------------ #
 }
 \examples{
 class <- matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
