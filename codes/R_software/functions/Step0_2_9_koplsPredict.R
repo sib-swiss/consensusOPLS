@@ -102,9 +102,9 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
   if(nox > 0){
     for(i in 1:nox){
       ## Step2.2: Predicted predictive score matrix
-      Tp[[i]] <- base::tcrossprod(KteTr[i,1][[1]],
-                                  base:tcrossprod( t(model$Sps), t(model$Up)))
-      
+      Tp[[i]] <- base::crossprod(t(KteTr[i,1][[1]]),
+                                 base::tcrossprod(model$Up, t(model$Sps)))
+
       # Step2.3: Predicted Y-orthogonal score vectors
       to[[i]] <- base::crossprod(t((KteTr[i,i][[1]] - base::tcrossprod(Tp[[i]], 
                                                                        model$Tp[[i]]))),
@@ -147,8 +147,8 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     i <- 0
   }
   
-  Tp[[i+1]] <- base::tcrossprod(KteTr[i+1,1][[1]],
-                                base::tcrossprod(t(model$Sps), t(model$Up)))
+  Tp[[i+1]] <- base::crossprod(t(KteTr[i+1,1][[1]]),
+                               base::tcrossprod(model$Up, t(model$Sps)))
   Yhat <- base::crossprod(t(Tp[[i+1]]),
                           base::tcrossprod(model$Bt[[i+1]], model$Cp))
   

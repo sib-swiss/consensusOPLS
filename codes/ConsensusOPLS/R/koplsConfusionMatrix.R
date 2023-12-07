@@ -20,10 +20,10 @@ koplsConfusionMatrix <- function(true_class, pred){
   if(!is.matrix(pred)){stop("pred is not a matrix.")}
   
   # Extract all classes
-  uniqueClass <- base::unique(x = true_class)
+  uniqueClass_true <- base::unique(x = true_class)
   
   # Check uniqueClass format
-  if (!is.numeric(uniqueClass)){
+  if (!is.numeric(uniqueClass_true)){
     a1 <- ConsensusOPLS:::koplsDummy(X = true_class, numClasses = NA)
     colnames(a1) <- 1:nrow(a1)
     
@@ -35,21 +35,21 @@ koplsConfusionMatrix <- function(true_class, pred){
   }
   
   # Initialize parameters
-  A <- base::matrix(data = 0, nrow = length(uniqueClass),
-                    ncol = length(uniqueClass))
+  A_true <- base::matrix(data = 0, nrow = length(uniqueClass_true),
+                    ncol = length(uniqueClass_true))
   
   # For each class
-  for(i in 1: base::length(uniqueClass)){
+  for(i in 1: base::length(uniqueClass_true)){
     # Find the indices where uniqueClass equals the current class
-    indTrue <- base::which(true_class == uniqueClass[i])
-    for(j in 1: base::length(indTrue)){
+    indTrue_true <- base::which(true_class == uniqueClass_true[i])
+    for(j in 1: base::length(indTrue_true)){
       # Find the corresponding prediction
-      predIndex <- base::which(uniqueClass == pred[indTrue[j]])
+      predIndex_true <- base::which(uniqueClass_true == pred[indTrue_true[j]])
       # Update the co-occurrence matrix
-      A[i, predIndex] <- A[i, predIndex] + 1
+      A_true[i, predIndex_true] <- A_true[i, predIndex_true] + 1
     }
     # Normalize the row by dividing by the number of occurrences
-    A[i, ] <- A[i, ] / base::length(indTrue)
+    A_true[i, ] <- A_true[i, ] / base::length(indTrue_true)
   }
   
   # Return the confusion matrix

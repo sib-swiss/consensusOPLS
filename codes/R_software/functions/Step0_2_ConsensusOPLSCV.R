@@ -355,13 +355,14 @@ ConsensusOPLSCV <- function(K, Y,
   modelMain$cv$cvTestIndex <- cvTestIndex
   modelMain$cv$cvTrainingIndex <- cvTrainingIndex
   
+  daMetrics_list <- list()
   if (modelType == "da") {
     # Get sens/spec for each y-orth component
     for (i in 1:(oax + 1)) {
       if (drRule == "max") {
-        predClass <- koplsMaxClassify(data = YhatDaSave[[i]])
+        predClass <- koplsMaxClassify(X = YhatDaSave[[i]])
       } else if (drRule == "fixed") {
-        predClass <- koplsBasicClassify(data = YhatDaSave[[i]], 
+        predClass <- koplsBasicClassify(X = YhatDaSave[[i]], 
                                         k = 1/nclasses)
       } else {
         warning(paste0('Decision rule given: ', drRule, 
@@ -371,20 +372,19 @@ ConsensusOPLSCV <- function(K, Y,
       # Calculate sensitivity and specificity
       daMetrics <- koplsSensSpec(trueClass = base::matrix(classVect[cvTestIndex]), 
                                  predClass = predClass)
-      daMetrics$sens[i] <- daMetrics[["classResults"]][[i]][["sens"]]
-      daMetrics$spec[i] <- daMetrics[["classResults"]][[i]][["spec"]]
-      daMetrics$classvec[i] <- daMetrics[["classResults"]][[i]][["class"]]
-      daMetrics$tot_sens[i] <- daMetrics[["totalResults"]][["sensTot"]]
-      daMetrics$meanSens[i] <- daMetrics[["totalResults"]][["meanSens"]]
-      daMetrics$meanSpec[i] <- daMetrics[["totalResults"]][["meanSpec"]]
+      daMetrics_list$sens[i] <- daMetrics[i, "sens"]
+      daMetrics_list$spec[i] <- daMetrics[i, "spec"]
+      daMetrics_list$tot_sens[i] <- daMetrics[nrow(daMetrics), "sens"]
+      daMetrics_list$meanSens[i] <- daMetrics[nrow(daMetrics), "meanSens"]
+      daMetrics_list$meanSpec[i] <- daMetrics[nrow(daMetrics), "meanSpec"]
     }
     
     # Calculate sensitivity and specificity
-    daMetrics$confusMatrix <- koplsConfusionMatrix(true_class = classVect[cvTestIndex], 
-                                                   pred = predClass)
-    daMetrics$trueClass <- classVect[cvTestIndex]
-    daMetrics$nclasses <- nclasses
-    modelMain$da <- daMetrics
+    daMetrics_list$confusMatrix <- koplsConfusionMatrix(true_class = classVect[cvTestIndex], 
+                                                        pred = predClass)
+    daMetrics_list$trueClass <- classVect[cvTestIndex]
+    daMetrics_list$nclasses <- nclasses
+    modelMain$da <- daMetrics_list
     modelMain$da$predClass <- predClass
     modelMain$da$decisionRule <- drRule
     
