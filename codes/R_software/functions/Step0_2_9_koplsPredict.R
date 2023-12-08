@@ -50,13 +50,13 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
   }
   if(!is.list(model)){
     stop("model is not a list containing model parameters.")
-  } else{if(model$class != "kopls"){stop("Model must be of type `kopls`.")}}
+  } else{if(model$Unique_params$class != "kopls"){stop("Model must be of type `kopls`.")}}
   if(!is.null(nox)){
     if(!is.numeric(nox)){stop("nox is not numeric.")}
-    if(nox > model$nox){
+    if(nox > model$Unique_params$nox){
       warning("Number of Y-orthogonal components to use is higher than in model.
               Setting number of Yorth to max in model.")
-      nox <- model$nox
+      nox <- model$Unique_params$nox
     }
   } else{
     stop('Number of Y-orthogonal components to use is missing.')
@@ -79,18 +79,19 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
   # Step1: mean centering of K matrices
   # the order of the code below is important
   KteTeMc <- Ktest
-  if (model$preProc$K == "mc") {
+  if (model$Unique_params$preProcK == "mc") {
     KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
   }
-  KteTe <- base::matrix(data = list(NULL), nrow = model$nox+1, ncol = model$nox+1)
+  KteTe <- base::matrix(data = list(NULL), nrow = model$Unique_params$nox+1, 
+                        ncol = model$Unique_params$nox+1)
   KteTe[1,1][[1]] <- KteTeMc
   
   KteTrMc <- KteTr
-  if (model$preProc$K == "mc") {
+  if (model$Unique_params$preProcK == "mc") {
     KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
   }
-  KteTrTmp <- base::matrix(data = list(NULL), nrow = model$nox+1, 
-                           ncol = model$nox+1)
+  KteTrTmp <- base::matrix(data = list(NULL), nrow = model$Unique_params$nox+1, 
+                           ncol = model$Unique_params$nox+1)
   KteTrTmp[1,1][[1]] <- KteTrMc
   KteTr <- KteTrTmp
   
@@ -153,7 +154,7 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
                           base::tcrossprod(model$Bt[[i+1]], model$Cp))
   
   if(!is.null(rescaleY)){
-    if(model$preProc$Y == "no"){
+    if(model$Unique_params$preProcY == "no"){
       if(base::length(model$preProc$paramsY) == 1 & model$preProc$paramsY == "no"){
         scaleParams <- list()
         scaleParams$centerType <- "no"

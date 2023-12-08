@@ -18,24 +18,23 @@
 #' \item{K}{ matrix. The centered kernel matrix.}
 #'
 #' @examples
-#' K <- base::matrix(stats::rnorm(n = 25), nrow = 5, ncol = 5)
+#' Xtr <- base::matrix(stats::rnorm(n = 25), ncol=5)
+#' K <- koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
 #' test <- koplsCenterKTrTr_TRUE(K = K)
 #' test
 #' 
 #' @keywords internal
-#' @import stats
 
 koplsCenterKTrTr <- function(K){
   # Variable format control
   if(!is.matrix(K)){stop("K is not a matrix.")}
   
   # Define parameters
-  I <- base::diag(nrow(K))
-  scaling_matrix <- base::matrix(1/nrow(K), nrow = nrow(K), ncol = ncol(K))
+  scaling_matrix <- base::diag(nrow(K)) - 1/nrow(K)
   
   # Center the kernel
-  K <- base::crossprod(I- scaling_matrix, 
-                       base::crossprod(t(K), I - scaling_matrix))
+  K <- base::crossprod(scaling_matrix, 
+                       base::crossprod(t(K), scaling_matrix))
   
   # Return the centered kernel matrix
   return(K)

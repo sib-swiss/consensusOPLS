@@ -22,7 +22,7 @@
 #' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
 #' 
-#' @importFrom stats sd
+#' @importFrom stats
 #' @keywords internal
 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
@@ -38,7 +38,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
     
     # Calculation of dispersion parameters before center and scale matrix
     meanV <- colMeans(X)
-    stdV <- apply(X = X, MARGIN = 2, FUN = function(X) sd(X))
+    stdV <- apply(X = X, MARGIN = 2, FUN = function(X) stats::sd(X))
     
     # Center the matrix
     if (centerType == "mc")
@@ -48,7 +48,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
     if (scaleType == "uv")
         X <- scale(x = X, center = FALSE, scale = TRUE)
     else if (scaleType == "pa")
-        X <- apply(X = X, MARGIN = 2, FUN = function(col){ col/sqrt(sd(col))})
+        X <- apply(X = X, MARGIN = 2, FUN = function(col){ col/sqrt(stats::sd(col))})
     
     # Return a list with all parameters
     return(list("centerType" = centerType,

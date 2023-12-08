@@ -57,7 +57,7 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
 #' Ktrain = <phi(Xtr), phi(Xtr)>.
 #' 
 #' @return The centered kernel matrix.
-#' @import stats
+#' 
 #' @examples
 #' Xte <- matrix(rnorm(20), ncol=5)
 #' Xtr <- matrix(rnorm(25), ncol=5)
@@ -103,7 +103,7 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
 #' ConsensusOPLS:::koplsCenterKTrTr(K = K)
 #' 
 #' @keywords internal
-#TODO: so K should be symmetric?
+
 koplsCenterKTrTr <- function(K) {
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")

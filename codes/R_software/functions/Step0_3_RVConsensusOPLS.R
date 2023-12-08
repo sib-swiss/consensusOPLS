@@ -22,7 +22,7 @@
 #' @examples
 #' TO DO
 
-RVConsensusOPLS <- function(data = collection,
+RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
                             maxOrtholvs = 10, 
@@ -70,8 +70,8 @@ RVConsensusOPLS <- function(data = collection,
   tStart <- Sys.time()
   
   # Check collection dimension
-  ntable <- base::length(collection)
-  nrow <- nrow(collection[[1]])
+  ntable <- base::length(data)
+  nrow <- nrow(data[[1]])
   
   # Initialize parameters
   W_mat <- base::matrix(data = 0, nrow = nrow, ncol = nrow)
@@ -92,7 +92,7 @@ RVConsensusOPLS <- function(data = collection,
   xnorm <- list() ; AMat <- list() ; RV <- list()
   for (ta in 1:ntable) {
     # Produce the kernel of the data block
-    temp <- koplsKernel(X1 = collection[[ta]], X2 = NULL, Ktype = 'p', params = 1)
+    temp <- koplsKernel(X1 = data[[ta]], X2 = NULL, Ktype = 'p', params = c(order=1))
     # Frobenius norm of the kernel
     xnorm[[ta]] <- base::norm(x = temp, type = "F")
     # Normalize the Kernel
@@ -195,11 +195,11 @@ RVConsensusOPLS <- function(data = collection,
   for (ta in 1:ntable) {
     for (m in 1:A) {
       T <- base::matrix(modelCV$Model$T[, m], ncol = 1)
-      loadings[[ta, m]] <- t(collection[[ta]]) %*% T %*% base::solve(t(T) %*% T)
+      loadings[[ta, m]] <- t(data[[ta]]) %*% T %*% base::solve(t(T) %*% T)
     }
     for (n in 1:OrthoLVsNum) {
       To <- modelCV$Model$To[, n]
-      loadings[[ta, n+m]] <- list(t(collection[[ta]]) %*% To %*% base::solve(t(To) %*% To))
+      loadings[[ta, n+m]] <- list(t(data[[ta]]) %*% To %*% base::solve(t(To) %*% To))
     }
   }
   

@@ -23,8 +23,10 @@
 #' \item{KteTr}{ matrix. The centered kernel matrix.}
 #'
 #' @examples
-#' KteTr <- base::matrix(stats::rnorm(n = 25), nrow = 5, ncol = 5)
-#' KtrTr <- base::matrix(stats::rnorm(n = 25), nrow = 5, ncol = 5)
+#' Xte <- base::matrix(stats::rnorm(n = 20), ncol=5)
+#' Xtr <- base::matrix(stats::rnorm(n = 25), ncol=5)
+#' KteTr <- koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
+#' KtrTr <- koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
 #' test <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' test
 #' 

@@ -12,9 +12,9 @@
 #' # ------------------------------------------------------------------------ #
 #'
 #' @param X numeric vector with classes to define.
-#' @param numClasses numeric. Pre-defined the number of classes in the output. 
-#' By default (if numClasses is missing), is equal to the length of \code{class} 
-#' vector. Otherwise, the class vector is split into \code{numclasse} pieces.
+#' @param numClasses numeric. Pre-defined number of classes in the output.
+#' By default, numClasses, number of unique values in \code{X}. Otherwise,
+#' classes 1,...,numClasses are considered.
 #'
 #' @return
 #' \item{X}{matrix. Results of the dummy matrix, with rows corresponding to 

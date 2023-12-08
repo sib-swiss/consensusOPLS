@@ -61,7 +61,7 @@
 #' \item{preProc$paramsY}{ character. Pre-processing scaling parameters for Y.}
 #'
 #' @examples
-#' K <- base::matrix(stats::rnorm(25), nrow = 5)
+#' K <- koplsKernel(X1=matrix(rnorm(20), nrow = 5), Ktype='g', params=c(sigma=1.0))
 #' Y <- base::matrix(stats::rnorm(15), nrow = 5)
 #' A <- 2
 #' nox <- 4
@@ -203,21 +203,27 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
   EEprime <- K[nox+1, nox+1][[1]] - base::tcrossprod(Tp[[nox+1]])
   sstot_K <- base::sum( base::diag(K[1,1][[1]]))
   
-  R2X <- c(); R2XO <- c(); R2XC <- c(); R2Yhat <- c();
-  for(i in 1:(nox+1)){
-    rss <- base::sum( base::diag(K[i,i][[1]] -  base::tcrossprod(Tp[[nox+1]])) )
-    R2X <- c(R2X, 1- rss/sstot_K)
-    
-    rssc <- base::sum( base::diag( K[1,1][[1]] - base::tcrossprod(Tp[[nox+1]]) ) )
-    R2XC <- c(R2XC, 1- rssc/sstot_K)
-    
-    rsso <- base::sum( base::diag( K[i,i][[1]] ))    
-    R2XO <- c(R2XO, 1- rsso/sstot_K)
-    
-    # R2Yhat 22 Jan 2010 / MR - not fully tested
-    Yhat <- base::crossprod(t(Tp[[i]]), base::tcrossprod(Bt[[i]], Cp))
-    R2Yhat <- c(R2Yhat, 1 - sum( sum((Yhat - Y)**2) )/sstot_Y )
-  } # fin K-OPLS model
+  R2X <- 1 - sapply(1 : (nox+1),
+                    function(i){
+                      base::sum( base::diag(K[i,i][[1]] - base::tcrossprod(Tp[[nox+1]])) )
+                    }) / sstot_K
+  
+  R2XC <- rep(1 - sum( base::diag( K[1,1][[1]] - base::tcrossprod(Tp[[nox+1]]) ) ) / sstot_K,
+              times = nox+1)
+  
+  R2XO <- 1 - sapply(1 : (nox+1),
+                     function(i){
+                       base::sum( base::diag( K[i,i][[1]] ))    
+                     }) / sstot_K
+  
+  Yhat <- sapply(1 : (nox+1),
+                 function(i){
+                   base::crossprod(t(Tp[[i]]), base::tcrossprod(Bt[[i]], Cp))
+                 })
+  R2Yhat <- 1 - sapply(Yhat,
+                       function(i){
+                         sum( sum((i - Y)**2) )/sstot_Y 
+                       })
   
   # Convert to matrix structure
   if (nox > 0) {
@@ -227,7 +233,18 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
     To <- NULL
   }
   
-  return(list("Cp" = Cp, 
+  # Group parameters in data.frame
+  Unique_params <- base::data.frame("A" = A,
+                                    "nox" = nox, 
+                                    "sstot_K" = sstot_K,
+                                    "sstot_Y" = sstot_Y,
+                                    "R2Y" = R2Y,
+                                    "preProcK" = preProcK, 
+                                    "preProcY" = preProcY, 
+                                    "class" = "kopls")
+  
+  return(list("Unique_params" = Unique_params,
+              "Cp" = Cp, 
               "Sp" = Sp, 
               "Sps" = Sps, 
               "Up" = Up,
@@ -239,25 +256,18 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no"){
               "To" = To,
               "toNorm" = toNorm, 
               "Bt" = Bt, 
-              "A" = A, 
-              "nox" = nox, 
               "K" = K, 
               
               #extra stuff
               "EEprime" =EEprime, 
-              "sstot_K" = sstot_K, 
               "R2X" = R2X, 
               "R2XO" = R2XO, 
               "R2XC" = R2XC, 
-              "sstot_Y" = sstot_Y, 
-              "R2Y" = R2Y,
               "R2Yhat" = R2Yhat, # R2Yhat 22 Jan 2010 / MR
               
               #pre-processing
-              "preProc" = list("K" = preProcK, 
-                               "Y" = preProcY, 
-                               "paramsY" = ifelse(test = (preProcY != "no"),
+              "preProc" = list("paramsY" = ifelse(test = (preProcY != "no"),
                                                   yes = scaleParams,
-                                                  no = "no")),
-              "class" = "kopls"))
+                                                  no = "no"))
+  ))
 }

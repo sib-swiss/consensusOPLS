@@ -13,9 +13,10 @@
 #' @param nfoldRound numeric. Current nfold rounds (if type = \code{nfold}).
 #'
 #' @return A list with the following entries:
-#' \item{type}{ character. Cross-validation type.}
-#' \item{nfold}{ numeric. Number of nfold rounds.}
-#' \item{nfoldRound}{ numeric. The current nfold round.}
+#' \item{CV_param}{ data frame. It contains \code{type} a character for the 
+#' Cross-validation type, \code{nfold} the total number of nfold, 
+#' \code{nfoldRound} the current nfold round and \code{class} the object class
+#' wich is \code{crossValSet}.}
 #' \item{KTrTr}{ matrix. Kernel training matrix; KTrTr = <phi(Xtr),phi(Xtr)>.}
 #' \item{KTeTr}{ matrix. Kernel test/training matrix; KTeTr = <phi(Xte),phi(Xtr)>.}
 #' \item{KTeTe}{ matrix. Kernel test matrix; KTeTe = <phi(Xte),phi(Xte)>.}
@@ -23,7 +24,6 @@
 #' \item{yTest}{ matrix. Y test set.}
 #' \item{trainingIndex}{ integer. Indices of training set observations.}
 #' \item{testIndex}{ numeric. Indices of test set observations.}
-#' \item{class}{ character. Object class is \code{crossValSet}.}
 #'
 #' @examples
 #' Y <- matrix(1:100, nrow = 10)
@@ -118,16 +118,19 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
         KTeTe <- NA
     }
     
+    # Group parameters in data.frame
+    CV_param <- base::data.frame("type" = type,
+                                 "nfold" = nfold,
+                                 "nfoldRound" = nfoldRound,
+                                 "class" = "crossValSet")
+    
     # Return the final CV Set
-    return(list("type" = type,
-                "nfold" = nfold,
-                "nfoldRound" = nfoldRound,
+    return(list("CV_param" = CV_param,
                 "KTrTr" = KTrTr,
                 "KTeTr" = KTeTr,
                 "KTeTe" = KTeTe,
                 "yTraining" = Y[trainInd, , drop=FALSE],
                 "yTest" = Y[predInd, , drop=FALSE],
                 "trainingIndex" = trainInd,
-                "testIndex" = predInd,
-                "class" = "crossValSet"))
+                "testIndex" = predInd))
 }

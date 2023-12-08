@@ -14,8 +14,7 @@
 #'
 #' @param Y matrix. A dummy matrix to be transformed into a numeric vector.
 #'
-#' @return 
-#' \item{classVect}{ matrix. The reconstructed integer class vector.}
+#' @return The reconstructed integer class vector.
 #'
 #' @examples
 #' class <- base::matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
@@ -37,9 +36,9 @@ koplsReDummy <- function(Y){
   }
   
   # Rebuild the vector
-  classVect <- base::apply(X = Y, MARGIN = 1, 
-                           FUN = function(X) base::which(X == 1))
+  X <- base::apply(X = Y, MARGIN = 1, 
+                   FUN = function(X) base::which(X == 1))
   
   # Return the reverted dummy matrix to the original vector of class labels
-  return(classVect)
+  return(X)
 }
