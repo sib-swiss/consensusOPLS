@@ -44,4 +44,6 @@ kernel_gaussian
 params_polynomial <- c(order=2)  # Polynomial kernel order
 kernel_polynomial <- ConsensusOPLS:::koplsKernel(X1, X2, Ktype='p', params=params_polynomial)
 kernel_polynomial
+
 }
+\keyword{internal}

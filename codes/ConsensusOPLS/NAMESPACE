@@ -2,4 +2,3 @@
 
 import(parallel)
 import(stats)
-importFrom(stats,sd)

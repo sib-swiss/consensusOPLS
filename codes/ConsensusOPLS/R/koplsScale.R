@@ -22,7 +22,7 @@
 #' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
 #' 
-#' @importFrom stats
+#' @import stats
 #' @keywords internal
 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){

@@ -31,9 +31,10 @@ class-balanced CV. Default is \code{nfold}.}
 }
 \value{
 A list with the following entries:
-\item{type}{ character. Cross-validation type.}
-\item{nfold}{ numeric. Number of nfold rounds.}
-\item{nfoldRound}{ numeric. The current nfold round.}
+\item{CV_param}{ data frame. It contains \code{type} a character for the 
+Cross-validation type, \code{nfold} the total number of nfold, 
+\code{nfoldRound} the current nfold round and \code{class} the object class
+wich is \code{crossValSet}.}
 \item{KTrTr}{ matrix. Kernel training matrix; KTrTr = <phi(Xtr),phi(Xtr)>.}
 \item{KTeTr}{ matrix. Kernel test/training matrix; KTeTr = <phi(Xte),phi(Xtr)>.}
 \item{KTeTe}{ matrix. Kernel test matrix; KTeTe = <phi(Xte),phi(Xte)>.}
@@ -41,7 +42,6 @@ A list with the following entries:
 \item{yTest}{ matrix. Y test set.}
 \item{trainingIndex}{ integer. Indices of training set observations.}
 \item{testIndex}{ numeric. Indices of test set observations.}
-\item{class}{ character. Object class is \code{crossValSet}.}
 }
 \description{
 Generates set of training/test observations for the 

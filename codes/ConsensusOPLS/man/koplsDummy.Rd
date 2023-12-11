@@ -11,10 +11,10 @@ koplsDummy(X, numClasses = NA)
 
 \item{numClasses}{numeric. Pre-defined number of classes in the output.
 By default, numClasses, number of unique values in \code{X}. Otherwise,
-classes 1,...,numClasses are considered}
+classes 1,...,numClasses are considered.}
 }
 \value{
-\item{X}{matrix. Results of the dummy matrix, with rows corresponding to
+\item{X}{ matrix. Results of the dummy matrix, with rows corresponding to
 observations and columns to classes. Each element in matrix is either one
 (observation belongs to class) or zero (observation does not belong to class).}
 }

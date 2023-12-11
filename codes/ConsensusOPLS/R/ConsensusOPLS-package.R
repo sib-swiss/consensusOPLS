@@ -20,3 +20,11 @@
 ## usethis namespace: start
 ## usethis namespace: end
 NULL
+
+#' Three-block omics data
+#'
+#' @name demo_3_Omics
+#' @docType data
+#' @author Boccard & Rutledge
+#' @references J. Boccard and D.N. Rutledge. A consensus OPLS-DA strategy for multiblock Omics data fusion. Analytica Chimica Acta, 769, 30-39, 2013.
+NULL
