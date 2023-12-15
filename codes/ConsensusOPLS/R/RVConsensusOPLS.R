@@ -16,12 +16,13 @@
 #' @param verbose logical which indicates whether the user wants to see the 
 #' progress bar printlayed in the ConsensusOLPSCV function.
 #'
-#' @return 
-#' `model`: a list with all model parameters.
+#' @return A consensus OPLS model
 #'
 #' @examples
-#' TO DO
-
+#' data(demo_3_Omics)
+#' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData","ProteoData")], 
+#'                 Y=demo_3_Omics$Y[,1,drop=F])
+#' @export
 RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
@@ -67,22 +68,7 @@ RVConsensusOPLS <- function(data,
     }
     
     # For each data block
-    # xnorm <- list()
-    # AMat <- list()
-    # RV <- list()
-    # for (ta in 1:ntable) {
-    #     # Produce the kernel of the data block
-    #     temp <- koplsKernel(X1 = data[[ta]], X2 = NULL, Ktype = 'p', params = c(order=1))
-    #     # Frobenius norm of the kernel
-    #     xnorm[[ta]] <- norm(x = temp, type = "F")
-    #     # Normalize the Kernel
-    #     AMat[[ta]] <- temp/xnorm[[ta]]
-    #     # RV coefficient for AMat
-    #     RV[[ta]] <- (RVmodified(X = AMat[[ta]], Y = Yc) + 1) / 2
-    #     # calculates the weighted sum of blocks kernel by the RV coeff
-    #     W_mat <- W_mat + RV[[ta]] * AMat[[ta]]
-    # }
-    RA <- mclapply(1:ntable, mc.cores = detectCores(), function(i) {
+    RA <- mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
         # Produce the kernel of the data block
         tmp <- koplsKernel(X1 = data[[i]], X2 = NULL, Ktype = 'p', params = c(order=1))
         # Frobenius norm of the kernel
@@ -95,9 +81,9 @@ RVConsensusOPLS <- function(data,
         return (list(RV=RV, AMat=AMat))
     })
     # RV coefficient 
-    RV <- mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(x) x$RV)
+    RV <- mclapply(RA, mc.cores = detectCores(), FUN = function(x) x$RV)
     # Normalized kernel
-    AMat <- mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(x) x$AMat)
+    AMat <- mclapply(RA, mc.cores = detectCores(), FUN = function(x) x$AMat)
     # calculates the weighted sum of blocks kernel by the RV coeff
     W_mat <- Reduce("+", mclapply(1:ntable, mc.cores = detectCores(), FUN = function(i) {
         RA[[i]]$RV * RA[[i]]$AMat
@@ -113,20 +99,6 @@ RVConsensusOPLS <- function(data,
     
     # Search for the optimal model based on DQ2
     if (modelType == 'da') {
-        #dqq <- matrix(data = 0, nrow = maxOrtholvs+1, ncol = Ylarg)
-        #PRESSD <- matrix(data = 0, nrow = maxOrtholvs+1, ncol = Ylarg)
-        
-        # for (i in 0:maxOrtholvs) {
-        #     for (j in 1:Ylarg) {
-        #         # For each Y column, perform the DQ2
-        #         result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
-        #                                      ncol = 1), 
-        #                       Y = matrix(data = Y[, j], 
-        #                                  ncol = 1))
-        #         dqq[i+1, j] <- result$dqq  
-        #         PRESSD[i+1, j] <- result$PRESSD
-        #     }
-        # }
         mc <- (maxOrtholvs+1)*Ylarg
         mcj <- min(sqrt(mc), Ylarg)
         mci <- floor(detectCores()/mcj)
@@ -191,17 +163,6 @@ RVConsensusOPLS <- function(data,
     modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), drop=F]
     
     # Compute the blocks contributions for the selected model
-    # lambda <- matrix(data = 0, nrow = ntable, ncol = A+OrthoLVsNum)
-    # for (j in 1:ntable) {
-    #     for (k in 1:A) {
-    #         T <- modelCV$Model$T[, k]
-    #         lambda[j, k] <- t(T) %*% AMat[[j]] %*% T
-    #     }
-    #     for (l in 1:OrthoLVsNum) {
-    #         To <- modelCV$Model$To[, l]
-    #         lambda[j, l+A] <- t(To) %*% AMat[[j]] %*%To
-    #     }
-    # }
     lambda <- cbind(do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(j) {
                                 diag(crossprod(modelCV$Model$T[, 1:A], 
@@ -223,59 +184,24 @@ RVConsensusOPLS <- function(data,
     modelCV$Model$lambda <- lambda 
     
     # Compute the loadings for the selected model size
-    loadings <-  matrix(data = list(), nrow = ntable, ncol = (A+OrthoLVsNum))
-    for (ta in 1:ntable) {
-        for (m in 1:A) {
-            T <- matrix(modelCV$Model$T[, m], ncol = 1)
-            loadings[[ta, m]] <- t(data[[ta]]) %*% T %*% solve(t(T) %*% T)
-        }
-        for (n in 1:OrthoLVsNum) {
-            To <- modelCV$Model$To[, n]
-            loadings[[ta, n+m]] <- list(t(data[[ta]]) %*% To %*% solve(t(To) %*% To))
-        }
-    }
-    loadings <- cbind(do.call(rbind, 
-                              mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
-                                  tcrossprod(crossprod(data[[i]], 
-                                                      modelCV$Model$T[, 1:A, drop=F]), 
-                                            diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
-                              })),
-                      do.call(rbind, 
-                              mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
-                                  tcrossprod(crossprod(data[[i]],
-                                                       modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
-                                             diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
-                              })))
-    loadings <-  matrix(data = list(), nrow = ntable, ncol = (A+OrthoLVsNum))
-    for (ta in 1:ntable) {
-        for (m in 1:A) {
-            T <- matrix(tmp1[, m], ncol = 1)
-            loadings[[ta, m]] <- t(data[[ta]]) %*% T %*% solve(t(T) %*% T)
-        }
-        for (n in 1:OrthoLVsNum) {
-            To <- tmp2[, n]
-            loadings[[ta, n+m]] <- t(data[[ta]]) %*% To %*% solve(t(To) %*% To)
-        }
-    }
-    loadings <- list(
-        mclapply(X = 1:ntable, mc.cores = 1, FUN = function(i) {
+    loadings.list <- list( 
+        mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
             tcrossprod(crossprod(data[[i]], 
-                                 tmp1[, 1:A, drop=F]), 
-                       diag(diag(crossprod(tmp1[, 1:A, drop=F]))^-1, ncol=A))
+                                 modelCV$Model$T[, 1:A, drop=F]), 
+                       diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
         }),
-        
-        mclapply(X = 1:ntable, mc.cores = 1, FUN = function(i) {
+        mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
             tcrossprod(crossprod(data[[i]],
-                                 tmp2[, 1:OrthoLVsNum, drop=F]),
-                       diag(diag(crossprod(tmp2[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
+                                 modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
+                       diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
         }))
-    lapply(1:ntable, function(i) cbind())
-    unlist(loadings, recursive = F)
+    loadings <- mclapply(X = 1:ntable, mc.cores = detectCores, FUN = function(i) { 
+        cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
+    })
     # Add RV coefficients in the model objects
     modelCV$RV <- RV  
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
-    
     
     return (modelCV)
 }
