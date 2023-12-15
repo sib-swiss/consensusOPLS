@@ -92,7 +92,9 @@ installed (the code chunks are not shown) and to define define the localisation
 of the codes and the files.
 
 ```{r access}
-path_data <- "../../../data/data_brut" 
+path_data_brut <- "../../../data/data_brut" 
+path_data_produced <- "../../../data/data_produced/R_software" 
+path_data_package <- "../../ConsensusOPLS/data" 
 path_results <- "../../../results" 
 path_functions <- "../functions"
 ```
@@ -195,7 +197,7 @@ As mentioned earlier, we use the demonstration dataset proposed by Julien
 Boccard:
 
 ```{r import_demo_data.mat}
-demo_data <- R.matlab::readMat(con = file.path(path_data, "demo_data.mat"))
+demo_data <- R.matlab::readMat(con = file.path(path_data_brut, "demo_data.mat"))
 ```
 
 This file corresponds to a `r class(demo_data)` of size `r length(demo_data)`.
@@ -214,78 +216,116 @@ the data, i.e. each columns of the data are centered to have mean 0 and scaled
 to have standard deviation 1.
 
 ```{r created_collection_data}
-# Extract the 3 blocks of data
-collection <- lapply(X = 1:length(demo_data$BlockNames), 
-                     FUN = function(X){
-                       # Extract the tables of data
-                       name_data <- demo_data$BlockNames[X]
-                       
-                       # Extract columns length for all subjects
-                       col_identic_val <- base::apply(X = demo_data[[name_data]],
-                                                      MARGIN = 2, 
-                                                      FUN = function(X){
-                                                        base::length(base::unique(X)) < 2})
-                       # Check identical values for all subjects and delete
-                       if(length(which(col_identic_val)) != 0){
-                         print(paste0("The columns ", paste(which(col_identic_val),
-                                                            sep = " ", 
-                                                            collapse = ", "), 
-                                      " of the ", name_data, 
-                                      " data contained columns with identical values."))
-                         data <- demo_data[[name_data]][, -which(col_identic_val)]
-                       } else{
-                         print(paste0("The ", name_data, 
-                                      " data doesn't contain columns with identical values."))
-                         data <- demo_data[[name_data]]
-                       }
-                       
-                       # Calculate the Z-score 
-                       # (mean centering and standard deviations scaling)
-                       scaled_data <- base::scale(data, center = TRUE,
-                                                  scale = TRUE)
-                       # Apply the function matrix2saisir
-                       matrix <- matrix2saisir(data = scaled_data,
-                                               coderow = NA, codecol = NA,
-                                               position_coderow = NA,
-                                               position_codecol = NA)
-                       
-                       # Return the result
-                       return(matrix)
-                       })
+demo_3_Omics <- 
+  lapply(X = 1:length(demo_data$BlockNames), 
+         FUN = function(X){
+           # Extract the tables of data
+           name_data <- demo_data$BlockNames[X]
+           name_var <- gsub("Data", "VarNames", name_data, fixed = TRUE)
+           
+           # Extract the corresponding variables names
+           colnames(demo_data[[name_data]]) <- as.character(unlist(demo_data[[name_var]][1, ]))
+           data <- demo_data[[name_data]]
+           
+           # Extract columns length for all subjects
+           col_identic_val <- base::apply(X = data,
+                                          MARGIN = 2, 
+                                          FUN = function(X){
+                                            base::length(base::unique(X)) < 2})
+           
+           # Check identical values for all subjects and delete
+           if(length(which(col_identic_val)) != 0){
+             print(paste0("The columns ", paste(which(col_identic_val),
+                                                sep = " ", 
+                                                collapse = ", "), 
+                          " of the ", name_data, 
+                          " data contained columns with identical values."))
+             data <- demo_data[[name_data]][, -which(col_identic_val)]
+           } else{
+             print(paste0("The ", name_data, 
+                          " data doesn't contain columns with identical values."))
+             data <- demo_data[[name_data]]
+           }
+           
+           # Return the result
+           return(data)
+         })
 ```
 
+Then, we extract the useful information for the next steps of the analyses:
+
 ```{r rename_blocks}
-# Rename blocks with BlokNames
-names(collection) <- demo_data$BlockNames
-ls(collection)
+names(demo_3_Omics) <- demo_data$BlockNames
+demo_3_Omics$Y <- demo_data$Y
+demo_3_Omics$ObsNames <- apply(X = demo_data$ObsNames, MARGIN = 1:2,
+                               FUN = unlist)
+```
+
+We then export these results for comparison with the matlab version. The user c
+an then load the data directly into R, without using the `R.matlab` package.
+
+```{r export_demo_data, class.source='fold-hide'}
+# In data folder
+save(demo_3_Omics, file = file.path(path_data_produced, "demo_3_Omics.RData"))
+
+# In package forder
+save(demo_3_Omics, file = file.path(path_data_package, "demo_3_Omics.RData"))
+```
+
+All exported results were included:
+
+```{r list_saved_results}
+ls(demo_3_Omics)
 ```
 
 The results were observed (results not shown).
 
-```{r check_collection_objects, class.source='fold-hide'}
-# View(collection[[names(collection)[1]]])
-# View(collection[[names(collection)[2]]])
-# View(collection[[names(collection)[3]]])
+```{r view_results, class.source='fold-hide'}
+# View(demo_3_Omics[[demo_data$BlockNames[1]]])
+# View(demo_3_Omics[[demo_data$BlockNames[2]]])
+# View(demo_3_Omics[[demo_data$BlockNames[3]]])
+```
+
+To repeat the example in the demo code, the datasets are centered and reduced. 
+Then the `matrix2saisir` function is applied to each of them:
+
+```{r data_form}
+demo_3_Omics[1:length(demo_data$BlockNames)] <- 
+  lapply(X = 1:length(demo_data$BlockNames), 
+         FUN = function(X){
+           # Calculate the Z-score 
+           # (mean centering and standard deviations scaling)
+           scaled_data <- base::scale(demo_3_Omics[X][[1]], 
+                                      center = TRUE, scale = TRUE)
+           
+           # Apply the function matrix2saisir
+           matrix <- matrix2saisir(data = scaled_data,
+                                   coderow = NA, codecol = NA,
+                                   position_coderow = NA, position_codecol = NA)
+           
+           # Return the result
+           return(matrix)
+         })
 ```
 
 Missing data were observed in relation to the `Matlab` data. This is due to 
 columns having strictly identical values for all individuals, resulting in an 
 error when using the `scale` function. A check has therefore been added against 
-the source code demonstrating the use of the method. The dimensions of the data 
-after verification were therefore:
+the source code demonstrating the use of the method. The dimensions of the 
+data after verification were therefore:
 
-```{r new_dim_collection}
-lapply(X = 1:length(collection),
-       FUN = function(X){dim(collection[[X]])})
+```{r check_dim, class.source='fold-hide'}
+lapply(X = 1:length(demo_3_Omics),
+       FUN = function(X){dim(demo_3_Omics[[X]])})
 ```
 
 Another check: all data blocks must be the same size. The user can see it in the 
 output above, but let's set up a code stop if this is not the case:
 
 ```{r verif_size}
-size <- lapply(X = 1:length(collection),
+size <- lapply(X = 1:length(demo_3_Omics),
                FUN = function(X){
-                 dim(collection[[X]])[1]
+                 dim(demo_3_Omics[[X]])[1]
                })
 if (all(size == size[[1]])) {
   size <- size[[1]]
@@ -293,36 +333,6 @@ if (all(size == size[[1]])) {
 } else {
   stop("Data sets do not have the same number of subjects: ", size, ".")
 }
-```
-
-The next step in the source code is to extract the variable names (columns from 
-the previous table) according to the data table concerned.
-As the dimensions differ from those in Matlab following the previous 
-modifications, a new list is created to contain this information:
-
-```{r extract_variables_names}
-# Extraction of names matches for each data block
-list_var <- names(demo_data)[grep("VarNames", names(demo_data))]
-
-var_names <- lapply(X = 1:length(list_var), 
-                    FUN = function(X){
-                      name_var <- list_var[X]
-                      extract <- as.data.frame(demo_data[[name_var]])
-                      
-                      # Modifies input format
-                      base::apply(X = extract[1, ], MARGIN = 2,
-                                  FUN = function(X){
-                                    extract[1, ] <- as.character(unlist(X))
-                                  })
-                      return(extract[1, ])
-                    })
-
-# Rename blocks with BlokNames
-names(var_names) <- list_var
-ls(var_names)
-length(var_names[[1]])
-length(var_names[[2]])
-length(var_names[[3]])
 ```
 
 
@@ -334,6 +344,9 @@ length(var_names[[3]])
 Computation of a consensusOPLS model with leave-one-out cross-validation.
 
 ```{r define_cv_parameters}
+# Number of data blocks
+nbrBlocs <- length(demo_data$BlockNames)
+
 # Number of predictive component(s)
 LVsPred <- 1
 
@@ -346,8 +359,8 @@ CVfolds
 ```
 
 ```{r run_consensusOPLSmodel}
-RVConsensusOPLSModelCV <- RVConsensusOPLS(data = collection,
-                                          Y = demo_data$Y,
+RVConsensusOPLSModelCV <- RVConsensusOPLS(data = demo_3_Omics[1:nbrBlocs],
+                                          Y = demo_3_Omics$Y,
                                           A = LVsPred,
                                           maxOrtholvs = LVsOrtho,
                                           nrcv = CVfolds,
@@ -374,7 +387,7 @@ RVConsensusOPLSModelCV$model$da$confusMatrix
 ```
 
 ```{r print_VIP, class.source='fold-hide'}
-VIP <- MBVIP(collection = collection, Y = demo_data$Y, 
+VIP <- MBVIP(collection = demo_3_Omics[1:nbrBlocs], Y = demo_3_Omics$Y, 
              model = RVConsensusOPLSModelCV)
 names(VIP) <- demo_data$BlockNames
 ```
@@ -406,7 +419,7 @@ ggplot2::ggplot(data = data.frame("x" = RVConsensusOPLSModelCV$model$Model$T,
 
 ```{r ggplot_data_pred_compo, class.source='fold-hide'}
 ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$lambda[,1],
-                                  "Blocks" = as.factor(labels(collection))),
+                                  "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
                 aes(x = Blocks, y = Values,
                     fill = Blocks, labels = Values)) +
   ggplot2::geom_bar(stat = 'identity') + 
@@ -421,7 +434,7 @@ ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$
 
 ```{r ggplot_data_1st_ortho_compo, class.source='fold-hide'}
 ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$lambda[,2],
-                                  "Blocks" = as.factor(labels(collection))),
+                                  "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
                 aes(x = Blocks, y = Values,
                     fill = Blocks, labels = Values)) +
   ggplot2::geom_bar(stat = 'identity') + 
@@ -437,13 +450,13 @@ ggplot2::ggplot(data = data.frame("Values" = RVConsensusOPLSModelCV$model$Model$
 ```{r ggplot_data_pred_ortho, class.source='fold-hide'}
 data_two_plots <- data.frame("Values" = RVConsensusOPLSModelCV$model$Model$lambda[,1],
                              "Type" = "Pred",
-                             "Blocks" = labels(collection))
+                             "Blocks" = labels(demo_3_Omics[1:nbrBlocs]))
 data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
                                           RVConsensusOPLSModelCV$model$Model$lambda[,2]),
                              "Type" = c(data_two_plots$Type,
                                         rep("1st_ortho", times = length(RVConsensusOPLSModelCV$model$Model$lambda[,2]))),
                              "Blocks" = c(data_two_plots$Blocks,
-                                          labels(collection)))
+                                          labels(demo_3_Omics[1:nbrBlocs])))
 
 ggplot2::ggplot(data = data_two_plots,
                 aes(x = factor(Type), y = Values, fill = factor(Type))) +
@@ -464,7 +477,7 @@ ggplot2::ggplot(data = data_two_plots,
 ```{r ggplot_data_pred_vs_ortho, class.source='fold-hide'}
 ggplot2::ggplot(data = data.frame("Pred" = RVConsensusOPLSModelCV$model$Model$lambda[,1],
                                   "Ortho" = RVConsensusOPLSModelCV$model$Model$lambda[,2],
-                                  "Labels" = labels(collection)),
+                                  "Labels" = labels(demo_3_Omics[1:nbrBlocs])),
                 aes(x = Pred, y = Ortho, label = Labels, 
                     shape = Labels, colour = Labels)) +
   ggplot2::xlim(0, 0.5)+
@@ -482,11 +495,11 @@ ggplot2::ggplot(data = data.frame("Pred" = RVConsensusOPLSModelCV$model$Model$la
 
 ```{r create_data_loadings}
 loadings <- RVConsensusOPLSModelCV$model$Model$loadings
-data_loads <- sapply(X = 1:length(collection),
+data_loads <- sapply(X = 1:nbrBlocs,
                      FUN = function(X){
                        data.frame("Pred" = loadings[X,1][[1]],
                                   "Ortho" = loadings[X,2][[1]][[1]],
-                                  "Labels" = labels(collection)[[X]])
+                                  "Labels" = labels(demo_3_Omics[1:nbrBlocs])[[X]])
                      })
 data_loads <- as.data.frame(data_loads)
 ```
@@ -519,8 +532,8 @@ ggplot2::ggplot(data = data_loads) +
 
 ```{r run_permutations, warning=FALSE}
 # data = collection; Y = demo_data$Y; nbruns = 1000; PredLVs = LVsPred; maxOrtholvs = LVsOrtho;
-PermRes <- RVConsensusOPLSPerm(data = collection,
-                               Y = demo_data$Y,
+PermRes <- RVConsensusOPLSPerm(data = demo_3_Omics[1:nbrBlocs],
+                               Y = demo_3_Omics$Y,
                                nbruns = 1000,
                                PredLVs = LVsPred,
                                maxOrtholvs = LVsOrtho)
