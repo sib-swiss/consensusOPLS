@@ -34,7 +34,7 @@
 #'                      nrow = 3, ncol = 3)
 #' scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
 #'                "stdV" = 1.581139, "matrix" = data)
-#' test <- koplsRescale(scaleS)
+#' test <- koplsRescale(scaleS = scaleS, varargin = NULL)
 #' test
 #' test$X
 #' 

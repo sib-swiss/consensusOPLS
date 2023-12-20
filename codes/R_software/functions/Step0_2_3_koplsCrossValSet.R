@@ -36,8 +36,8 @@
 #' \item{testIndex}{ numeric. Indices of test set observations.}
 #'
 #' @examples
-#' Y <- base::matrix(1:100, nrow = 10)
-#' K <- base::matrix(1:100, nrow = 10)  
+#' Y <- base::matrix(stats::rnorm(n = 100), nrow = 10)
+#' K <- base::matrix(stats::rnorm(n = 100), nrow = 10)  
 #' type <- "nfold"  
 #' modelFrac <- 0.7  
 #' nfold <- 5  
@@ -93,23 +93,23 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
                                   FUN = function(i){
                                     ind <- base::which(classVect == i)
                                     rand_ind <- base::sample(x = ind)
-                                    trainSize <- base::floor( base::length(ind)*modelFrac)
+                                    trainSize <- base::floor(x = base::length(ind)*modelFrac)
                                     c(rand_ind[1:trainSize], 
                                       rand_ind[(trainSize+1): base::length(ind)])
                                   })
     
     # Combine indices for all classes
-    trainInd <- base::unlist(indList)
+    trainInd <- base::unlist(x = indList)
     predInd <- base::setdiff(x = base::seq_len(nrow(Y)), y = trainInd)
   }
   
   # Define Monte-Carlos Cross Validation
   if(type == "mccv"){
     # Create a random indices
-    rand_ind <- base::sample( base::seq_len(nrow(K)))
+    rand_ind <- base::sample(x = base::seq_len(nrow(K)))
     
     # Calculates the sample size of the training data
-    trainSize <- base::floor(nrow(K)*modelFrac)
+    trainSize <- base::floor(x = nrow(K)*modelFrac)
     
     # Divides the sample into train and test
     trainInd <- rand_ind[1:trainSize]

@@ -20,7 +20,7 @@
 #' class <- base::matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
 #' #numClasses needs to be missing for this example
 #' Y <- koplsDummy(class = class, numClasses = NA)
-#' X <- koplsReDummy(Y)
+#' X <- koplsReDummy(Y = Y)
 #' X
 #' 
 #' @keywords internal
@@ -37,7 +37,7 @@ koplsReDummy <- function(Y){
   
   # Rebuild the vector
   X <- base::apply(X = Y, MARGIN = 1, 
-                   FUN = function(X) base::which(X == 1))
+                   FUN = function(X) colnames(X)[X == 1])
   
   # Return the reverted dummy matrix to the original vector of class labels
   return(X)

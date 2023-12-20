@@ -12,7 +12,7 @@
 #' (observation belongs to class) or zero (observation does not belong to class).}
 #'
 #' @examples
-#' class <- matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
+#' class <- matrix(data = c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
 #' Y <- ConsensusOPLS:::koplsDummy(X = class, numClasses = NA)
 #' Y
 #'
@@ -25,7 +25,7 @@ koplsDummy <- function(X, numClasses = NA) {
         stop("X must be a vector or a matrix of 1 column.")}
 
     if(is.na(numClasses)) {
-        labels <- sort(unique(X))
+        labels <- sort(x = unique(x = X))
     } else {
         if(!is.numeric(numClasses)) stop("numClasses must be numeric.")
         labels <- 1:numClasses
@@ -35,7 +35,7 @@ koplsDummy <- function(X, numClasses = NA) {
     dummy <- t(sapply(X = X,
                       FUN = function(class) {
                           tmp <- numeric(length = length(labels))
-                          tmp[match(class, labels)] <- 1
+                          tmp[match(x = class, table = labels)] <- 1
                           return(tmp)
                       }
     ))
@@ -58,9 +58,9 @@ koplsDummy <- function(X, numClasses = NA) {
 #' @return The reconstructed integer class vector.
 #'
 #' @examples
-#' class <- matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
+#' class <- matrix(data = c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
 #' Y <- ConsensusOPLS:::koplsDummy(X = class, numClasses = NA)
-#' X <- ConsensusOPLS:::koplsReDummy(Y)
+#' X <- ConsensusOPLS:::koplsReDummy(Y = Y)
 #' X
 #'
 #' @keywords internal

@@ -8,8 +8,9 @@
 #'
 #' @examples
 #' true_class <- c(1, 2, 1, 2, 3, 3)
-#' pred <- matrix(c(1, 2, 3, 2, 3, 3), nrow = length(true_class), ncol = 1)
-#' test <- ConsensusOPLS:::koplsConfusionMatrix(true_class, pred)
+#' pred <- matrix(data = c(1, 2, 3, 2, 3, 3), nrow = length(true_class), ncol = 1)
+#' test <- ConsensusOPLS:::koplsConfusionMatrix(true_class = true_class, 
+#'                                              pred = pred)
 #' test
 
 
@@ -37,19 +38,28 @@ koplsConfusionMatrix <- function(true_class, pred){
     A <- matrix(data = 0, nrow = length(uniqueClass),
                 ncol = length(uniqueClass))
     
-    # For each class
-    for (i in 1:length(uniqueClass)) {
-        # Find the indices where uniqueClass equals the current class
-        indTrue <- which(true_class == uniqueClass[i])
-        for(j in 1: length(indTrue)){
-            # Find the corresponding prediction
-            predIndex <- which(uniqueClass == pred[indTrue[j]])
-            # Update the co-occurrence matrix
-            A[i, predIndex] <- A[i, predIndex] + 1
-        }
-        # Normalize the row by dividing by the number of occurrences
-        A[i, ] <- A[i, ] / length(indTrue)
-    }
+    # For each class, find the true class indices
+    indTrue <- lapply(X = uniqueClass, 
+                      FUN = function(cls) which(true_class == cls))
+    
+    # For each class, find the corresponding prediction
+    predIndex <- match(x = pred, table = uniqueClass)
+    
+    # Calculating the occurrences of each unique class
+    pred_freqs <- sapply(X = indTrue,
+                         FUN = function(indices){
+                             if(length(indices) > 0){
+                                 pred_classes <- predIndex[indices]
+                                 pred_counts <- table(pred_classes)
+                                 pred_counts/ length(indices)
+                             } else{
+                                 rep(x = 0, 
+                                     times = length(uniqueClass))
+                             }
+                         })
+    
+    #bug here..
+    A[] <- t(pred_freqs)
     
     # Return the confusion matrix
     return(A)

@@ -142,58 +142,11 @@ ConsensusOPLSCV <- function(K, Y,
   }
   if(!is.logical(verbose)){stop("verbose must be `TRUE` or `FALSE`.")}
   
-  # ----- Function loading control
-  if(!exists("koplsDummy", mode = "function")){
-    warning("Remember to load the source code for the `koplsDummy` function.")
-  }
-  if(!exists("koplsReDummy", mode = "function")){
-    warning("Remember to load the source code for the `koplsReDummy` function.")
-  }
-  if(!exists("koplsCrossValSet", mode = "function")){
-    warning("Remember to load the source code for the `koplsCrossValSet` function.")
-  }
-  if(!exists("koplsScale", mode = "function")){
-    warning("Remember to load the source code for the `koplsScale` function.")
-  }
-  if(!exists("koplsScaleApply", mode = "function")){
-    warning("Remember to load the source code for the `koplsScaleApply` function.")
-  }
-  if(!exists("koplsCenterKTeTe", mode = "function")){
-    warning("Remember to load the source code for the `koplsCenterKTeTe` function.")
-  }
-  if(!exists("koplsCenterKTeTr", mode = "function")){
-    warning("Remember to load the source code for the `koplsCenterKTeTr` function.")
-  }
-  if(!exists("koplsCenterKTrTr", mode = "function")){
-    warning("Remember to load the source code for the `koplsCenterKTrTr` function.")
-  }
-  if(!exists("koplsModel", mode = "function")){
-    warning("Remember to load the source code for the `koplsModel` function.")
-  }
-  if(!exists("koplsPredict", mode = "function")){
-    warning("Remember to load the source code for the `koplsPredict` function.")
-  }
-  if(!exists("koplsRescale", mode = "function")){
-    warning("Remember to load the source code for the `koplsRescale` function.")
-  }
-  if(!exists("koplsMaxClassify", mode = "function")){
-    warning("Remember to load the source code for the `koplsMaxClassify` function.")
-  }
-  if(!exists("koplsBasicClassify", mode = "function")){
-    warning("Remember to load the source code for the `koplsBasicClassify` function.")
-  }
-  if(!exists("koplsSensSpec", mode = "function")){
-    warning("Remember to load the source code for the `koplsSensSpec` function.")
-  }
-  if(!exists("koplsConfusionMatrix", mode = "function")){
-    warning("Remember to load the source code for the `koplsConfusionMatrix` function.")
-  }
-
   # ----- Default values control
   if(cvType == "mccvb" & modelType != "da"){
     stop("Class balanced MC CV only applicable to `da` modelling.")
   } 
-
+  
   # ----- Variable format control (part 2)
   if(modelType == "da"){
     # Define a parameter for DA decision rule
@@ -209,10 +162,10 @@ ConsensusOPLSCV <- function(K, Y,
         classVect <- Y
         Y <- koplsDummy(X = Y+1, numClasses = NA)
       } else{
-      stop("modelType is `da`, but Y appears to be neither dummy matrix nor 
+        stop("modelType is `da`, but Y appears to be neither dummy matrix nor 
       a vector of (integer) class labels.")}
     }
-    nclasses <- base::length(base::unique(x = classVect))
+    nclasses <- length(unique(x = classVect))
   }
   
   # ----- Convert Y-scaling to more explicit format
@@ -229,16 +182,16 @@ ConsensusOPLSCV <- function(K, Y,
   release <- ""
   set.seed(1214)
   
-  pressy <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
-  pressyVars <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
-  pressyTot <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
-  pressyVarsTot <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressy <- matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressyVars <- matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressyTot <- matrix(data = 0, nrow = oax+1, ncol = 1)
+  pressyVarsTot <- matrix(data = 0, nrow = oax+1, ncol = 1)
   YhatDaSave <- list()
   cvTestIndex <- c()
   cvTrainingIndex <- c()
-
+  
   if(verbose){
-    base::cat("Please wait... The cross-validation process begins.")
+    cat("Please wait... The cross-validation process begins.")
     utils::flush.console()
   }
   
@@ -249,7 +202,7 @@ ConsensusOPLSCV <- function(K, Y,
     if(verbose){
       cat("\r", "                                           ", "\r")
       progress <- round(icv * 100 / nbrcv, 0)
-      base::cat(base::sprintf("Progression : %.2f%% \r", progress))
+      cat(sprintf("Progression : %.2f%% \r", progress))
       utils::flush.console()
     }
     
@@ -283,9 +236,9 @@ ConsensusOPLSCV <- function(K, Y,
                         nox = oax, preProcK = "no", preProcY = "no")
     
     # Set up model stats
-    ssy <- base::sum( base::sum(YScaleObjTest$matrix**2 ))
-    ssyVars <- base::sum(YScaleObjTest$matrix**2)
-    ssx <- base::sum( base::diag(KteTe))
+    ssy <- sum( sum(YScaleObjTest$matrix**2 ))
+    ssyVars <- sum(YScaleObjTest$matrix**2)
+    ssx <- sum( diag(KteTe))
     
     if(icv == 1){
       ssyTot <- ssy
@@ -308,10 +261,10 @@ ConsensusOPLSCV <- function(K, Y,
                                    rescaleY = FALSE)
         tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
         AllYhatind <- cbind(AllYhatind, tmp$X)
-        pressy[ioax, ioay] <- base::sum( base::sum((YScaleObjTest$matrix - 
-                                                      modelPredy$Yhat)**2))
-        pressyVars[ioax, ioay] <- base::sum((YScaleObjTest$matrix - 
-                                               modelPredy$Yhat)**2)
+        pressy[ioax, ioay] <- sum( sum((YScaleObjTest$matrix - 
+                                          modelPredy$Yhat)**2))
+        pressyVars[ioax, ioay] <- sum((YScaleObjTest$matrix - 
+                                         modelPredy$Yhat)**2)
         
         if (icv == 1) {
           pressyTot[ioax, ioay] <- pressy[ioax, ioay]
@@ -346,20 +299,20 @@ ConsensusOPLSCV <- function(K, Y,
   } # end icv
   
   if(verbose){
-    base::cat("Cross-validation is complete.                              ")
+    cat("Cross-validation is complete.                              ")
     utils::flush.console()
   }
   
   KtrTr <- K
   modelMain <- list()
   modelMain$Model <- koplsModel(K = KtrTr, Y = Y, A = A, nox = oax, 
-                                     preProcK = preProcK, preProcY = preProcY)
-  modelMain$cv$Yhat <- base::matrix(data = base::unlist(Yhat), 
-                                    ncol = length(Yhat[1,]))
+                                preProcK = preProcK, preProcY = preProcY)
+  modelMain$cv$Yhat <- matrix(data = unlist(Yhat), 
+                              ncol = length(Yhat[1,]))
   modelMain$cv$AllYhat <- AllYhat
   modelMain$cv$Tcv <- modelMain$cv$Yhat %*% modelMain$Model$Cp %*% modelMain$Model$Bt[[oax + 1]]
-  modelMain$cv$Q2Yhat <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
-  modelMain$cv$Q2YhatVars <- base::matrix(data = 0, nrow = oax+1, ncol = 1)
+  modelMain$cv$Q2Yhat <- matrix(data = 0, nrow = oax+1, ncol = 1)
+  modelMain$cv$Q2YhatVars <- matrix(data = 0, nrow = oax+1, ncol = 1)
   for(ioax in 1:(oax+1)){
     for(ioay in 1:1){
       modelMain$cv$Q2Yhat[ioax,ioay] <- 1 - pressyTot[ioax,ioay]/ssyTot
@@ -380,11 +333,11 @@ ConsensusOPLSCV <- function(K, Y,
                                         k = 1/nclasses)
       } else {
         warning(paste0('Decision rule given: ', drRule, 
-                      ' is not valid/implemented.'))
+                       ' is not valid/implemented.'))
       }
       
       # Calculate sensitivity and specificity
-      daMetrics <- koplsSensSpec(trueClass = base::matrix(classVect[cvTestIndex]), 
+      daMetrics <- koplsSensSpec(trueClass = matrix(classVect[cvTestIndex]), 
                                  predClass = predClass)
       daMetrics_list$sens[i] <- daMetrics[i, "sens"]
       daMetrics_list$spec[i] <- daMetrics[i, "spec"]
@@ -404,7 +357,7 @@ ConsensusOPLSCV <- function(K, Y,
     
     # Change to original order if NFOLD CV
     if (cvType == "nfold") {
-      cvOrder <- base::sort(x = cvTestIndex, decreasing = FALSE)
+      cvOrder <- sort(x = cvTestIndex, decreasing = FALSE)
       modelMain$da$predClass <- modelMain$da$predClass[cvOrder]
       modelMain$da$trueClass <- modelMain$da$trueClass[cvOrder]
     }
@@ -412,7 +365,7 @@ ConsensusOPLSCV <- function(K, Y,
   
   # Change to original order if NFOLD CV
   if (cvType == "nfold") {
-    cvOrder <- base::sort(x = cvTestIndex, decreasing = FALSE)
+    cvOrder <- sort(x = cvTestIndex, decreasing = FALSE)
     modelMain$cv$Yhat <- modelMain$cv$Yhat[cvOrder, ]
     modelMain$cv$Tcv <- modelMain$cv$Tcv[cvOrder, ]
   }

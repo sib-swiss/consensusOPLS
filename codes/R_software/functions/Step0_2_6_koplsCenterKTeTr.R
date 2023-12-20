@@ -23,15 +23,14 @@
 #' \item{KteTr}{ matrix. The centered kernel matrix.}
 #'
 #' @examples
-#' Xte <- base::matrix(stats::rnorm(n = 20), ncol=5)
-#' Xtr <- base::matrix(stats::rnorm(n = 25), ncol=5)
-#' KteTr <- koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
-#' KtrTr <- koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+#' Xte <- base::matrix(data = stats::rnorm(n = 20), ncol=5)
+#' Xtr <- base::matrix(data = stats::rnorm(n = 25), ncol=5)
+#' KteTr <- koplsKernel(X1 = Xte, X2 = Xtr, Ktype='g', params=c(sigma=1.0))
+#' KtrTr <- koplsKernel(X1 = Xtr, X2 = Xtr, Ktype='g', params=c(sigma=1.0))
 #' test <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' test
 #' 
 #' @keywords internal
-#' @import stats
 
 koplsCenterKTeTr <- function(KteTr, KtrTr){
   # Variable format control
@@ -42,11 +41,13 @@ koplsCenterKTeTr <- function(KteTr, KtrTr){
   # Define parameters
   I_nTrain <- base::rep(x = 1, times = nrow(KtrTr))
   scaling_matrix <- (1/nrow(KtrTr)) * 
-    base::tcrossprod(base::rep(x = 1, times = nrow(KteTr)), I_nTrain)
+    base::tcrossprod(x = base::rep(x = 1, times = nrow(KteTr)), 
+                     y = I_nTrain)
   
   # Center the kernel
-  KteTr <- base::tcrossprod(KteTr - base::tcrossprod(scaling_matrix, t(KtrTr)),
-                            base::diag(nrow(KtrTr)) - 1/nrow(KtrTr) * tcrossprod(I_nTrain))
+  KteTr <- base::tcrossprod(x = KteTr - base::tcrossprod(x = scaling_matrix, 
+                                                         y = t(KtrTr)),
+                            y = base::diag(nrow(KtrTr)) - 1/nrow(KtrTr) * tcrossprod(I_nTrain))
   
   # Return the centered kernel matrix.
   return(KteTr)

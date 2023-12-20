@@ -18,8 +18,8 @@
 #' \code{centerType} and \code{scaleType}.}
 #' 
 #' @examples
-#' X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-#' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
+#' X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
+#' Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
 #' Y$matrix
 #' 
 #' @import stats
@@ -88,7 +88,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #'                nrow = 3, ncol = 3)
 #' scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
 #'                "stdV" = 1.581139, "matrix" = data)
-#' test <- ConsensusOPLS:::koplsRescale(scaleS)
+#' test <- ConsensusOPLS:::koplsRescale(scaleS = scaleS, varargin = NULL)
 #' test
 #' test$X
 #' 
@@ -143,8 +143,8 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' }
 #' 
 #' @examples
-#' X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-#' Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
+#' X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
+#' Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
 #' Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$matrix)
 #' Z$matrix
 #' 

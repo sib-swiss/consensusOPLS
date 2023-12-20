@@ -26,8 +26,8 @@
 #' \item{testIndex}{ numeric. Indices of test set observations.}
 #'
 #' @examples
-#' Y <- matrix(1:100, nrow = 10)
-#' K <- matrix(1:100, nrow = 10)  
+#' Y <- matrix(stats::rnorm(n = 100), nrow = 10)
+#' K <- matrix(stats::rnorm(n = 100), nrow = 10)
 #' type <- "nfold"  
 #' modelFrac <- 0.7  
 #' nfold <- 5  
@@ -35,7 +35,8 @@
 #' test <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
 #'                                          modelFrac = modelFrac,
 #'                                          type = type, nfold = nfold, 
-#'                                          nfoldRound = nfoldRound) 
+#'                                          nfoldRound = nfoldRound)
+#' test 
 #' 
 #' @keywords internal                         
 #' @import parallel
@@ -78,23 +79,23 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
                                       FUN = function(i){
                                           ind <- which(classVect == i)
                                           rand_ind <- sample(x = ind)
-                                          trainSize <- floor(length(ind)*modelFrac)
+                                          trainSize <- floor(x = length(ind)*modelFrac)
                                           c(rand_ind[1:trainSize], 
                                             rand_ind[(trainSize+1): length(ind)])
                                       })
         
         # Combine indices for all classes
-        trainInd <- unlist(indList)
+        trainInd <- unlist(x = indList)
         predInd <- setdiff(x = seq_len(nrow(Y)), y = trainInd)
     }
     
     # Define Monte-Carlos Cross Validation
     if (type == "mccv") {
         # Create a random indices
-        rand_ind <- sample(seq_len(nrow(K)))
+        rand_ind <- sample(x = seq_len(nrow(K)))
         
         # Calculates the sample size of the training data
-        trainSize <- floor(nrow(K)*modelFrac)
+        trainSize <- floor(x = nrow(K)*modelFrac)
         
         # Divides the sample into train and test
         trainInd <- rand_ind[1:trainSize]

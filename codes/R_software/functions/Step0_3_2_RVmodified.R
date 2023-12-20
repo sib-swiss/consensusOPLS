@@ -1,21 +1,23 @@
-#' RVmodified
-#' Calculates the coefficient of determination to assess how well the OPLS 
+#' @title RVmodified
+#' @description
+#' Calculate the coefficient of determination to assess how well the OPLS 
 #' regression model fits the data. It indicates how close the observed values 
 #' (real data) are to the values predicted by the regression model. Its 
 #' calculation is modified for the present method, as it is adjusted over the 
 #' range [0, 1].
 #'
-#' @param X: matrix. The normalized meta-kernel of all data block. 
-#' @param Y: matrix. The centered and/or scaled kernel of each data block.
+#' @param X matrix. The normalized meta-kernel of all data block. 
+#' @param Y matrix. The centered and/or scaled kernel of each data block.
 #'
-#' @return
-#' `RV`: numeric. The modified R-square value.
+#' @return The modified R-square value.
 #'
 #' @examples
-#' X <- base::matrix(c(1, 2, 3, 4, 5, 6), nrow = 2)
-#' Y <- base::matrix(c(2, 4, 6, 8, 10, 12), nrow = 2)
+#' X <- base::matrix(stats::runif(n = 36), nrow = 2)
+#' Y <- base::matrix(stats::runif(n = 54), nrow = 2)
 #' result <- RVmodified(X = X, Y = Y)
-#' cat("R-Square Value:", result, "\n")
+#' result
+#' 
+#' @keywords internal
 
 RVmodified <- function(X, Y){
   # Variable format control
@@ -23,16 +25,18 @@ RVmodified <- function(X, Y){
   if(!is.matrix(Y)){stop("Y is not a matrix.")}
   
   # Dimension reduction
-  AA <- X %*% t(X)
-  BB <- Y %*% t(Y)
+  AA <- tcrossprod(X)
+  BB <- tcrossprod(Y)
   
   # Similarity matrix
-  AA0 <- AA - base::diag( base::diag(AA), nrow(AA), ncol(AA))
-  BB0 <- BB - base::diag( base::diag(BB), nrow(BB), ncol(BB))
+  diag(AA) <- 0
+  diag(BB) <- 0
   
   # Return the R-square value
-  RV <- base::sum( base::diag(AA0 %*% BB0)) / 
-    (base::sqrt( base::sum(AA0**2))) / 
-    (base::sqrt( base::sum(BB0**2)))
+  # R-square value
+  RV <- sum(diag(crossprod(x = AA, y = BB))) / 
+    ((sqrt(sum(AA^2))) * (sqrt(sum(BB^2))))
+
+  # Return the result
   return(RV)
 }

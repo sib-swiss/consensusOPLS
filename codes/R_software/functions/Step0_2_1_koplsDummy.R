@@ -14,7 +14,7 @@
 #' @param X numeric vector with classes to define.
 #' @param numClasses numeric. Pre-defined number of classes in the output.
 #' By default, numClasses, number of unique values in \code{X}. Otherwise,
-#' classes 1,...,numClasses are considered.
+#' classes 1,..., numClasses are considered.
 #'
 #' @return
 #' \item{X}{matrix. Results of the dummy matrix, with rows corresponding to 
@@ -22,7 +22,7 @@
 #' (observation belongs to class) or zero (observation does not belong to class).}
 #'
 #' @examples
-#' class <- base::matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
+#' class <- base::matrix(data = c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
 #' Y <- koplsDummy(X = class, numClasses = NA)
 #' Y
 #' 
@@ -42,7 +42,7 @@ koplsDummy <- function(X, numClasses = NA){
     }
   }
   if(is.na(numClasses)){
-    labels <- base::sort(x = base::unique(X))
+    labels <- base::sort(x = base::unique(x = X))
   } else{
     if(!is.numeric(numClasses)){stop("numClasses must be numeric.")}
     labels <- 1:numClasses
@@ -52,7 +52,8 @@ koplsDummy <- function(X, numClasses = NA){
   dummy <- t( base::sapply(X = X,
                            FUN = function(class){
                              tmp <- numeric(length = base::length(labels))
-                             tmp[base::match(class, labels)] <- 1
+                             tmp[base::match(x = class, 
+                                             table = labels)] <- 1
                              return(tmp)
                            }))
   

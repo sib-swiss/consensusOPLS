@@ -28,21 +28,26 @@
 #' \item{Yhat}{ matrix. Predicted values of the response matrix.}
 #'
 #' @examples
-#' Xte <- matrix(rnorm(20), ncol=5)
-#' Xtr <- matrix(rnorm(25), ncol=5)
-#' KteTe <- ConsensusOPLS:::koplsKernel(Xte, Xte, Ktype='g', params=c(sigma=1.0))
-#' KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
-#' KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+#' Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
+#' Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
+#' KteTe <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xte, 
+#'                                      Ktype='g', params=c(sigma=1.0))
+#' KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
+#'                                      Ktype='g', params=c(sigma=1.0))
+#' KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
+#'                                      Ktype='g', params=c(sigma=1.0))
 #' 
-#' Y <- matrix(rnorm(15), nrow = 5)
+#' Y <- matrix(data = stats::rnorm(n = 15), nrow = 5)
 #' A <- 2
 #' nox <- 4
 #' preProcK <- "mc"
 #' preProcY <- "mc"
 #' model <- ConsensusOPLS:::koplsModel(K = KtrTr, Y = Y, A = A, nox = nox, 
 #'                                     preProcK = preProcK, preProcY = preProcY)
-#' ##pred <- ConsensusOPLS:::koplsPredict(KteTr, KteTe, KtrTr, model, nox)
-#'              
+#' pred <- ConsensusOPLS:::koplsPredict(KteTr = KteTr, Ktest = KteTe, 
+#'                                      Ktrain = KtrTr, model = model, nox = nox,
+#'                                      rescaleY = FALSE)
+#' pred
 
 #' @keywords internal
 
@@ -52,111 +57,120 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     if (!is.matrix(KteTr) || !is.matrix(Ktest) || !is.matrix(Ktrain)) {
         stop("One or more kernel inputs are not matrices.")
     }
-    if (!is.list(model)) stop("model is not a list containing model parameters.")
-    else if(model$class != "kopls") stop("Model must be of type `kopls`.")
-    if(!is.null(nox)) {
-        if (!is.numeric(nox)) stop("nox is not numeric.")
-        if (nox > model$nox) {
+    if(!is.list(model)){
+        stop("model is not a list containing model parameters.")
+    } else{if(model$Unique_params$class != "kopls"){stop("Model must be of type `kopls`.")}}
+    if(!is.null(nox)){
+        if(!is.numeric(nox)){stop("nox is not numeric.")}
+        if(nox > model$Unique_params$nox){
             warning("Number of Y-orthogonal components to use is higher than in model.
               Setting number of Yorth to max in model.")
-            nox <- model$nox
+            nox <- model$Unique_params$nox
         }
-    } else {
+    } else{
         stop('Number of Y-orthogonal components to use is missing.')
     }
-    if (is.null(rescaleY)) rescaleY <- 0
-    else if (!is.logical(rescaleY)) stop("rescaleY is not logical.")
+    if(is.null(rescaleY)){
+        rescaleY <- 0
+    } else{if(!is.logical(rescaleY)){stop("rescaleY is not logical.")}}
     
     # Step1: mean centering of K matrices
     # the order of the code below is important
     KteTeMc <- Ktest
-    if (model$preProc$K == "mc") {
-        KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, 
-                                    KteTr = KteTr, 
-                                    KtrTr = Ktrain)
+    if (model$Unique_params$preProcK == "mc") {
+        KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTe <- matrix(data = list(NULL), nrow = model$nox+1, ncol = model$nox+1)
+    KteTe <- matrix(data = list(NULL), nrow = model$Unique_params$nox+1, 
+                    ncol = model$Unique_params$nox+1)
     KteTe[1,1][[1]] <- KteTeMc
     
     KteTrMc <- KteTr
-    if (model$preProc$K == "mc") {
+    if (model$Unique_params$preProcK == "mc") {
         KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTrTmp <- matrix(data = list(NULL), nrow = model$nox+1, 
-                       ncol = model$nox+1)
+    KteTrTmp <- matrix(data = list(NULL), nrow = model$Unique_params$nox+1, 
+                       ncol = model$Unique_params$nox+1)
     KteTrTmp[1,1][[1]] <- KteTrMc
     KteTr <- KteTrTmp
     
     # Initialize variables
-    to <- list()
-    Tp <- list()
+    to <- list() ; Tp <- list()
     
     # Step2: KOPLS prediction
     ## Step2.1: for each Y-orth component
-    if (nox > 0) {
-        for (i in 1:nox) {
+    if(nox > 0){
+        for(i in 1:nox){
             ## Step2.2: Predicted predictive score matrix
-            Tp[[i]] <- tcrossprod(KteTr[i,1][[1]],
-                                  tcrossprod( t(model$Sps), t(model$Up))) # TODO:check dimensions
+            Tp[[i]] <- crossprod(x = t(KteTr[i,1][[1]]),
+                                 y = tcrossprod(x = model$Up, 
+                                                y = t(model$Sps)))
             
             # Step2.3: Predicted Y-orthogonal score vectors
-            to[[i]] <- crossprod(t((KteTr[i,i][[1]] - tcrossprod(Tp[[i]], 
-                                                                 model$Tp[[i]]))),
-                                 tcrossprod(model$Tp[[i]], 
-                                            tcrossprod(t(sqrt(model$so[[i]])), 
-                                                       t(model$co[[i]]))))
+            to[[i]] <- crossprod(x = t((KteTr[i,i][[1]] - 
+                                            tcrossprod(x = Tp[[i]], 
+                                                       y = model$Tp[[i]]))),
+                                 y = tcrossprod(x = model$Tp[[i]], 
+                                                y = tcrossprod(x = t(sqrt(model$so[[i]])), 
+                                                               y = t(model$co[[i]]))))
             
             # Step2.4: Normalize to
             to[[i]] <- to[[i]]/model$toNorm[[i]]
             
             # Step2.4.5: deflate KteTe (this is an EXTRA feature - not in alg. in paper)
             KteTe[i+1,i+1][[1]] <- KteTe[i,i][[1]] - 
-                crossprod(t(KteTr[i,i][[1]]), tcrossprod(model$to[[i]], to[[i]])) - 
-                crossprod(t(to[[i]]), crossprod(model$to[[i]], t(KteTr[i,i][[1]]))) +
-                crossprod(t(to[[i]]),
-                          crossprod(model$to[[i]],
-                                    crossprod(t(model$K[i,i][[1]]),
-                                              tcrossprod(model$to[[i]],
-                                                         to[[i]]))))
+                crossprod(x = t(KteTr[i,i][[1]]), 
+                          y = tcrossprod(x = model$to[[i]], 
+                                         y = to[[i]])) - 
+                crossprod(x = t(to[[i]]), 
+                          y = crossprod(x = model$to[[i]], 
+                                        y = t(KteTr[i,i][[1]]))) +
+                crossprod(x = t(to[[i]]),
+                          y = crossprod(x = model$to[[i]],
+                                        y = crossprod(x = t(model$K[i,i][[1]]),
+                                                      y = tcrossprod(x = model$to[[i]],
+                                                                     y = to[[i]]))))
             
             # Step2.5: Update KTeTr
             KteTr[i+1,1][[1]] <- KteTr[i,1][[1]] - 
-                crossprod(t(to[[i]]),
-                          crossprod(model$to[[i]], t(model$K[1,i][[1]])))
+                crossprod(x = t(to[[i]]),
+                          y = crossprod(x = model$to[[i]], 
+                                        y = t(model$K[1,i][[1]])))
             
             # Step2.6: Update KTeTr
             KteTr[i+1,i+1][[1]] <- KteTr[i,i][[1]] - 
-                crossprod(t(KteTr[i,i][[1]]),
-                          tcrossprod(model$to[[i]])) - 
-                crossprod(t(to[[i]]),
-                          crossprod(model$to[[i]], model$K[i,i][[1]])) + 
-                crossprod(t(to[[i]]), 
-                          crossprod(model$to[[i]], 
-                                    crossprod(t(model$K[i,i][[1]]), 
-                                              tcrossprod(model$to[[i]]))))
+                crossprod(x = t(KteTr[i,i][[1]]),
+                          y = tcrossprod(model$to[[i]])) - 
+                crossprod(x = t(to[[i]]),
+                          y = crossprod(x = model$to[[i]], 
+                                        y = model$K[i,i][[1]])) + 
+                crossprod(x = t(to[[i]]), 
+                          y = crossprod(x = model$to[[i]], 
+                                        y = crossprod(x = t(model$K[i,i][[1]]), 
+                                                      y = tcrossprod(model$to[[i]]))))
         } # Step2.7: end loop
     }
     
-    if (nox == 0) i <- 0
+    if (nox == 0) {
+        i <- 0
+    }
     
-    Tp[[i+1]] <- tcrossprod(KteTr[i+1,1][[1]],
-                            tcrossprod(t(model$Sps), t(model$Up)))
-    Yhat <- crossprod(t(Tp[[i+1]]),
-                      tcrossprod(model$Bt[[i+1]], model$Cp))
+    Tp[[i+1]] <- crossprod(x = t(KteTr[i+1,1][[1]]),
+                           y = tcrossprod(model$Up, t(model$Sps)))
+    Yhat <- crossprod(x = t(Tp[[i+1]]),
+                      y = tcrossprod(model$Bt[[i+1]], model$Cp))
     
-    if (!is.null(rescaleY)) {
-        if (model$preProc$Y == "no") {
-            if(length(model$preProc$paramsY) == 1 & model$preProc$paramsY == "no") {
+    if(!is.null(rescaleY)){
+        if(model$Unique_params$preProcY == "no"){
+            if(length(model$preProc$paramsY) == 1 & model$preProc$paramsY == "no"){
                 scaleParams <- list()
                 scaleParams$centerType <- "no"
                 scaleParams$scaleType <- "no"
-            } else {
+            } else{
                 scaleParams <- model$preProc$paramsY
             }
-            YhatRescaled <- koplsRescale(scaleS = scaleParams, 
-                                         varargin = Yhat)
+            YhatRescaled <- koplsRescale(scaleS = scaleParams, varargin = Yhat)
             Yhat <- YhatRescaled$X
-        } else {
+        } else{
             warning("Attempted re-scale of Yhat although no pre-processing 
               parameters have been set.")
         }
@@ -167,10 +181,10 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     #--------------------------------------------------
     
     # Return the list of prediction parameters
-    return (list("Tp" = Tp,
-                 "to" = to,
-                 "T" = Tp[[nox+1]],
-                 "KteTr" = KteTr,
-                 "EEprime" = EEprime,
-                 "Yhat" = Yhat))
+    return(list("Tp" = Tp,
+                "to" = to,
+                "T" = Tp[[nox+1]],
+                "KteTr" = KteTr,
+                "EEprime" = EEprime,
+                "Yhat" = Yhat))
 }

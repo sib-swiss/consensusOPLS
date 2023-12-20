@@ -12,10 +12,11 @@
 #' @return The modified R-square value.
 #'
 #' @examples
-#' X <- matrix(runif(36), nrow=2)
-#' Y <- matrix(runif(54), nrow=2)
+#' X <- matrix(stats::runif(n = 36), nrow=2)
+#' Y <- matrix(stats::runif(n = 54), nrow=2)
 #' result <- ConsensusOPLS:::RVmodified(X = X, Y = Y)
 #' result
+#' 
 #' @keywords internal
 
 RVmodified <- function(X, Y){
@@ -29,7 +30,9 @@ RVmodified <- function(X, Y){
     diag(BB) <- 0
     
     # R-square value
-    RV <- sum(diag(crossprod(AA, BB))) / ((sqrt(sum(AA^2))) * (sqrt(sum(BB^2))))
+    RV <- sum(diag(crossprod(x = AA, y = BB))) / 
+        ((sqrt(sum(AA^2))) * (sqrt(sum(BB^2))))
     
+    # Return the result
     return(RV)
 }

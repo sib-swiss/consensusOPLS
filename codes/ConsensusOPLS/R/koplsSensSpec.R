@@ -57,19 +57,21 @@ koplsSensSpec <- function(trueClass, predClass) {
     
     # Contingency table
     contingency <- table(trueClass, predClass)
-    label_class <- as.character(sort(union(x = trueClass, y = predClass)))
+    label_class <- as.character(sort(x = union(x = trueClass, y = predClass)))
     
     # Define TruePositifs
     TP <- sapply(label_class,
                  FUN = function(x) {
-                     if (x %in% rownames(contingency) && x %in% colnames(contingency)) {
+                     if (x %in% rownames(contingency) && 
+                         x %in% colnames(contingency)) {
                          contingency[x, x]
                      } else{0}
                  })
     # Define TrueNegatifs
     TN <- sapply(label_class,
                  FUN = function(x) {
-                     sum(TP) - if(x %in% rownames(contingency) && x %in% colnames(contingency)){
+                     sum(TP) - if(x %in% rownames(contingency) && 
+                                  x %in% colnames(contingency)){
                          contingency[x, x]
                      } else{0}
                  })

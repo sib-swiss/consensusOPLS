@@ -1,20 +1,21 @@
 #' @title RVConsensusOPLS
 #' @description
 #' Consensus OPLS-DA with RV coefficients weighting and 
-#' DQ2 computation for discriminant analysis
+#' DQ2 computation for discriminant analysis.
 #' 
-#' @param data The collection list containing each block of data.
+#' @param data the collection list containing each block of data.
 #' @param Y The response matrix (un-centered/scaled).
 #' @param A The number of Y-predictive components (integer). 
 #' @param maxOrtholvs The maximal number of Y-orthogonal components (integer).
 #' @param nrcv Number of cross-validation rounds (integer).
-#' @param cvType Type of cross-validation used. Either `nfold` for n-fold
-#' cross-validation, `mccv` for Monte Carlo CV or `mccvb` for Monte Carlo 
-#' class-balanced CV.
-#' @param modelType type of OPLS regression model. Can be defined as "reg" for 
-#' regression or "da" for discriminant analysis. Default value "da".
+#' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
+#' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
+#' Carlo class-balanced CV.
+#' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
+#' for regression or \code{da} for discriminant analysis. Default value is
+#' \code{da}.
 #' @param verbose logical which indicates whether the user wants to see the 
-#' progress bar printlayed in the ConsensusOLPSCV function.
+#' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
 #' @return A consensus OPLS model
 #'
@@ -23,6 +24,8 @@
 #' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData","ProteoData")], 
 #'                 Y=demo_3_Omics$Y[,1,drop=F])
 #' @export
+#' @keywords internal  
+
 RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
@@ -88,7 +91,7 @@ RVConsensusOPLS <- function(data,
     W_mat <- Reduce("+", mclapply(1:ntable, mc.cores = detectCores(), FUN = function(i) {
         RA[[i]]$RV * RA[[i]]$AMat
     }))
-
+    
     # Performs a Kernel-OPLS cross-validation for W_mat
     modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
                                nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
@@ -165,15 +168,17 @@ RVConsensusOPLS <- function(data,
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(j) {
-                                diag(crossprod(modelCV$Model$T[, 1:A], 
-                                               crossprod(t(AMat[[j]]), modelCV$Model$T[, 1:A])))
+                                diag(crossprod(x = modelCV$Model$T[, 1:A], 
+                                               y = crossprod(x = t(AMat[[j]]), 
+                                                             y = modelCV$Model$T[, 1:A])))
                             })),
                     do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(j) {
-                                diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum], 
-                                               crossprod(t(AMat[[j]]), modelCV$Model$To[, 1:OrthoLVsNum])))
+                                diag(crossprod(x = modelCV$Model$To[, 1:OrthoLVsNum], 
+                                               y = crossprod(x = t(AMat[[j]]), 
+                                                             y = modelCV$Model$To[, 1:OrthoLVsNum])))
                             })))
-        
+    
     # Stores raw lambda coefficient values in the model object
     modelCV$Model$lambda_raw <- lambda 
     
@@ -186,13 +191,13 @@ RVConsensusOPLS <- function(data,
     # Compute the loadings for the selected model size
     loadings.list <- list( 
         mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
-            tcrossprod(crossprod(data[[i]], 
-                                 modelCV$Model$T[, 1:A, drop=F]), 
+            tcrossprod(crossprod(x = data[[i]], 
+                                 y = modelCV$Model$T[, 1:A, drop=F]), 
                        diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
         }),
         mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
-            tcrossprod(crossprod(data[[i]],
-                                 modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
+            tcrossprod(crossprod(x = data[[i]],
+                                 y = modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
                        diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
         }))
     loadings <- mclapply(X = 1:ntable, mc.cores = detectCores, FUN = function(i) { 
@@ -203,5 +208,6 @@ RVConsensusOPLS <- function(data,
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
     
+    # Return the final model
     return (modelCV)
 }

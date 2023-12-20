@@ -26,8 +26,8 @@
 #' according to \code{centerType} and \code{scaleType}.
 #'
 #' @examples
-#' X <- base::matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-#' Y <- koplsScale(X, centerType = "mc", scaleType = "pa")
+#' X <- base::matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
+#' Y <- koplsScale(X = X, centerType = "mc", scaleType = "pa")
 #' Z <- koplsScaleApply(model = Y, X = Y$matrix)
 #' Z$matrix
 #' 

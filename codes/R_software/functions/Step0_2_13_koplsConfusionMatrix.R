@@ -19,8 +19,9 @@
 #'
 #' @examples
 #' true_class <- c(1, 2, 1, 2, 3, 3)
-#' pred <- base::matrix(c(1, 2, 3, 2, 3, 3), nrow = length(true_class), ncol = 1)
-#' test <- koplsConfusionMatrix(true_class, pred)
+#' pred <- base::matrix(data = c(1, 2, 3, 2, 3, 3), 
+#'                      nrow = length(true_class), ncol = 1)
+#' test <- koplsConfusionMatrix(true_class = true_class, pred = pred)
 #' test
 
 
@@ -58,7 +59,7 @@ koplsConfusionMatrix <- function(true_class, pred){
                           FUN = function(cls) which(true_class == cls))
   
   # For each class, find the corresponding prediction
-  predIndex <- base::match(pred, uniqueClass)
+  predIndex <- base::match(x = pred, table = uniqueClass)
   
   # Calculating the occurrences of each unique class
   pred_freqs <- base::sapply(X = indTrue,
@@ -68,7 +69,8 @@ koplsConfusionMatrix <- function(true_class, pred){
                                  pred_counts <- base::table(pred_classes)
                                  pred_counts/ base::length(indices)
                                } else{
-                                 base::rep(x = 0, times = base::length(uniqueClass))
+                                 base::rep(x = 0, 
+                                           times = base::length(uniqueClass))
                                }
                              })
   

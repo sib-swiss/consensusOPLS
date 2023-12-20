@@ -1,26 +1,30 @@
-#' RVConsensusOPLS
+#' @title RVConsensusOPLS
+#' @description
 #' Consensus OPLS-DA with RV coefficients weighting and 
-#' DQ2 computation for discriminant analysis
+#' DQ2 computation for discriminant analysis.
 #' 
-#' @param data: the collection list containing each block of data.
-#' @param Y: The response matrix (un-centered/scaled).
-#' @param A: The number of Y-predictive components (integer). 
-#' @param maxOrtholvs: The maximal number of Y-orthogonal components (integer).
-#' @param nrcv: Number of cross-validation rounds (integer).
-#' @param cvType: Type of cross-validation used. Either `nfold` for n-fold
-#' cross-validation, `mccv` for Monte Carlo CV or `mccvb` for Monte Carlo 
-#' class-balanced CV.
-#' @param modelType: type of OPLS regression model. Can be defined as "reg" for 
-#' regression or "da" for discriminant analysis. Default value "da".
-#' @param verbose: logical which indicates whether the user wants to see the 
-#' progress bar printlayed in the ConsensusOLPSCV function.
+#' @param data the collection list containing each block of data.
+#' @param Y The response matrix (un-centered/scaled).
+#' @param A The number of Y-predictive components (integer). 
+#' @param maxOrtholvs The maximal number of Y-orthogonal components (integer).
+#' @param nrcv Number of cross-validation rounds (integer).
+#' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
+#' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
+#' Carlo class-balanced CV.
+#' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
+#' for regression or \code{da} for discriminant analysis. Default value is
+#' \code{da}.
+#' @param verbose logical which indicates whether the user wants to see the 
+#' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
-#' @return 
-#' `execution_time`: function execution time.
-#' `model`: a list with all model parameters.
+#' @return A consensus OPLS model
 #'
 #' @examples
-#' TO DO
+#' data(demo_3_Omics)
+#' RVConsensusOPLS(data = demo_3_Omics[c("MetaboData", "MicroData","ProteoData")], 
+#'                 Y = demo_3_Omics$Y[,1,drop=F])
+#' 
+#' @keywords internal   
 
 RVConsensusOPLS <- function(data,
                             Y,
@@ -65,10 +69,7 @@ RVConsensusOPLS <- function(data,
   if (!exists("ConsensusOPLSCV", mode = "function")) {
     warning("Remember to load the source code for the `ConsensusOPLSCV` function.")
   }
-  
-  # Evaluate time ellapse
-  tStart <- Sys.time()
-  
+
   # Check collection dimension
   ntable <- base::length(data)
   nrow <- nrow(data[[1]])
@@ -89,19 +90,26 @@ RVConsensusOPLS <- function(data,
   }
   
   # For each data block
-  xnorm <- list() ; AMat <- list() ; RV <- list()
-  for (ta in 1:ntable) {
+  RA <- mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
     # Produce the kernel of the data block
-    temp <- koplsKernel(X1 = data[[ta]], X2 = NULL, Ktype = 'p', params = c(order=1))
+    tmp <- koplsKernel(X1 = data[[i]], X2 = NULL, Ktype = 'p', params = c(order=1))
     # Frobenius norm of the kernel
-    xnorm[[ta]] <- base::norm(x = temp, type = "F")
+    xnorm <- norm(x=tmp, type='F')
     # Normalize the Kernel
-    AMat[[ta]] <- temp/xnorm[[ta]]
+    AMat <- tmp/xnorm
     # RV coefficient for AMat
-    RV[[ta]] <- (RVmodified(X = AMat[[ta]], Y = Yc) + 1) / 2
-    # calculates the weighted sum of blocks kernel by the RV coeff
-    W_mat <- W_mat + RV[[ta]] * AMat[[ta]]
-  }
+    RV <- (RVmodified(X = AMat, Y = Yc) + 1) / 2
+    
+    return (list(RV=RV, AMat=AMat))
+  })
+  # RV coefficient 
+  RV <- mclapply(RA, mc.cores = detectCores(), FUN = function(x) x$RV)
+  # Normalized kernel
+  AMat <- mclapply(RA, mc.cores = detectCores(), FUN = function(x) x$AMat)
+  # calculates the weighted sum of blocks kernel by the RV coeff
+  W_mat <- Reduce("+", mclapply(1:ntable, mc.cores = detectCores(), FUN = function(i) {
+    RA[[i]]$RV * RA[[i]]$AMat
+  }))
   
   # Performs a Kernel-OPLS cross-validation for W_mat
   modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
@@ -113,22 +121,31 @@ RVConsensusOPLS <- function(data,
   
   # Search for the optimal model based on DQ2
   if (modelType == 'da') {
-    dqq <- base::matrix(data = 0, nrow = maxOrtholvs+1, ncol = Ylarg)
-    PRESSD <- base::matrix(data = 0, nrow = maxOrtholvs+1, ncol = Ylarg)
-    
-    for (i in 0:maxOrtholvs) {
-      for (j in 1:Ylarg) {
+    mc <- (maxOrtholvs+1)*Ylarg
+    mcj <- min(sqrt(mc), Ylarg)
+    mci <- floor(detectCores()/mcj)
+    results <- mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
+      mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
         # For each Y column, perform the DQ2
-        result <- DQ2(Ypred = base::matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
-                                           ncol = 1), 
-                      Y = base::matrix(data = Y[, j], 
-                                       ncol = 1))
-        dqq[i+1, j] <- result$dqq  
-        PRESSD[i+1, j] <- result$PRESSD
-      }
-    }
+        result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
+                                     ncol = 1), 
+                      Y = Y[, j, drop=F])
+        return (result)
+        
+      })
+    })
+    dqq <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
+      do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
+        return (results[[i]][[j]]$dqq)
+      }))
+    }))
+    PRESSD <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
+      do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
+        return (results[[i]][[j]]$PRESSD)
+      }))
+    }))
     
-    dq2 <- base::apply(X = dqq, MARGIN = 1, FUN = function(X) mean(X))
+    dq2 <- rowMeans(dqq)
     index <- A  
     
     # Finds the optimal number of orthogonal components as a function of DQ2
@@ -165,50 +182,49 @@ RVConsensusOPLS <- function(data,
                               preProcK = preProcK, preProcY = preProcY)
   
   # Adjust Yhat to the selected model size
-  modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) : 
-                                          ((Ylarg*A)+(OrthoLVsNum*A)+Ylarg-1)]
+  modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), drop=F]
   
   # Compute the blocks contributions for the selected model
-  lambda <- base::matrix(data = 0, nrow = ntable, ncol = A+OrthoLVsNum)
-  for (j in 1:ntable) {
-    for (k in 1:A) {
-      T <- modelCV$Model$T[, k]
-      lambda[j, k] <- t(T) %*% AMat[[j]] %*% T
-    }
-    for (l in 1:OrthoLVsNum) {
-      To <- modelCV$Model$To[, l]
-      lambda[j, l+A] <- t(To) %*% AMat[[j]] %*%To
-    }
-  }
+  lambda <- cbind(do.call(rbind,
+                          mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(j) {
+                            diag(crossprod(modelCV$Model$T[, 1:A], 
+                                           crossprod(t(AMat[[j]]), modelCV$Model$T[, 1:A])))
+                          })),
+                  do.call(rbind,
+                          mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(j) {
+                            diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum], 
+                                           crossprod(t(AMat[[j]]), modelCV$Model$To[, 1:OrthoLVsNum])))
+                          })))
+  
   # Stores raw lambda coefficient values in the model object
   modelCV$Model$lambda_raw <- lambda 
   
   # Normalize the lambda coefficients
-  for (nb in 1:ncol(lambda)) {
-    lambda[, nb] <- lambda[, nb] / base::sum(lambda[, nb])
-  }
+  lambda <- sweep(x = lambda, MARGIN = 2, STATS = colSums(lambda), FUN = '/')
+  
   # Stores normalized lambda values in the model object
   modelCV$Model$lambda <- lambda 
   
   # Compute the loadings for the selected model size
-  loadings <-  base::matrix(data = list(), nrow = ntable, ncol = (A+OrthoLVsNum))
-  for (ta in 1:ntable) {
-    for (m in 1:A) {
-      T <- base::matrix(modelCV$Model$T[, m], ncol = 1)
-      loadings[[ta, m]] <- t(data[[ta]]) %*% T %*% base::solve(t(T) %*% T)
-    }
-    for (n in 1:OrthoLVsNum) {
-      To <- modelCV$Model$To[, n]
-      loadings[[ta, n+m]] <- list(t(data[[ta]]) %*% To %*% base::solve(t(To) %*% To))
-    }
-  }
-  
+  loadings.list <- list( 
+    mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
+      tcrossprod(crossprod(data[[i]], 
+                           modelCV$Model$T[, 1:A, drop=F]), 
+                 diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
+    }),
+    mclapply(X = 1:ntable, mc.cores = detectCores(), FUN = function(i) {
+      tcrossprod(crossprod(data[[i]],
+                           modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
+                 diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
+    }))
+  loadings <- mclapply(X = 1:ntable, mc.cores = detectCores, FUN = function(i) { 
+    cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
+  })
   # Add RV coefficients in the model objects
   modelCV$RV <- RV  
   # Add the loadings in the model objects
   modelCV$Model$loadings <- loadings 
   
-  tStop <- Sys.time()
-  return(list("execution_time" = as.numeric(tStop - tStart), 
-              "model" = modelCV))
+  # Return the final model
+  return(modelCV)
 }

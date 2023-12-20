@@ -51,8 +51,9 @@
 #' \item{preProc$paramsY}{ character. Pre-processing scaling parameters for Y.}
 #'
 #' @examples
-#' K <- ConsensusOPLS:::koplsKernel(X1=matrix(rnorm(20), nrow = 5), Ktype='g', params=c(sigma=1.0))
-#' Y <- matrix(rnorm(15), nrow = 5)
+#' K <- ConsensusOPLS:::koplsKernel(X1 = matrix(stats::rnorm(n = 20), nrow = 5), 
+#'                                  X2 = NULL, Ktype='g', params=c(sigma=1.0))
+#' Y <- matrix(stats::rnorm(n = 15), nrow = 5)
 #' A <- 2
 #' nox <- 4
 #' preProcK <- "mc"
@@ -96,18 +97,18 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # Preprocess Y
     if (preProcY != "no") {
         scaleParams <- koplsScale(X = Y_old, 
-                                  centerType = 
-                                      ifelse(preProcY == "mc", 
-                                             yes = "mc", no = "no"), 
-                                  scaleType = 
-                                      ifelse(preProcY == "mc", 
-                                             yes = "no", no = preProcY))
+                                  centerType = ifelse(preProcY == "mc", 
+                                                      yes = "mc", no = "no"), 
+                                  scaleType = ifelse(preProcY == "mc", 
+                                                     yes = "no", no = preProcY))
         Y <- scaleParams$matrix
     }
     
     # KOPLS model estimation
     ## step 1: SVD of Y'KY
-    CSV <- svd(x = crossprod(Y, crossprod(t(K[1,1][[1]]), Y)),
+    CSV <- svd(x = crossprod(x = Y, 
+                             y = crossprod(x = t(K[1,1][[1]]), 
+                                           y = Y)),
                nu = A, nv = A)
     # Extract left singular vectors
     Cp <- CSV$u
@@ -121,7 +122,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     }
     
     ## step 2: Define Up
-    Up <- crossprod(t(Y), Cp)
+    Up <- crossprod(x = t(Y), y = Cp)
     
     # Initiate Yorth related variables
     to <- list(); co <- list(); so <- list(); toNorm <- list();
@@ -129,17 +130,19 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     i <- 1
     
     ## step3: Loop over nox iterations
-    while (i <= nox) {
+    while(i <= nox){
         ## step 4: Compute Tp
-        Tp[[i]] <- crossprod(K[1,i][[1]], tcrossprod(Up, t(Sps)))
-        Bt[[i]] <- crossprod(t(solve(crossprod(Tp[[i]]))), 
-                              crossprod(Tp[[i]], Up))
+        Tp[[i]] <- crossprod(x = K[1,i][[1]], 
+                             y = tcrossprod(x = Up, y = t(Sps)))
+        Bt[[i]] <- crossprod(x = t(solve( crossprod(Tp[[i]]) )), 
+                             y = crossprod(x = Tp[[i]], y = Up))
         
         ## step 5: SVD of T'KT
-        temp <- svd(x = crossprod(Tp[[i]], 
-                                  tcrossprod(K[i,i][[1]] -
-                                                 tcrossprod(Tp[[i]]), 
-                                             t(Tp[[i]]))),
+        temp <- svd(x = 
+                        crossprod(x = Tp[[i]], 
+                                  y = tcrossprod(x = K[i,i][[1]] -
+                                                     tcrossprod(Tp[[i]]), 
+                                                 y = t(Tp[[i]]))),
                     nu = 1, nv = 1) 
         co[[i]] <- temp$u
         so[[i]] <- temp$d[1]
@@ -151,34 +154,36 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                                          t(co[[i]])), t(so[[i]]**(-1/2)))
         
         ## step 7: toNorm
-        toNorm[[i]] <- c(sqrt(crossprod(to[[i]])))
+        toNorm[[i]] <- c(sqrt( crossprod(to[[i]]) ))
         
         ## step 8: Normalize to
         to[[i]] <- to[[i]] / toNorm[[i]]
         
         ## step 9: Update K
         scale_matrix <- I - tcrossprod(to[[i]])
-        K[1, i+1][[1]] <- tcrossprod(K[1,i][[1]], t(scale_matrix))
+        K[1, i+1][[1]] <- tcrossprod(x = K[1,i][[1]], y = t(scale_matrix))
         
         ## step 10: Update Kii
-        K[i+1, i+1][[1]] <- tcrossprod(scale_matrix, tcrossprod(t(scale_matrix),
-                                                                t(K[i, i][[1]])))
+        K[i+1, i+1][[1]] <- tcrossprod(x = scale_matrix, 
+                                       y = tcrossprod(x = t(scale_matrix),
+                                                      y = t(K[i, i][[1]])))
         
         # Update i
         i <- i + 1
     }## step 11: end loop
     
     ## step 12: Tp[[nox+1]]
-    Tp[[nox+1]] <- crossprod(K[1, nox+1][[1]], crossprod(t(Up), Sps))
+    Tp[[nox+1]] <- crossprod(x = K[1, nox+1][[1]], 
+                             y = crossprod(x = t(Up), y = Sps))
     
     ## step 13: Bt[[nox+1]]
-    Bt[[nox+1]] <- crossprod( t(solve( crossprod(Tp[[nox+1]]) )),
-                              crossprod(Tp[[nox+1]], Up))
+    Bt[[nox+1]] <- crossprod(x = t(solve( crossprod(Tp[[nox+1]]) )),
+                             y = crossprod(x = Tp[[nox+1]], y = Up))
     
     # ---------- extra stuff -----------------
     # should work but not fully tested (MB 2007-02-19)
     sstot_Y <- sum( sum(Y**2))
-    F <- Y - tcrossprod(Up, Cp)
+    F <- Y - tcrossprod(x = Up, y = Cp)
     R2Y <- 1 - sum( sum( F**2 ))/sstot_Y
     # --------- #
     
