@@ -48,8 +48,8 @@ Generates set of training/test observations for the
 Cross-Validation.
 }
 \examples{
-Y <- matrix(1:100, nrow = 10)
-K <- matrix(1:100, nrow = 10)  
+Y <- matrix(stats::rnorm(n = 100), nrow = 10)
+K <- matrix(stats::rnorm(n = 100), nrow = 10)
 type <- "nfold"  
 modelFrac <- 0.7  
 nfold <- 5  
@@ -57,7 +57,8 @@ nfoldRound <- 1
 test <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
                                          modelFrac = modelFrac,
                                          type = type, nfold = nfold, 
-                                         nfoldRound = nfoldRound) 
+                                         nfoldRound = nfoldRound)
+test 
 
 }
 \keyword{internal}

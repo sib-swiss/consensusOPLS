@@ -37,7 +37,7 @@ data <- matrix(data = c(-1.732051, 0, 1.732051,
                nrow = 3, ncol = 3)
 scaleS <- list("centerType" = "mc", "scaleType" = "pa", "meanV" = 0, 
                "stdV" = 1.581139, "matrix" = data)
-test <- ConsensusOPLS:::koplsRescale(scaleS)
+test <- ConsensusOPLS:::koplsRescale(scaleS = scaleS, varargin = NULL)
 test
 test$X
 

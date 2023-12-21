@@ -43,20 +43,25 @@ to predict a value of the response matrix Y. The dimensions of the
 parameters is determined from the specified model.
 }
 \examples{
-Xte <- matrix(rnorm(20), ncol=5)
-Xtr <- matrix(rnorm(25), ncol=5)
-KteTe <- ConsensusOPLS:::koplsKernel(Xte, Xte, Ktype='g', params=c(sigma=1.0))
-KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
-KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
+Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
+KteTe <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xte, 
+                                     Ktype='g', params=c(sigma=1.0))
+KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
+                                     Ktype='g', params=c(sigma=1.0))
+KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
+                                     Ktype='g', params=c(sigma=1.0))
 
-Y <- matrix(rnorm(15), nrow = 5)
+Y <- matrix(data = stats::rnorm(n = 15), nrow = 5)
 A <- 2
 nox <- 4
 preProcK <- "mc"
 preProcY <- "mc"
 model <- ConsensusOPLS:::koplsModel(K = KtrTr, Y = Y, A = A, nox = nox, 
                                     preProcK = preProcK, preProcY = preProcY)
-##pred <- ConsensusOPLS:::koplsPredict(KteTr, KteTe, KtrTr, model, nox)
-             
+pred <- ConsensusOPLS:::koplsPredict(KteTr = KteTr, Ktest = KteTe, 
+                                     Ktrain = KtrTr, model = model, nox = nox,
+                                     rescaleY = FALSE)
+pred
 }
 \keyword{internal}

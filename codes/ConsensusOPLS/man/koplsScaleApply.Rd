@@ -28,8 +28,8 @@ according to \code{centerType} and \code{scaleType}.
 Applies scaling from external scaling objects on a matrix X.
 }
 \examples{
-X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
+X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
+Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
 Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$matrix)
 Z$matrix
 

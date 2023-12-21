@@ -16,7 +16,7 @@ RVConsensusOPLS(
 )
 }
 \arguments{
-\item{data}{The collection list containing each block of data.}
+\item{data}{the collection list containing each block of data.}
 
 \item{Y}{The response matrix (un-centered/scaled).}
 
@@ -26,23 +26,27 @@ RVConsensusOPLS(
 
 \item{nrcv}{Number of cross-validation rounds (integer).}
 
-\item{cvType}{Type of cross-validation used. Either `nfold` for n-fold
-cross-validation, `mccv` for Monte Carlo CV or `mccvb` for Monte Carlo 
-class-balanced CV.}
+\item{cvType}{Type of cross-validation used. Either \code{nfold} for n-fold
+cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
+Carlo class-balanced CV.}
 
-\item{modelType}{type of OPLS regression model. Can be defined as "reg" for 
-regression or "da" for discriminant analysis. Default value "da".}
+\item{modelType}{type of OPLS regression model. Can be defined as \code{reg} 
+for regression or \code{da} for discriminant analysis. Default value is
+\code{da}.}
 
 \item{verbose}{logical which indicates whether the user wants to see the 
-progress bar printlayed in the ConsensusOLPSCV function.}
+progress bar printed in the \code{ConsensusOLPSCV} function.}
 }
 \value{
-`model`: a list with all model parameters.
+A consensus OPLS model
 }
 \description{
 Consensus OPLS-DA with RV coefficients weighting and 
-DQ2 computation for discriminant analysis
+DQ2 computation for discriminant analysis.
 }
 \examples{
-TO DO
+data(demo_3_Omics)
+RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData","ProteoData")], 
+                Y=demo_3_Omics$Y[,1,drop=F])
 }
+\keyword{internal}

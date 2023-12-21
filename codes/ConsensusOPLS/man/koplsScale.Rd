@@ -30,8 +30,8 @@ A list containing the following entries:
 Function for mean-centering and scaling of a matrix.
 }
 \examples{
-X <- matrix(c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
-Y <- ConsensusOPLS:::koplsScale(X, centerType = "mc", scaleType = "pa")
+X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
+Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
 Y$matrix
 
 }

@@ -22,7 +22,7 @@ observations and columns to classes. Each element in matrix is either one
 Transform a vector into a dummy (binary) matrix.
 }
 \examples{
-class <- matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
+class <- matrix(data = c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
 Y <- ConsensusOPLS:::koplsDummy(X = class, numClasses = NA)
 Y
 

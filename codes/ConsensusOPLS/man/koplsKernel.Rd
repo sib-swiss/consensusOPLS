@@ -7,8 +7,8 @@
 koplsKernel(X1, X2 = NULL, Ktype = "g", params = c(sigma = 1))
 }
 \arguments{
-\item{X1}{matrix. The first X matrix (non-centered). This is the left side in the 
-expression K = <phi(X1), phi(X2)>.}
+\item{X1}{matrix. The first X matrix (non-centered). This is the left side in 
+the expression K = <phi(X1), phi(X2)>.}
 
 \item{X2}{matrix. The second X matrix (non-centered). This is the right side in the 
 expression K = <phi(X1), phi(X2)>. If X2 = [] (empty set), then only X1 will 
@@ -19,30 +19,35 @@ applicable for pure training or testing kernels.}
 \item{Ktype}{character. Indicates the type of kernel used. Supported entries 
 are \code{g} for Gaussian kernel, and \code{p} for Polynomial kernel.}
 
-\item{params}{vector. It contains parameter for the kernel function. (Currently, 
-all supported kernel functions use a scalar value so the vector property of 
-the parameters is for future compatibility).}
+\item{params}{vector. It contains parameter for the kernel function. 
+Currently, all supported kernel functions use a scalar value so the vector 
+property of the parameters is for future compatibility.}
 }
 \value{
-The kernel matrix transformed by the kernel function specified by \code{Ktype}.
+The kernel matrix transformed by the kernel function specified by 
+\code{Ktype}.
 }
 \description{
 This function constructs a kernel matrix \code{K = <phi(X1), phi(X2)>}.
 The kernel function \code{phi} determines how the data is transformed and
-is passed as the separate parameter 'Ktype' to the function.
-Currently 'Ktype' can be either 'g' (Gaussian) or 'p' (polynomial).
+is passed as the separate parameter \code{Ktype} to the function.
+Currently \code{Ktype} can be either \code{g} for Gaussian or \code{p} for
+polynomial.
 }
 \examples{
-X1 <- matrix(rnorm(20), nrow = 5)
-X2 <- matrix(rnorm(24), nrow = 6)
+X1 <- base::matrix(stats::rnorm(n = 20), nrow = 5)
+X2 <- base::matrix(stats::rnorm(n = 24), nrow = 6)
+
 # Gaussian example
 params_gaussian <- c(sigma=1.0)  # Sigma values
-kernel_gaussian <- ConsensusOPLS:::koplsKernel(X1, X2, Ktype='g', params=params_gaussian)
+kernel_gaussian <- koplsKernel(X1 = X1, X2 = X2, 
+                               Ktype = 'g', params = params_gaussian)
 kernel_gaussian
 
 # Polynomial example
 params_polynomial <- c(order=2)  # Polynomial kernel order
-kernel_polynomial <- ConsensusOPLS:::koplsKernel(X1, X2, Ktype='p', params=params_polynomial)
+kernel_polynomial <- koplsKernel(X1 = X1, X2 = X2, 
+                                 Ktype = 'p', params=params_polynomial)
 kernel_polynomial
 
 }

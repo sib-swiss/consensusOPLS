@@ -17,8 +17,9 @@ Centering function for the training kernel, which is constructed
 from the training matrix Xtr as K = <phi(Xtr), phi(Xtr)>.
 }
 \examples{
-Xtr <- matrix(rnorm(20), ncol = 5)
-K <- ConsensusOPLS:::koplsKernel(Xtr, Ktype='g', params=c(sigma=1.0))
+Xtr <- matrix(data = stats::rnorm(n = 25), ncol = 5)
+K <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
+                                 Ktype='g', params=c(sigma=1.0))
 ConsensusOPLS:::koplsCenterKTrTr(K = K)
 
 }

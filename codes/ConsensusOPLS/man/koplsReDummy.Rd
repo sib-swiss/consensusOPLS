@@ -17,9 +17,9 @@ Reconstructs a (integer) class vector from a binary (dummy)
 matrix. This function is the inverse of \code{koplsDummy} function.
 }
 \examples{
-class <- matrix(c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
+class <- matrix(data = c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)
 Y <- ConsensusOPLS:::koplsDummy(X = class, numClasses = NA)
-X <- ConsensusOPLS:::koplsReDummy(Y)
+X <- ConsensusOPLS:::koplsReDummy(Y = Y)
 X
 
 }

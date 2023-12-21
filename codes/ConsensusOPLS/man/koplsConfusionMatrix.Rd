@@ -4,7 +4,7 @@
 \alias{koplsConfusionMatrix}
 \title{koplsConfusionMatrix}
 \usage{
-koplsConfusionMatrix(true_class, pred)
+koplsConfusionMatrix(true_class, pred_class)
 }
 \arguments{
 \item{true_class}{vector. Indicates the true class belonging.}
@@ -19,7 +19,8 @@ Calculates a confusion matrix from classification results.
 }
 \examples{
 true_class <- c(1, 2, 1, 2, 3, 3)
-pred <- matrix(c(1, 2, 3, 2, 3, 3), nrow = length(true_class), ncol = 1)
-test <- ConsensusOPLS:::koplsConfusionMatrix(true_class, pred)
-test
+pred_class <- c(1, 2, 3, 2, 3, 3)
+ConsensusOPLS:::koplsConfusionMatrix(true_class = true_class, 
+                                             pred_class = pred_class)
 }
+\keyword{internal}

@@ -23,10 +23,12 @@ Xtr as KteTr = <phi(Xte), phi(Xtr)>. Requires additional
 (un-centered) training kernel to estimate mean values.
 }
 \examples{
-Xte <- matrix(rnorm(20), ncol=5)
-Xtr <- matrix(rnorm(25), ncol=5)
-KteTr <- ConsensusOPLS:::koplsKernel(Xte, Xtr, Ktype='g', params=c(sigma=1.0))
-KtrTr <- ConsensusOPLS:::koplsKernel(Xtr, Xtr, Ktype='g', params=c(sigma=1.0))
+Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
+Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
+KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
+                                     Ktype='g', params=c(sigma=1.0))
+KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
+                                     Ktype='g', params=c(sigma=1.0))
 ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 
 }
