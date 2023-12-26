@@ -13,8 +13,7 @@ where columns denote classes and rows observations.}
 \item{k}{numeric. Threshold value used to assign class categories.}
 }
 \value{
-\item{predClass}{ matrix. The predicted class(es) of \code{data} given 
-\code{k}.}
+Predicted classification.
 }
 \description{
 Classification function that assesses class belonging of a 

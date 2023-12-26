@@ -11,6 +11,7 @@
 #' class-balanced CV. Default is \code{nfold}.
 #' @param nfold numeric. Number of total nfold rounds (if type = \code{nfold}).
 #' @param nfoldRound numeric. Current nfold rounds (if type = \code{nfold}).
+#' @param mc.cores Number of cores for parallel computing. Default: 2.
 #'
 #' @return A list with the following entries:
 #' \item{CV_param}{ data frame. It contains \code{type} a character for the 
@@ -40,9 +41,9 @@
 #' 
 #' @keywords internal                         
 #' @import parallel
-
+#' 
 koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold", 
-                             nfold = NA, nfoldRound = NA){
+                             nfold = NA, nfoldRound = NA, mc.cores = 2, random.seed = 10403) {
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -58,13 +59,16 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
     
     if (!is.na(nfoldRound)) {
         if (!is.numeric(nfoldRound)) stop("nfoldRound is not a number.")
-    } else if(type != "nfold")
+    } else if (type != "nfold")
         warning("type is not nfold, nfoldRound is not defined (missing argument).")
+    
+    # Set random seed
+    set.seed(random.seed)
     
     # Define Monte-Carlos Cross Validation - class Balanced
     if (type == "mccvb") {
         # check if Y is dummy or labels
-        if (all(unique(x = Y) == c(0, 1))) {
+        if (all(unique(x = Y) %in% c(0, 1))) {
             classVect <- koplsReDummy(Y = Y)
         } else{
             classVect <- Y
@@ -74,15 +78,15 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
         uniqueClass <- unique(x = classVect)
         
         # Find samples of each class
-        indList <- parallel::mclapply(X = uniqueClass, 
-                                      mc.cores = detectCores(),
-                                      FUN = function(i){
-                                          ind <- which(classVect == i)
-                                          rand_ind <- sample(x = ind)
-                                          trainSize <- floor(x = length(ind)*modelFrac)
-                                          c(rand_ind[1:trainSize], 
-                                            rand_ind[(trainSize+1): length(ind)])
-                                      })
+        indList <- mclapply(X = uniqueClass, 
+                            mc.cores = mc.cores,
+                            FUN = function(i){
+                                ind <- which(classVect == i)
+                                rand_ind <- sample(x = ind)
+                                trainSize <- floor(x = length(ind)*modelFrac)
+                                return (c(rand_ind[1:trainSize], 
+                                          rand_ind[(trainSize+1): length(ind)])) ## TODO: why separated?
+                            })
         
         # Combine indices for all classes
         trainInd <- unlist(x = indList)
@@ -92,20 +96,24 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
     # Define Monte-Carlos Cross Validation
     if (type == "mccv") {
         # Create a random indices
-        rand_ind <- sample(x = seq_len(nrow(K)))
+        #rand_ind <- sample(x = seq_len(nrow(K)))
         
         # Calculates the sample size of the training data
-        trainSize <- floor(x = nrow(K)*modelFrac)
+        #trainSize <- floor(x = nrow(K)*modelFrac)
         
         # Divides the sample into train and test
-        trainInd <- rand_ind[1:trainSize]
-        predInd <- rand_ind[(trainSize+1):nrow(K)]
+        #trainInd <- rand_ind[1:trainSize]
+        #predInd <- rand_ind[(trainSize+1):nrow(K)]
+        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*modelFrac))
+        predInd <- setdiff(1:nrow(Y), trainInd)
     }
     
     # Define N-fold Cross Validation
     if (type == "nfold") {
-        predInd <- seq(from = nfoldRound, to = nrow(Y), by = nfold)
-        trainInd <- setdiff(x = seq_len(nrow(Y)), y = predInd)
+        #predInd <- seq(from = nfoldRound, to = nrow(Y), by = nfold) ## TODO: Wrong arguments
+        #trainInd <- setdiff(x = seq_len(nrow(Y)), y = predInd)
+        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*modelFrac))
+        predInd <- setdiff(1:nrow(Y), trainInd)
     }
     
     # Construct Kernel/Y matrices for training/test
@@ -120,18 +128,18 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
     }
     
     # Group parameters in data.frame
-    CV_param <- base::data.frame("type" = type,
-                                 "nfold" = nfold,
-                                 "nfoldRound" = nfoldRound,
-                                 "class" = "crossValSet")
+    CV_param <- data.frame("type" = type,
+                           "nfold" = nfold,
+                           "nfoldRound" = nfoldRound,
+                           "class" = "crossValSet")
     
     # Return the final CV Set
-    return(list("CV_param" = CV_param,
-                "KTrTr" = KTrTr,
-                "KTeTr" = KTeTr,
-                "KTeTe" = KTeTe,
-                "yTraining" = Y[trainInd, , drop=FALSE],
-                "yTest" = Y[predInd, , drop=FALSE],
-                "trainingIndex" = trainInd,
-                "testIndex" = predInd))
+    return (list("CV_param" = CV_param,
+                 "KTrTr" = KTrTr,
+                 "KTeTr" = KTeTr,
+                 "KTeTe" = KTeTe,
+                 "yTraining" = Y[trainInd, , drop=FALSE],
+                 "yTest" = Y[predInd, , drop=FALSE],
+                 "trainingIndex" = trainInd,
+                 "testIndex" = predInd))
 }

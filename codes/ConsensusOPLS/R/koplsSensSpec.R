@@ -25,37 +25,41 @@
 #' @keywords internal
 
 koplsSensSpec <- function(trueClass, predClass) {
-    # Variable format control
-    if (!is.data.frame(trueClass) & !is.matrix(trueClass)) {
-        warning("trueClass is neither a matrix nor a data.frame,
-            so it was converted into a matrix.")
-        trueClass <- as.matrix(trueClass)
-    }
-    if (!is.data.frame(predClass) & !is.matrix(predClass)) {
-        warning("predClass is neither a matrix nor a data.frame, 
-            so it was converted into a matrix.")
-        predClass <- as.matrix(predClass)
-    }
+    # # Variable format control
+    # if (!is.data.frame(trueClass) & !is.matrix(trueClass)) {
+    #     warning("trueClass is neither a matrix nor a data.frame,
+    #         so it was converted into a matrix.")
+    #     trueClass <- as.matrix(trueClass)
+    # }
+    # if (!is.data.frame(predClass) & !is.matrix(predClass)) {
+    #     warning("predClass is neither a matrix nor a data.frame, 
+    #         so it was converted into a matrix.")
+    #     predClass <- as.matrix(predClass)
+    # }
     
-    # Check dimensions
-    if (is.vector(trueClass) & is.vector(predClass)) {
-        if (length(predClass) != length(trueClass)) {
-            stop("Template vector (trueClass) differs in length from the vector 
-           (predClass) to be compared.")
-        }
-        
-        # Forces matrix conversion for the code below
-        predClass <- as.matrix(predClass)
-    } else {
-        if (is.vector(trueClass) & is.matrix(predClass)) {
-            if (nrow(predClass) != length(trueClass)) {
-                stop("Template vector (trueClass) differs in length from the matrix 
-             (predClass) to be compared.")
-            }
-        }
-    }
+    # # Check dimensions
+    # if (is.vector(trueClass) & is.vector(predClass)) {
+    #     if (length(predClass) != length(trueClass)) {
+    #         stop("Template vector (trueClass) differs in length from the vector 
+    #        (predClass) to be compared.")
+    #     }
+    #     
+    #     # Forces matrix conversion for the code below
+    #     predClass <- as.matrix(predClass)
+    # } else {
+    #     if (is.vector(trueClass) & is.matrix(predClass)) {
+    #         if (nrow(predClass) != length(trueClass)) {
+    #             stop("Template vector (trueClass) differs in length from the matrix 
+    #          (predClass) to be compared.")
+    #         }
+    #     }
+    # }
     
     # Contingency table
+    print(class(trueClass))
+    print(head(trueClass))
+    print("%%%%%%%%%%%")
+    print(head(predClass))
     contingency <- table(trueClass, predClass)
     label_class <- as.character(sort(x = union(x = trueClass, y = predClass)))
     

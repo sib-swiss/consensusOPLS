@@ -6,9 +6,7 @@
 #' where columns denote classes and rows observations.
 #' @param k numeric. Threshold value used to assign class categories.
 #'
-#' @return
-#' \item{predClass}{ matrix. The predicted class(es) of \code{data} given 
-#' \code{k}.}
+#' @return Predicted classification.
 #'
 #' @examples
 #' data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),
@@ -28,7 +26,7 @@ koplsBasicClassify <- function(X, k) {
     
     # Search predicted class(es)
     predClass <- apply(X > k, MARGIN = 1, 
-                       FUN = function(row){which(row)})
+                       FUN = function(row) which(row))
     
     # Return the predicted class(es).
     return(predClass)

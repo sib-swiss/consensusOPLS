@@ -12,6 +12,7 @@ RVConsensusOPLS(
   nrcv = 100,
   cvType = "nfold",
   modelType = "da",
+  mc.cores = 2,
   verbose = FALSE
 )
 }
@@ -34,6 +35,8 @@ Carlo class-balanced CV.}
 for regression or \code{da} for discriminant analysis. Default value is
 \code{da}.}
 
+\item{mc.cores}{Number of cores for parallel computing. Default: 2.}
+
 \item{verbose}{logical which indicates whether the user wants to see the 
 progress bar printed in the \code{ConsensusOLPSCV} function.}
 }
@@ -47,6 +50,5 @@ DQ2 computation for discriminant analysis.
 \examples{
 data(demo_3_Omics)
 RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData","ProteoData")], 
-                Y=demo_3_Omics$Y[,1,drop=F])
+                Y=demo_3_Omics$Y[,1,drop=FALSE])
 }
-\keyword{internal}

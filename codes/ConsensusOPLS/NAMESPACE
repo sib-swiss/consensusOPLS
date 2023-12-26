@@ -3,3 +3,5 @@
 export(RVConsensusOPLS)
 import(parallel)
 import(stats)
+importFrom(parallel,mclapply)
+importFrom(utils,flush.console)

@@ -7,24 +7,23 @@
 DQ2(Ypred, Y)
 }
 \arguments{
-\item{Ypred}{matrix. Predicted Y values.}
+\item{Ypred}{A vector of predicted values.}
 
-\item{Y}{matrix. Class labels (0 and 1).}
+\item{Y}{A vector of two-class 0/1 labels.}
 }
 \value{
 \item{dqq}{ numeric. Discriminant Q2 value.}
-\item{PRESSD}{ matrix. The total squared error for discrimination analysis.}
+\item{PRESSD}{matrix. The total squared error for discrimination analysis.}
 }
 \description{
-Calculates the discriminant Q2 value adjusted for values that are larger than
-1 for class 1 samples and smaller than 0 for 0 class samples. The idea is 
+Calculates the discriminant Q2 value adjusted for values that are greater than
+1 for 1-class samples and smaller than 0 for 0-class samples. The idea is 
 these values should not be penalized.
-NB: It is assumed Y consists of ones and zeros indicating two classes.
 }
 \examples{
 Y <- sample(x = 0:1, size = 100, replace = TRUE, prob = NULL)
 Ypred <- stats::runif(n = 100)  
-result <-  ConsensusOPLS:::DQ2(Ypred = Ypred, Y = Y)
+result <- ConsensusOPLS:::DQ2(Ypred = Ypred, Y = Y)
 result$dqq
 result$PRESSD
 

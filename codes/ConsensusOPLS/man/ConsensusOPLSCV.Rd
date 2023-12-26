@@ -57,7 +57,78 @@ It could be \code{da} for discriminant analysis or \code{reg} for regression.
 If \code{da} (default), sensitivity and specificity will be calculated.}
 }
 \value{
-
+A list with the following entries (diagnostic parameters which can be 
+used to determine the optimal number of model components):
+\item{Model}{ list. The training a K-OPLS model. It contrains:}
+     \item{Cp}{ matrix. Y loading matrix.}
+     \item{Sp}{ matrix. Sigma matrix, containing singular values from 
+     \code{t(Y)* K *Y} used for scaling.}
+     \item{Sps}{ matrix. Scaled Sigma matrix, containing scaled singular 
+     values.}
+     \item{Up}{ matrix. Y score matrix.}
+     \item{Tp}{ list. Predictive score matrix for all Y-orthogonal components.}
+     \item{T}{ matrix. Predictive score matrix for the final model.}
+     \item{co}{ list. Y-orthogonal loading vectors.}
+     \item{so}{ list. Eigenvalues from estimation of Y-orthogonal loading 
+     vectors.}
+     \item{to}{ list. Weight vector for the i-th latent component of the 
+     KOPLS model.}
+     \item{To}{ matrix. Y-orthogonal score matrix.}
+     \item{toNorm}{ list. Norm of the Y-orthogonal score matrix prior to 
+     scaling.}
+     \item{Bt}{ list. T-U regression coefficients for predictions.}
+     \item{A}{ numeric. Number of predictive components.}
+     \item{nox}{ numeric. Number of Y-orthogonal components.}
+     \item{K}{ matrix. The kernel matrix.}
+     \item{EEprime}{ matrix. The deflated kernel matrix for residual 
+     statistics.}
+     \item{sstot_K}{ numeric. Total sums of squares in \code{K}.}
+     \item{R2X}{ numeric. Cumulative explained variation for all model 
+     components.}
+     \item{R2XO}{ numeric. Cumulative explained variation for Y-orthogonal 
+     model components.}
+     \item{R2XC}{ numeric. Explained variation for predictive model components 
+     after addition of Y-orthogonal model components.}
+     \item{sstot_Y}{ numeric. Total sums of squares in Y.}
+     \item{R2Y}{ numeric. Explained variation of Y.}
+     \item{R2Yhat}{ numeric. Variance explained by the i-th latent component 
+     of the model.}
+     \item{preProc$K}{ character. Pre-processing setting for K.}
+     \item{preProc$Y}{ character. Pre-processing setting for Y.}
+     \item{preProc$paramsY}{ character. Pre-processing scaling parameters for 
+     Y.}
+\item{cv}{ list. The cross-validation results.}
+     \item{Yhat}{ matrix. Predicted Y values.}
+     \item{AllYhat}{ matrix. All predicted Y values as a concatenated matrix.}
+     \item{Tcv}{ matrix. Predictive score vector T for all cross-validation 
+     rounds.}
+     \item{Q2Yhat}{ matrix. Total Q-square result for all Y-orthogonal 
+     components.}
+     \item{Q2YhatVars}{ matrix. Q-square result per Y-variable for all 
+     Y-orthogonal components.}
+     \item{cvTestIndex}{ matrix. Indices for the test set observations during 
+     the cross-validation rounds.}
+     \item{cvTrainIndex}{ matrix. Indices for the training set observations 
+     during the cross-validation rounds.}
+\item{da}{ list. Cross-validation results specifically for discriminant 
+analysis:}
+     \item{totalResults}{ list. The results over all classes and averages.}
+     \item{classResults}{ list. The results for each class.}
+     \item{predClass}{ integer. Predicted class list per class and Y-orthogonal
+     components.}
+     \item{trueClass}{ integer. Predicted class list per class and Y-orthogonal 
+     components.}
+     \item{sensSpec}{ integer. Sensitivity and specificity values per class and
+     Y-orthogonal components.}
+     \item{confusionMatrix}{ matrix. Confusion matrix during cross-validation
+     rounds.}
+     \item{nclasses}{ integer. Number of classes in model.}
+     \item{decisionRule}{ character. Decision rule used: \code{max} or 
+     \code{fixed}.}
+     \item{args}{ list. Arguments to the function:}
+           \item{oax}{ integer. Number of Y-orthogonal components.}
+           \item{A}{ integer. Number of Y-predictive components.}
+\item{class}{ character. Model class is \code{koplscv}.}
 }
 \description{
 Function for performing Kernel-OPLS cross-validation for a set 
@@ -67,6 +138,5 @@ modified in 2012 for the ConsensusOPLS method.
 }
 \examples{
 #TO DO
-
 }
 \keyword{internal}

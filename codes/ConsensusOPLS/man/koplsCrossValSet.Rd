@@ -10,7 +10,9 @@ koplsCrossValSet(
   modelFrac = 2/3,
   type = "nfold",
   nfold = NA,
-  nfoldRound = NA
+  nfoldRound = NA,
+  mc.cores = 2,
+  random.seed = 10403
 )
 }
 \arguments{
@@ -28,6 +30,8 @@ class-balanced CV. Default is \code{nfold}.}
 \item{nfold}{numeric. Number of total nfold rounds (if type = \code{nfold}).}
 
 \item{nfoldRound}{numeric. Current nfold rounds (if type = \code{nfold}).}
+
+\item{mc.cores}{Number of cores for parallel computing. Default: 2.}
 }
 \value{
 A list with the following entries:
