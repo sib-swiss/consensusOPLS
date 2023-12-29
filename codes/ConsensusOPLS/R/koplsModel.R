@@ -146,7 +146,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                     nu = 1, nv = 1) 
         co[[i]] <- temp$u
         so[[i]] <- temp$d[1]
-        
+        ## TODO: so[[i]] is scalar then? problem in koplsPredict line 116
         ## step 6: to
         to[[i]] <- tcrossprod(tcrossprod(tcrossprod(K[i,i][[1]] - 
                                                         tcrossprod(Tp[[i]]), 
@@ -171,7 +171,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         # Update i
         i <- i + 1
     }## step 11: end loop
-    
+    print(so)
+    print(co)
     ## step 12: Tp[[nox+1]]
     Tp[[nox+1]] <- crossprod(x = K[1, nox+1][[1]], 
                              y = crossprod(x = t(Up), y = Sps))

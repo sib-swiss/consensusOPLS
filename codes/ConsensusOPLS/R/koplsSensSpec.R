@@ -56,10 +56,6 @@ koplsSensSpec <- function(trueClass, predClass) {
     # }
     
     # Contingency table
-    print(class(trueClass))
-    print(head(trueClass))
-    print("%%%%%%%%%%%")
-    print(head(predClass))
     contingency <- table(trueClass, predClass)
     label_class <- as.character(sort(x = union(x = trueClass, y = predClass)))
     

@@ -136,29 +136,31 @@ ConsensusOPLSCV <- function(K, Y,
     # ----- Default values control
     if (cvType == "mccvb" & modelType != "da")
         stop("Class balanced MC CV only applicable to `da` modelling.")
-    
+    print("conoplscv")
+    print(modelType)
+    print(head(Y))
     # ----- Variable format control (part 2)
     if (modelType == "da") {
         # Define a parameter for DA decision rule
         drRule <- "max"
         
         # Check the response matrix
-        temp <- unique(x = Y)
-        if (all(Y %in% c(0, 1))) {
-            if (ncol(Y) == 1) 
-                Y <- koplsDummy(X = Y, numClasses = NA)
-            classVect <- koplsReDummy(Y = Y)
-        } else {
-            if (ncol(Y) == 1) {
-                classVect <- Y
-                Y <- koplsDummy(X = Y+1, numClasses = NA)
-            } else
-                stop("modelType is `da`, but Y appears to be neither dummy matrix nor 
-      a vector of (integer) class labels.")
-        }
+      #   if (all(Y %in% c(0, 1))) {
+      #       if (ncol(Y) == 1) 
+      #           Y <- koplsDummy(X = Y, numClasses = NA)
+      #       classVect <- koplsReDummy(Y = Y)
+      #   } else {
+      #       if (ncol(Y) == 1) {
+      #           classVect <- Y
+      #           Y <- koplsDummy(X = Y+1, numClasses = NA)
+      #       } else
+      #           stop("modelType is `da`, but Y appears to be neither dummy matrix nor 
+      # a vector of (integer) class labels.")
+      #   }
+        classVect <- as.vector(Y)
         nclasses <- length(unique(x = classVect))
     }
-    
+
     # ----- Convert Y-scaling to more explicit format
     YcenterType <- "no"
     YscaleType <- "no"
@@ -171,8 +173,7 @@ ConsensusOPLSCV <- function(K, Y,
     
     # ----- Parameters init
     release <- ""
-    set.seed(1214)
-    
+
     pressy <- matrix(data = 0, nrow = oax+1, ncol = 1)
     pressyVars <- matrix(data = 0, nrow = oax+1, ncol = 1)
     pressyTot <- matrix(data = 0, nrow = oax+1, ncol = 1)
@@ -306,6 +307,8 @@ ConsensusOPLSCV <- function(K, Y,
     modelMain$cv$cvTestIndex <- cvTestIndex
     modelMain$cv$cvTrainingIndex <- cvTrainingIndex
     
+    print("debug")
+    print(head(classVect))
     daMetrics_list <- list()
     if (modelType == "da") {
         # Get sens/spec for each y-orth component

@@ -64,14 +64,14 @@ koplsDummy <- function(X, numClasses = NA) {
 #' X
 #'
 #' @keywords internal
-
+#' 
 koplsReDummy <- function(Y) {
     # Variable format control
     if (is.null(Y) || !is.matrix(Y)) stop("Y must be a matrix.")
     if (any(! Y %in% c(0, 1))) stop("Y must contain only 0 and 1 values.")
     
     # Rebuild the vector
-    X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(X)[X == 1])
+    X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(Y)[X == 1])
     
     # Return the reverted dummy matrix to the original vector of class labels
     return (X)

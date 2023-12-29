@@ -28,18 +28,18 @@
 #' 
 #' # Gaussian example
 #' params_gaussian <- c(sigma=1.0)  # Sigma values
-#' kernel_gaussian <- koplsKernel(X1 = X1, X2 = X2, 
-#'                                Ktype = 'g', params = params_gaussian)
+#' kernel_gaussian <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
+#'                                                Ktype = 'g', params = params_gaussian)
 #' kernel_gaussian
 #' 
 #' # Polynomial example
 #' params_polynomial <- c(order=2)  # Polynomial kernel order
-#' kernel_polynomial <- koplsKernel(X1 = X1, X2 = X2, 
-#'                                  Ktype = 'p', params=params_polynomial)
+#' kernel_polynomial <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
+#'                                                  Ktype = 'p', params=params_polynomial)
 #' kernel_polynomial
 #' 
 #' @keywords internal
-
+#' 
 koplsKernel <- function(X1, X2 = NULL, Ktype = 'g', params = c(sigma=1.0)) {
     # Variable format control
     if (!is.matrix(X1)) 

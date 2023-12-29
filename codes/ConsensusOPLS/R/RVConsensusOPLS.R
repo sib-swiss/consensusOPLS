@@ -22,8 +22,8 @@
 #'
 #' @examples
 #' data(demo_3_Omics)
-#' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData","ProteoData")], 
-#'                 Y=demo_3_Omics$Y[,1,drop=FALSE])
+#' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#'                 Y=demo_3_Omics$Y[, 1, drop=FALSE])
 #' @importFrom parallel mclapply
 #' @export
 RVConsensusOPLS <- function(data,
@@ -104,8 +104,9 @@ RVConsensusOPLS <- function(data,
     # Search for the optimal model based on DQ2
     if (modelType == 'da') {
         mc <- (maxOrtholvs+1)*Ylarg
-        mcj <- min(sqrt(mc), Ylarg)
-        mci <- max(floor(mc.cores/mcj), 1)
+        mcj <- 1#min(sqrt(mc), Ylarg)
+        mci <- 1#max(floor(mc.cores/mcj), 1)
+        
         results <- mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 # For each Y column, perform the DQ2
@@ -118,12 +119,12 @@ RVConsensusOPLS <- function(data,
         })
         dqq <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
-                return (results[[i]][[j]]$dqq)
+                return (results[[i+1]][[j]]$dqq)
             }))
         }))
         PRESSD <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
-                return (results[[i]][[j]]$PRESSD)
+                return (results[[i+1]][[j]]$PRESSD)
             }))
         }))
         
