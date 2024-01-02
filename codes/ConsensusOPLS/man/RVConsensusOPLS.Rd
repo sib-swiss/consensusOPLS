@@ -50,5 +50,5 @@ DQ2 computation for discriminant analysis.
 \examples{
 data(demo_3_Omics)
 RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                Y=demo_3_Omics$Y[, 1, drop=FALSE])
+                Y=demo_3_Omics$Y)
 }

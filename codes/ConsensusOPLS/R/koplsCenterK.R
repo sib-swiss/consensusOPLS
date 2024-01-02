@@ -26,7 +26,7 @@
 #'                                  KteTr = KteTr, 
 #'                                  KtrTr = KtrTr)
 #' @keywords internal
-
+#' 
 koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
     # Variable format control
     if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr)) {
@@ -73,7 +73,7 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
 #' ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' 
 #' @keywords internal
-
+#' 
 koplsCenterKTeTr <- function(KteTr, KtrTr) {
     # Variable format control
     if (!is.matrix(KteTr) || !is.matrix(KtrTr) || !is.numeric(KteTr) || !is.numeric(KtrTr)) {
@@ -112,7 +112,7 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
 #' ConsensusOPLS:::koplsCenterKTrTr(K = K)
 #' 
 #' @keywords internal
-
+#' 
 koplsCenterKTrTr <- function(K) {
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")

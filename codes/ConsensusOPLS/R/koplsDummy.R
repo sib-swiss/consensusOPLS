@@ -17,17 +17,17 @@
 #' Y
 #'
 #' @keywords internal
-
+#' 
 koplsDummy <- function(X, numClasses = NA) {
     # Variable format control
-    if(is.null(X)) stop("X must be contain an integer vector.")
-    if(!(is.vector(X) || (is.matrix(X) && ncol(X)==1))){
-        stop("X must be a vector or a matrix of 1 column.")}
-
-    if(is.na(numClasses)) {
+    if (is.null(X)) stop("X must be contain an integer vector.")
+    if (!(is.vector(X) || (is.matrix(X) && ncol(X)==1)))
+        stop("X must be a vector or a matrix of 1 column.")
+    
+    if (is.na(numClasses)) {
         labels <- sort(x = unique(x = X))
     } else {
-        if(!is.numeric(numClasses)) stop("numClasses must be numeric.")
+        if (!is.numeric(numClasses)) stop("numClasses must be numeric.")
         labels <- 1:numClasses
     }
     
@@ -36,7 +36,7 @@ koplsDummy <- function(X, numClasses = NA) {
                       FUN = function(class) {
                           tmp <- numeric(length = length(labels))
                           tmp[match(x = class, table = labels)] <- 1
-                          return(tmp)
+                          return (tmp)
                       }
     ))
     
@@ -71,7 +71,7 @@ koplsReDummy <- function(Y) {
     if (any(! Y %in% c(0, 1))) stop("Y must contain only 0 and 1 values.")
     
     # Rebuild the vector
-    X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(Y)[X == 1])
+    X <- apply(X = Y, MARGIN = 1, FUN = function(X) as.numeric(colnames(Y))[X == 1])
     
     # Return the reverted dummy matrix to the original vector of class labels
     return (X)

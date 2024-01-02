@@ -136,9 +136,7 @@ ConsensusOPLSCV <- function(K, Y,
     # ----- Default values control
     if (cvType == "mccvb" & modelType != "da")
         stop("Class balanced MC CV only applicable to `da` modelling.")
-    print("conoplscv")
-    print(modelType)
-    print(head(Y))
+
     # ----- Variable format control (part 2)
     if (modelType == "da") {
         # Define a parameter for DA decision rule
@@ -307,8 +305,6 @@ ConsensusOPLSCV <- function(K, Y,
     modelMain$cv$cvTestIndex <- cvTestIndex
     modelMain$cv$cvTrainingIndex <- cvTrainingIndex
     
-    print("debug")
-    print(head(classVect))
     daMetrics_list <- list()
     if (modelType == "da") {
         # Get sens/spec for each y-orth component
