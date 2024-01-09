@@ -11,6 +11,8 @@
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
 #' Carlo class-balanced CV.
+#' @param cvFrac numeric. Fraction (in percent) of observations used in the 
+#' training set. By default is 2/3. Fraction of data to be used for cross-validation
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default value is
 #' \code{da}.
@@ -33,6 +35,7 @@ RVConsensusOPLS <- function(data,
                             maxOrtholvs = 10, 
                             nrcv = 100,
                             cvType = "nfold",
+                            cvFrac = 2/3,
                             modelType = "da",
                             mc.cores = 2,
                             verbose = FALSE) {
@@ -61,9 +64,6 @@ RVConsensusOPLS <- function(data,
     W_mat <- matrix(data = 0, nrow = nrow, ncol = nrow)
     preProcK <- "mc"
     preProcY <- "mc"
-    
-    #Fraction of data to be used for cross-validation
-    cvFrac <- 0.75
     
     if (modelType == "reg") {
         koplsScale <- koplsScale(X = Y, centerType = preProcY, scaleType = "no")
@@ -164,7 +164,13 @@ RVConsensusOPLS <- function(data,
     # Recompute the optimal model using OrthoLVsNum parameters
     modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
                                 preProcK = preProcK, preProcY = preProcY)
-    
+    # print("rv model check")
+    # print(dim(W_mat))
+    # print(Y)
+    # print(A)
+    # print(OrthoLVsNum)
+    # print(preProcK)
+    # print(preProcY)
     # Adjust Yhat to the selected model size
     modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), drop=F]
     
@@ -208,6 +214,8 @@ RVConsensusOPLS <- function(data,
     })
     # Add RV coefficients in the model objects
     modelCV$RV <- RV  
+    # Add normalized kernels in the model objects
+    modelCV$AMat <- AMat  
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
     

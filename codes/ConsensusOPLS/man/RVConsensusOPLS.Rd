@@ -11,6 +11,7 @@ RVConsensusOPLS(
   maxOrtholvs = 10,
   nrcv = 100,
   cvType = "nfold",
+  cvFrac = 2/3,
   modelType = "da",
   mc.cores = 2,
   verbose = FALSE
@@ -30,6 +31,9 @@ RVConsensusOPLS(
 \item{cvType}{Type of cross-validation used. Either \code{nfold} for n-fold
 cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
 Carlo class-balanced CV.}
+
+\item{cvFrac}{numeric. Fraction (in percent) of observations used in the 
+training set. By default is 2/3. Fraction of data to be used for cross-validation}
 
 \item{modelType}{type of OPLS regression model. Can be defined as \code{reg} 
 for regression or \code{da} for discriminant analysis. Default value is

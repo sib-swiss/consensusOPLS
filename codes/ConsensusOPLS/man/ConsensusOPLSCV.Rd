@@ -45,7 +45,7 @@ for mean-centering, \code{uv} for mean-centering and scaling to unit-variance,
 mean-centering and no scaling.}
 
 \item{cvFrac}{numeric. Fraction of observations in the training set during 
-cross-validation (integer).}
+cross-validation.}
 
 \item{verbose}{logical. Indicates whether the user wants to see the 
 progress bar printed. If \code{FALSE}, no output will be printed. If 

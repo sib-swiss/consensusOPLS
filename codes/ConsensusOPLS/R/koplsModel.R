@@ -65,6 +65,11 @@
 #' @keywords internal
 
 koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
+    # print("In model")
+    # aaaaaa = t(Y) %*% koplsCenterKTrTr(K) %*% Y
+    # bbbbbb = svd(aaaaaa)
+    # print(bbbbbb)
+    # print(dim(K))
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -136,7 +141,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                              y = tcrossprod(x = Up, y = t(Sps)))
         Bt[[i]] <- crossprod(x = t(solve( crossprod(Tp[[i]]) )), 
                              y = crossprod(x = Tp[[i]], y = Up))
-        
+
         ## step 5: SVD of T'KT
         temp <- svd(x = 
                         crossprod(x = Tp[[i]], 
@@ -146,12 +151,13 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                     nu = 1, nv = 1) 
         co[[i]] <- temp$u
         so[[i]] <- temp$d[1]
+
         ## TODO: so[[i]] is scalar then? problem in koplsPredict line 116
         ## step 6: to
         to[[i]] <- tcrossprod(tcrossprod(tcrossprod(K[i,i][[1]] - 
                                                         tcrossprod(Tp[[i]]), 
                                                     t(Tp[[i]])),
-                                         t(co[[i]])), t(so[[i]]**(-1/2)))
+                                         t(co[[i]])), t(1/sqrt(so[[i]])))
         
         ## step 7: toNorm
         toNorm[[i]] <- c(sqrt( crossprod(to[[i]]) ))
@@ -171,8 +177,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         # Update i
         i <- i + 1
     }## step 11: end loop
-    #print(so)
-    #print(co)
+
     ## step 12: Tp[[nox+1]]
     Tp[[nox+1]] <- crossprod(x = K[1, nox+1][[1]], 
                              y = crossprod(x = t(Up), y = Sps))

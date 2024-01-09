@@ -7,7 +7,7 @@
 koplsCrossValSet(
   K,
   Y,
-  modelFrac = 2/3,
+  cvFrac = 2/3,
   type = "nfold",
   nfold = NA,
   nfoldRound = NA,
@@ -20,7 +20,7 @@ koplsCrossValSet(
 
 \item{Y}{matrix. Response matrix.}
 
-\item{modelFrac}{numeric. Fraction (in percent) of observations used in the 
+\item{cvFrac}{numeric. Fraction (in percent) of observations used in the 
 training set. By default is 2/3.}
 
 \item{type}{character. Type of cross-validation wanted. It can be \code{nfold} 
@@ -52,14 +52,14 @@ Generates set of training/test observations for the
 Cross-Validation.
 }
 \examples{
-Y <- matrix(stats::rnorm(n = 100), nrow = 10)
-K <- matrix(stats::rnorm(n = 100), nrow = 10)
+Y <- matrix(stats::rnorm(n = 28), nrow = 14)
+K <- matrix(stats::rnorm(n = 140), nrow = 14)
 type <- "nfold"  
-modelFrac <- 0.7  
+cvFrac <- 0.75 
 nfold <- 5  
 nfoldRound <- 1 
 test <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
-                                         modelFrac = modelFrac,
+                                         cvFrac = cvFrac,
                                          type = type, nfold = nfold, 
                                          nfoldRound = nfoldRound)
 test 

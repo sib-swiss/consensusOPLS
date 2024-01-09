@@ -22,7 +22,7 @@
 #' \code{pareto} for mean-centering and Pareto-scaling or \code{no} for no 
 #' mean-centering and no scaling.
 #' @param cvFrac numeric. Fraction of observations in the training set during 
-#' cross-validation (integer). 
+#' cross-validation. 
 #' @param modelType: character. Type of model used for the ConsensusOPLS method. 
 #' It could be \code{da} for discriminant analysis or \code{reg} for regression. 
 #' If \code{da} (default), sensitivity and specificity will be calculated.
@@ -197,11 +197,11 @@ ConsensusOPLSCV <- function(K, Y,
         }
         
         # Set up Cross-Validation
-        cvSet <- koplsCrossValSet(K = K, Y = Y, modelFrac = cvFrac, type = cvType, 
+        cvSet <- koplsCrossValSet(K = K, Y = Y, cvFrac = cvFrac, type = cvType, 
                                   nfold = nbrcv, nfoldRound = icv)
         cvTestIndex <- c(cvTestIndex, cvSet$testIndex)
         cvTrainingIndex <- c(cvTrainingIndex, cvSet$trainingIndex)
-        
+
         # Get Kernel matrices 
         # % change so that this is done in the K matrix only once and 
         # selected by indices.
@@ -224,7 +224,7 @@ ConsensusOPLSCV <- function(K, Y,
         # Estimate K-OPLS model
         model <- koplsModel(K = KtrTr, Y = YScaleObj$matrix, A = A, 
                             nox = oax, preProcK = "no", preProcY = "no")
-        
+
         # Set up model stats
         ssy <- sum(YScaleObjTest$matrix^2)
         ssyVars <- sum(YScaleObjTest$matrix^2)
@@ -286,7 +286,7 @@ ConsensusOPLSCV <- function(K, Y,
         }
         AllYhat <- rbind(AllYhat, AllYhatind)
     } # end icv
-    
+
     if (verbose) {
         cat("Cross-validation is complete.                              ")
         flush.console()
@@ -345,10 +345,10 @@ ConsensusOPLSCV <- function(K, Y,
             modelMain$da$trueClass <- modelMain$da$trueClass[cvOrder]
         }
     }
-    
+
     # Change to original order if NFOLD CV
     if (cvType == "nfold") {
-        cvOrder <- sort(x = cvTestIndex, decreasing = FALSE)
+        cvOrder <- order(x = cvTestIndex, decreasing = FALSE)
         modelMain$cv$Yhat <- modelMain$cv$Yhat[cvOrder, ]
         modelMain$cv$Tcv <- modelMain$cv$Tcv[cvOrder, ]
     }
@@ -356,7 +356,7 @@ ConsensusOPLSCV <- function(K, Y,
     modelMain$class <- "koplscv"
     modelMain$da$args$oax <- oax
     modelMain$da$args$A <- A
-    
+
     return (modelMain)
 }
 

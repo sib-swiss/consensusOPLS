@@ -4,7 +4,7 @@
 #'
 #' @param K matrix. Kernel matrix. 
 #' @param Y matrix. Response matrix.
-#' @param modelFrac numeric. Fraction (in percent) of observations used in the 
+#' @param cvFrac numeric. Fraction (in percent) of observations used in the 
 #' training set. By default is 2/3.
 #' @param type character. Type of cross-validation wanted. It can be \code{nfold} 
 #' for n-fold, \code{mccv} for Monte Carlo CV, \code{mccvb} for Monte Carlo 
@@ -27,14 +27,14 @@
 #' \item{testIndex}{ numeric. Indices of test set observations.}
 #'
 #' @examples
-#' Y <- matrix(stats::rnorm(n = 100), nrow = 10)
-#' K <- matrix(stats::rnorm(n = 100), nrow = 10)
+#' Y <- matrix(stats::rnorm(n = 28), nrow = 14)
+#' K <- matrix(stats::rnorm(n = 140), nrow = 14)
 #' type <- "nfold"  
-#' modelFrac <- 0.7  
+#' cvFrac <- 0.75 
 #' nfold <- 5  
 #' nfoldRound <- 1 
 #' test <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
-#'                                          modelFrac = modelFrac,
+#'                                          cvFrac = cvFrac,
 #'                                          type = type, nfold = nfold, 
 #'                                          nfoldRound = nfoldRound)
 #' test 
@@ -42,12 +42,12 @@
 #' @keywords internal                         
 #' @import parallel
 #' 
-koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold", 
+koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold", 
                              nfold = NA, nfoldRound = NA, mc.cores = 2, random.seed = 10403) {
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
-    if (!is.numeric(modelFrac)) stop("modelFrac is not numeric.")
+    if (!is.numeric(cvFrac)) stop("cvFrac is not numeric.")
     if (!is.character(type)) stop("type is not a character.")
     else if(!(type %in% c("nfold", "mccv", "mccvb")))
         stop("type must be `nfold`, `mccv` or `mccvb`.")
@@ -83,7 +83,7 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
                             FUN = function(i){
                                 ind <- which(classVect == i)
                                 rand_ind <- sample(x = ind)
-                                trainSize <- floor(x = length(ind)*modelFrac)
+                                trainSize <- floor(x = length(ind)*cvFrac)
                                 return (c(rand_ind[1:trainSize], 
                                           rand_ind[(trainSize+1): length(ind)])) ## TODO: why separated?
                             })
@@ -99,12 +99,12 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
         #rand_ind <- sample(x = seq_len(nrow(K)))
         
         # Calculates the sample size of the training data
-        #trainSize <- floor(x = nrow(K)*modelFrac)
+        #trainSize <- floor(x = nrow(K)*cvFrac)
         
         # Divides the sample into train and test
         #trainInd <- rand_ind[1:trainSize]
         #predInd <- rand_ind[(trainSize+1):nrow(K)]
-        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*modelFrac))
+        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
         predInd <- setdiff(1:nrow(Y), trainInd)
     }
     
@@ -112,8 +112,10 @@ koplsCrossValSet <- function(K, Y, modelFrac = 2/3, type = "nfold",
     if (type == "nfold") {
         #predInd <- seq(from = nfoldRound, to = nrow(Y), by = nfold) ## TODO: Wrong arguments
         #trainInd <- setdiff(x = seq_len(nrow(Y)), y = predInd)
-        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*modelFrac))
-        predInd <- setdiff(1:nrow(Y), trainInd)
+        #trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac)) ##TODO: put this back
+        #predInd <- setdiff(1:nrow(Y), trainInd)
+        trainInd <- 2:nrow(Y)
+        predInd <- 1  
     }
     
     # Construct Kernel/Y matrices for training/test

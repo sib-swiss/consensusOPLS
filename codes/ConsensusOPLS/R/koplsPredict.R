@@ -106,15 +106,13 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
                                                 y = t(model$Sps)))
             
             # Step2.3: Predicted Y-orthogonal score vectors
-            #print("######")
-            #print(dim(sqrt(model$so[[i]])))
-            #print(dim(model$co[[i]]))
             to[[i]] <- crossprod(x = t((KteTr[i,i][[1]] - 
                                             tcrossprod(x = Tp[[i]], 
                                                        y = model$Tp[[i]]))),
                                  y = tcrossprod(x = model$Tp[[i]], 
                                                 y = tcrossprod(x = t(sqrt(model$so[[i]])), 
-                                                               y = t(model$co[[i]]))))
+                                                               #y = t(model$co[[i]]))))
+                                                               y = model$co[[i]])))
             
             # Step2.4: Normalize to
             to[[i]] <- to[[i]]/model$toNorm[[i]]
