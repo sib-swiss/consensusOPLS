@@ -52,7 +52,7 @@
 #'
 #' @examples
 #' K <- ConsensusOPLS:::koplsKernel(X1 = matrix(stats::rnorm(n = 20), nrow = 5), 
-#'                                  X2 = NULL, Ktype='g', params=c(sigma=1.0))
+#'                                  X2 = NULL, Ktype='p', params=c(order=1.0))
 #' Y <- matrix(stats::rnorm(n = 15), nrow = 5)
 #' A <- 2
 #' nox <- 4
@@ -171,8 +171,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         # Update i
         i <- i + 1
     }## step 11: end loop
-    print(so)
-    print(co)
+    #print(so)
+    #print(co)
     ## step 12: Tp[[nox+1]]
     Tp[[nox+1]] <- crossprod(x = K[1, nox+1][[1]], 
                              y = crossprod(x = t(Up), y = Sps))

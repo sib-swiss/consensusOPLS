@@ -26,12 +26,6 @@
 #' X1 <- base::matrix(stats::rnorm(n = 20), nrow = 5)
 #' X2 <- base::matrix(stats::rnorm(n = 24), nrow = 6)
 #' 
-#' # Gaussian example
-#' params_gaussian <- c(sigma=1.0)  # Sigma values
-#' kernel_gaussian <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
-#'                                                Ktype = 'g', params = params_gaussian)
-#' kernel_gaussian
-#' 
 #' # Polynomial example
 #' params_polynomial <- c(order=2)  # Polynomial kernel order
 #' kernel_polynomial <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
@@ -40,7 +34,7 @@
 #' 
 #' @keywords internal
 #' 
-koplsKernel <- function(X1, X2 = NULL, Ktype = 'g', params = c(sigma=1.0)) {
+koplsKernel <- function(X1, X2 = NULL, Ktype = 'p', params = c(order=1.0)) {
     # Variable format control
     if (!is.matrix(X1)) 
         stop("X1 is not a matrix.")
@@ -48,9 +42,10 @@ koplsKernel <- function(X1, X2 = NULL, Ktype = 'g', params = c(sigma=1.0)) {
         stop("X2 is not a matrix.")
     if (!is.vector(params) || !is.numeric(params)) 
         stop("params must be a numeric vector.")
-    Ktype <- match.arg(Ktype, choices=c('g', 'p'))
+    Ktype <- match.arg(Ktype, choices=c('p'))
     
     if (Ktype == "g") { # Define Gaussian Kernel
+        #TODO: check why the kernel matrix becomes identity matrix when there are more variables than samples
         sigma <- params['sigma'] #small value = overfit, larger = more general
         
         if (is.null(X2) || nrow(X2) == 0) {

@@ -31,11 +31,11 @@
 #' Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
 #' Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
 #' KteTe <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xte, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' 
 #' Y <- matrix(data = stats::rnorm(n = 15), nrow = 5)
 #' A <- 2
@@ -106,9 +106,9 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
                                                 y = t(model$Sps)))
             
             # Step2.3: Predicted Y-orthogonal score vectors
-            print("######")
-            print(dim(sqrt(model$so[[i]])))
-            print(dim(model$co[[i]]))
+            #print("######")
+            #print(dim(sqrt(model$so[[i]])))
+            #print(dim(model$co[[i]]))
             to[[i]] <- crossprod(x = t((KteTr[i,i][[1]] - 
                                             tcrossprod(x = Tp[[i]], 
                                                        y = model$Tp[[i]]))),

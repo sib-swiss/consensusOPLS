@@ -186,7 +186,7 @@ ConsensusOPLSCV <- function(K, Y,
     }
     
     AllYhat <- c()
-    
+
     for (icv in 1:nbrcv) {
         # Update progression bar
         if (verbose) {
@@ -208,19 +208,19 @@ ConsensusOPLSCV <- function(K, Y,
         KtrTr <- cvSet$KTrTr
         KteTe <- cvSet$KTeTe
         KteTr <- cvSet$KTeTr
-        
+
         # Center Y and kernel matrices
         YScaleObj <- koplsScale(X = cvSet$yTraining, 
                                 centerType = YcenterType,
                                 scaleType = YscaleType)
         YScaleObjTest <- koplsScaleApply(model = YScaleObj, X = cvSet$yTest)
-        
+
         if (preProcK == "mc") {
             KteTe <- koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
             KteTr <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
             KtrTr <- koplsCenterKTrTr(K = KtrTr)
         }
-        
+
         # Estimate K-OPLS model
         model <- koplsModel(K = KtrTr, Y = YScaleObj$matrix, A = A, 
                             nox = oax, preProcK = "no", preProcY = "no")

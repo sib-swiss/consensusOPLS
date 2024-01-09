@@ -4,7 +4,7 @@
 \alias{koplsKernel}
 \title{koplsKernel}
 \usage{
-koplsKernel(X1, X2 = NULL, Ktype = "g", params = c(sigma = 1))
+koplsKernel(X1, X2 = NULL, Ktype = "p", params = c(order = 1))
 }
 \arguments{
 \item{X1}{matrix. The first X matrix (non-centered). This is the left side in 
@@ -37,12 +37,6 @@ polynomial.
 \examples{
 X1 <- base::matrix(stats::rnorm(n = 20), nrow = 5)
 X2 <- base::matrix(stats::rnorm(n = 24), nrow = 6)
-
-# Gaussian example
-params_gaussian <- c(sigma=1.0)  # Sigma values
-kernel_gaussian <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
-                                               Ktype = 'g', params = params_gaussian)
-kernel_gaussian
 
 # Polynomial example
 params_polynomial <- c(order=2)  # Polynomial kernel order

@@ -67,7 +67,7 @@ by the parameter 'nox').
 }
 \examples{
 K <- ConsensusOPLS:::koplsKernel(X1 = matrix(stats::rnorm(n = 20), nrow = 5), 
-                                 X2 = NULL, Ktype='g', params=c(sigma=1.0))
+                                 X2 = NULL, Ktype='p', params=c(order=1.0))
 Y <- matrix(stats::rnorm(n = 15), nrow = 5)
 A <- 2
 nox <- 4

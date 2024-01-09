@@ -19,7 +19,7 @@ from the training matrix Xtr as K = <phi(Xtr), phi(Xtr)>.
 \examples{
 Xtr <- matrix(data = stats::rnorm(n = 25), ncol = 5)
 K <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
-                                 Ktype='g', params=c(sigma=1.0))
+                                 Ktype='p', params=c(order=1.0))
 ConsensusOPLS:::koplsCenterKTrTr(K = K)
 
 }

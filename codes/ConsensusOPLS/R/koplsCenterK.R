@@ -17,11 +17,11 @@
 #' Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
 #' Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
 #' KteTe <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xte, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, 
 #'                                  KteTr = KteTr, 
 #'                                  KtrTr = KtrTr)
@@ -67,9 +67,9 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
 #' Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
 #' Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
 #' KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
-#'                                      Ktype='g', params=c(sigma=1.0))
+#'                                      Ktype='p', params=c(order=1.0))
 #' ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' 
 #' @keywords internal
@@ -108,7 +108,7 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
 #' @examples
 #' Xtr <- matrix(data = stats::rnorm(n = 25), ncol = 5)
 #' K <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
-#'                                  Ktype='g', params=c(sigma=1.0))
+#'                                  Ktype='p', params=c(order=1.0))
 #' ConsensusOPLS:::koplsCenterKTrTr(K = K)
 #' 
 #' @keywords internal
