@@ -2,7 +2,7 @@
 #' @description Function for training a K-OPLS model. The function constructs a
 #' predictive regression model for predicting the values of 'Y' by
 #' using the information in 'K'. The explained variation is separated
-#' into predictive components (dimensionality is determined by the
+#' into predictive components (dimensionality determined by the
 #' parameter 'A') and 'Y'-orthogonal components (dimensionality determined 
 #' by the parameter 'nox').
 #'
@@ -58,18 +58,13 @@
 #' nox <- 4
 #' preProcK <- "mc"
 #' preProcY <- "mc"
-#' test <- ConsensusOPLS:::koplsModel(K = K, Y = Y, A = A, nox = nox, 
+#' model <- ConsensusOPLS:::koplsModel(K = K, Y = Y, A = A, nox = nox, 
 #'                                    preProcK = preProcK, preProcY = preProcY)
-#' ls(test)
+#' ls(model)
 #' 
 #' @keywords internal
 #' 
 koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
-    # print("In model")
-    # aaaaaa = t(Y) %*% koplsCenterKTrTr(K) %*% Y
-    # bbbbbb = svd(aaaaaa)
-    # print(bbbbbb)
-    # print(dim(K))
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -106,7 +101,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                                                       yes = "mc", no = "no"), 
                                   scaleType = ifelse(preProcY == "mc", 
                                                      yes = "no", no = preProcY))
-        Y <- scaleParams$matrix
+        Y <- scaleParams$X
     }
     
     # KOPLS model estimation
@@ -135,13 +130,16 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     i <- 1
     
     ## step3: Loop over nox iterations
-    while(i <= nox){
+    while (i <= nox) {
         ## step 4: Compute Tp
         Tp[[i]] <- crossprod(x = K[1,i][[1]], 
                              y = tcrossprod(x = Up, y = t(Sps)))
-        Bt[[i]] <- crossprod(x = t(solve( crossprod(Tp[[i]]) )), 
+        # cat(i, " -- ", nox, " -- ", dim(Tp[[i]]),  "\n")
+        # print(Tp[[i]])
+        # print("################")
+        # print(crossprod(Tp[[i]]))
+        Bt[[i]] <- crossprod(x = t(solve(crossprod(Tp[[i]]))), 
                              y = crossprod(x = Tp[[i]], y = Up))
-
         ## step 5: SVD of T'KT
         temp <- svd(x = 
                         crossprod(x = Tp[[i]], 
@@ -189,8 +187,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # ---------- extra stuff -----------------
     # should work but not fully tested (MB 2007-02-19)
     sstot_Y <- sum( sum(Y**2))
-    F <- Y - tcrossprod(x = Up, y = Cp)
-    R2Y <- 1 - sum( sum( F**2 ))/sstot_Y
+    FY <- Y - tcrossprod(x = Up, y = Cp)
+    R2Y <- 1 - sum(sum(FY^2))/sstot_Y
     # --------- #
     
     EEprime <- K[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
@@ -201,7 +199,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                           sum( diag(K[i,i][[1]] - tcrossprod(Tp[[nox+1]])) )
                       }) / sstot_K
     
-    R2XC <- rep(1 - sum( diag( K[1,1][[1]] - tcrossprod(Tp[[nox+1]]) ) ) / sstot_K,
+    R2XC <- rep(1 - sum(diag(K[1,1][[1]] - tcrossprod(Tp[[nox+1]]))) / sstot_K,
                 times = nox+1)
     
     R2XO <- 1 - sapply(1 : (nox+1),
@@ -227,40 +225,40 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     }
     
     # Group parameters in data.frame
-    Unique_params <- data.frame("A" = A,
-                                "nox" = nox, 
-                                "sstot_K" = sstot_K,
-                                "sstot_Y" = sstot_Y,
-                                "R2Y" = R2Y,
-                                "preProcK" = preProcK, 
-                                "preProcY" = preProcY, 
-                                "class" = "kopls")
+    params <- data.frame("A" = A,
+                         "OrthoLVsOptimalNum" = nox, 
+                         "sstot_K" = sstot_K,
+                         "sstot_Y" = sstot_Y,
+                         "R2Y" = R2Y,
+                         "preProcK" = preProcK, 
+                         "preProcY" = preProcY, 
+                         "class" = "kopls")
     
-    return(list("Unique_params" = Unique_params,
-                "Cp" = Cp, 
-                "Sp" = Sp, 
-                "Sps" = Sps, 
-                "Up" = Up,
-                "Tp" = Tp, 
-                "T" = as.matrix(Tp[[nox+1]]), 
-                "co" = co,
-                "so" = so, 
-                "to" = to, 
-                "To" = To,
-                "toNorm" = toNorm, 
-                "Bt" = Bt, 
-                "K" = K, 
-                
-                #extra stuff
-                "EEprime" =EEprime, 
-                "R2X" = R2X, 
-                "R2XO" = R2XO, 
-                "R2XC" = R2XC, 
-                "R2Yhat" = R2Yhat, # R2Yhat 22 Jan 2010 / MR
-                
-                #pre-processing
-                "preProc" = list("paramsY" = ifelse(test = (preProcY != "no"),
-                                                    yes = scaleParams,
-                                                    no = "no"))
+    return (list("params" = params,
+                 "Cp" = Cp, 
+                 "Sp" = Sp, 
+                 "Sps" = Sps, 
+                 "Up" = Up,
+                 "Tp" = Tp, 
+                 "T" = as.matrix(Tp[[nox+1]]), 
+                 "co" = co,
+                 "so" = so, 
+                 "to" = to, 
+                 "To" = To,
+                 "toNorm" = toNorm, 
+                 "Bt" = Bt, 
+                 "K" = K, 
+                 
+                 #extra stuff
+                 "EEprime" =EEprime, 
+                 "R2X" = R2X, 
+                 "R2XO" = R2XO, 
+                 "R2XC" = R2XC, 
+                 "R2Yhat" = R2Yhat, # R2Yhat 22 Jan 2010 / MR
+                 
+                 #pre-processing
+                 "preProc" = list("paramsY" = ifelse(test = (preProcY != "no"),
+                                                     yes = scaleParams,
+                                                     no = "no"))
     ))
 }

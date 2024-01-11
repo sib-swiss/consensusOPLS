@@ -16,7 +16,7 @@
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default value is
 #' \code{da}.
-#' @param mc.cores Number of cores for parallel computing. Default: 2.
+#' @param mc.cores Number of cores for parallel computing. Default: 1.
 #' @param verbose logical which indicates whether the user wants to see the 
 #' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
@@ -25,7 +25,9 @@
 #' @examples
 #' data(demo_3_Omics)
 #' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                 Y=demo_3_Omics$Y)
+#'                 Y=demo_3_Omics$Y, modelType="da", A=2, mc.cores=1)
+#' #RVConsensusOPLS(data=data, 
+#' #               Y=demo_3_Omics$Y, modelType="da", A=2, mc.cores=1)
 #' @importFrom parallel mclapply
 #' @export
 #' 
@@ -37,7 +39,7 @@ RVConsensusOPLS <- function(data,
                             cvType = "nfold",
                             cvFrac = 2/3,
                             modelType = "da",
-                            mc.cores = 2,
+                            mc.cores = 1,
                             verbose = FALSE) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
@@ -67,7 +69,7 @@ RVConsensusOPLS <- function(data,
     
     if (modelType == "reg") {
         koplsScale <- koplsScale(X = Y, centerType = preProcY, scaleType = "no")
-        Yc <- koplsScale$matrix
+        Yc <- koplsScale$X
     } else {
         Yc <- Y
     }
@@ -93,7 +95,6 @@ RVConsensusOPLS <- function(data,
     W_mat <- Reduce("+", mclapply(1:ntable, mc.cores = mc.cores, FUN = function(i) {
         RA[[i]]$RV * RA[[i]]$AMat
     }))
-    
     # Performs a Kernel-OPLS cross-validation for W_mat
     modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
                                nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
@@ -105,8 +106,8 @@ RVConsensusOPLS <- function(data,
     # Search for the optimal model based on DQ2
     if (modelType == 'da') {
         mc <- (maxOrtholvs+1)*Ylarg
-        mcj <- 1#min(sqrt(mc), Ylarg)
-        mci <- 1#max(floor(mc.cores/mcj), 1)
+        mcj <- min(sqrt(mc), Ylarg)
+        mci <- max(floor(mc.cores/mcj), 1)
         
         results <- mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
@@ -133,7 +134,8 @@ RVConsensusOPLS <- function(data,
         index <- A  
         
         # Finds the optimal number of orthogonal components as a function of DQ2
-        while (index < (maxOrtholvs+A) && (dq2[index+1] - dq2[index]) > 0.01) {
+        while (index < (maxOrtholvs+A) && 
+               (dq2[index+1] - dq2[index]) > 0.01) {
             index <- index + 1
         }
         

@@ -61,7 +61,7 @@ the model.}
 Function for training a K-OPLS model. The function constructs a
 predictive regression model for predicting the values of 'Y' by
 using the information in 'K'. The explained variation is separated
-into predictive components (dimensionality is determined by the
+into predictive components (dimensionality determined by the
 parameter 'A') and 'Y'-orthogonal components (dimensionality determined 
 by the parameter 'nox').
 }
@@ -73,9 +73,9 @@ A <- 2
 nox <- 4
 preProcK <- "mc"
 preProcY <- "mc"
-test <- ConsensusOPLS:::koplsModel(K = K, Y = Y, A = A, nox = nox, 
+model <- ConsensusOPLS:::koplsModel(K = K, Y = Y, A = A, nox = nox, 
                                    preProcK = preProcK, preProcY = preProcY)
-ls(test)
+ls(model)
 
 }
 \keyword{internal}

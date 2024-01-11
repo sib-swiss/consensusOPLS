@@ -106,8 +106,8 @@
 #' @examples
 #' #TO DO
 #' @importFrom utils flush.console
-#' @keywords internal  
-
+#' @keywords internal 
+#'  
 ConsensusOPLSCV <- function(K, Y, 
                             A, oax, nbrcv, 
                             cvType,
@@ -222,12 +222,12 @@ ConsensusOPLSCV <- function(K, Y,
         }
 
         # Estimate K-OPLS model
-        model <- koplsModel(K = KtrTr, Y = YScaleObj$matrix, A = A, 
+        model <- koplsModel(K = KtrTr, Y = YScaleObj$X, A = A, 
                             nox = oax, preProcK = "no", preProcY = "no")
 
         # Set up model stats
-        ssy <- sum(YScaleObjTest$matrix^2)
-        ssyVars <- sum(YScaleObjTest$matrix^2)
+        ssy <- sum(YScaleObjTest$X^2)
+        ssyVars <- sum(YScaleObjTest$X^2)
         ssx <- sum(diag(KteTe))
         
         if (icv == 1) {
@@ -239,7 +239,7 @@ ConsensusOPLSCV <- function(K, Y,
             ssyVarsTot <- ssyVarsTot+ssyVars        
             ssxTot <- ssxTot+ssx
         }
-        
+
         # for each combination of Y-osc components
         AllYhatind <- c()
         
@@ -251,9 +251,9 @@ ConsensusOPLSCV <- function(K, Y,
                                        rescaleY = FALSE)
             tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
             AllYhatind <- cbind(AllYhatind, tmp$X)
-            pressy[ioax, ioay] <- sum((YScaleObjTest$matrix - 
+            pressy[ioax, ioay] <- sum((YScaleObjTest$X - 
                                            modelPredy$Yhat)^2)
-            pressyVars[ioax, ioay] <- sum((YScaleObjTest$matrix - 
+            pressyVars[ioax, ioay] <- sum((YScaleObjTest$X - 
                                                modelPredy$Yhat)^2)
             
             if (icv == 1) {

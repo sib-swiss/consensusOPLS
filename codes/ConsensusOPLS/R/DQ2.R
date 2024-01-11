@@ -19,8 +19,8 @@
 #' result$dqq
 #' result$PRESSD
 #' 
-#' @keywords internal  
-
+#' @keywords internal
+#' 
 DQ2 <- function(Ypred, Y) {
     # Variable format control
     if (!all(Y %in% c(0, 1))) stop("Y must contain only 0 or 1 values.")
@@ -36,11 +36,11 @@ DQ2 <- function(Ypred, Y) {
     # Find predictions for each Class
     E0count <- which(E0 > 0) # larger than 0
     E1count <- which(E1 < 0) # smaller than 0 ???? 1
-    ## TOCHECK: it does not really make sense for the example with rnorm.
+    ## TODO: it does not really make sense for the example with rnorm.
     
     # Calculate SSE for each Class
-    SSE0 <- sum(E0[E0count]^2) # TOCHECK: why E0count, not rather all E0?
-    SSE1 <- sum(E1[E1count]^2) # TOCHECK: why E1count, not rather all E1?
+    SSE0 <- sum(E0[E0count]^2) # TODO: why E0count, not rather all E0?
+    SSE1 <- sum(E1[E1count]^2) # TODO: why E1count, not rather all E1?
     
     # Calculate total SSE (PRESSD)
     PRESSD <- SSE0 + SSE1
@@ -49,8 +49,9 @@ DQ2 <- function(Ypred, Y) {
     Ym <- Y - mean(Y)
     TSS <- sum(Ym^2)
     
-    # Return DQ2
+    # DQ2
     dqq <- 1 - (PRESSD / TSS)
+    
     return (list("dqq" = dqq,
                  "PRESSD" = PRESSD))
 }

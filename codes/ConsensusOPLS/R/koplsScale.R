@@ -20,7 +20,7 @@
 #' @examples
 #' X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 #' Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
-#' Y$matrix
+#' Y$X
 #' 
 #' @import stats
 #' @keywords internal
@@ -55,7 +55,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
                 "scaleType" = scaleType,
                 "meanV" = meanV,
                 "stdV" = stdV,
-                "matrix" = X))
+                "X" = X))
 }
 
 
@@ -77,7 +77,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' \item{meanV}{ vector. Contains the mean values for all columns in X.}
 #' \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
 #' \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
-#' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
+#' Otherwise, scaled version of \code{scaleS$X} from input. Scaling is done 
 #' according to \code{centerType} and \code{scaleType}.
 #' }
 #' 
@@ -93,7 +93,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' test$X
 #' 
 #' @keywords internal
-
+#' 
 koplsRescale <- function(scaleS, varargin = NULL){
     # Variable format control
     if (!is.list(scaleS)) stop("scaleS must be a list (result of 'koplsScale()').")
@@ -101,7 +101,7 @@ koplsRescale <- function(scaleS, varargin = NULL){
         if (!is.matrix(varargin)) stop("varargin must be a matrix.")
         X <- varargin
     } else {
-        X <- scaleS$matrix
+        X <- scaleS$X
     }
     
     # Center the matrix
@@ -138,18 +138,18 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' \item{meanV}{ vector. Contains the mean values for all columns in X.}
 #' \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
 #' \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
-#' Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
+#' Otherwise, scaled version of \code{scaleS$X} from input. Scaling is done 
 #' according to \code{centerType} and \code{scaleType}.
 #' }
 #' 
 #' @examples
 #' X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 #' Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
-#' Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$matrix)
-#' Z$matrix
+#' Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$X)
+#' Z$X
 #' 
 #' @keywords internal
-
+#' 
 koplsScaleApply <- function(model, X){
     # Variable format control
     if(!is.list(model)){stop("model is not a list with scaling parameters.")}

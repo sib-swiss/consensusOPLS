@@ -13,7 +13,7 @@ RVConsensusOPLS(
   cvType = "nfold",
   cvFrac = 2/3,
   modelType = "da",
-  mc.cores = 2,
+  mc.cores = 1,
   verbose = FALSE
 )
 }
@@ -39,7 +39,7 @@ training set. By default is 2/3. Fraction of data to be used for cross-validatio
 for regression or \code{da} for discriminant analysis. Default value is
 \code{da}.}
 
-\item{mc.cores}{Number of cores for parallel computing. Default: 2.}
+\item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 
 \item{verbose}{logical which indicates whether the user wants to see the 
 progress bar printed in the \code{ConsensusOLPSCV} function.}
@@ -54,5 +54,7 @@ DQ2 computation for discriminant analysis.
 \examples{
 data(demo_3_Omics)
 RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                Y=demo_3_Omics$Y)
+                Y=demo_3_Omics$Y, modelType="da", A=2, mc.cores=1)
+#RVConsensusOPLS(data=data, 
+#               Y=demo_3_Omics$Y, modelType="da", A=2, mc.cores=1)
 }

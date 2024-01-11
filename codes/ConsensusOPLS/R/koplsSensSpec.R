@@ -23,7 +23,7 @@
 #' test
 #' 
 #' @keywords internal
-
+#' 
 koplsSensSpec <- function(trueClass, predClass) {
     # # Variable format control
     # if (!is.data.frame(trueClass) & !is.matrix(trueClass)) {
@@ -113,6 +113,5 @@ koplsSensSpec <- function(trueClass, predClass) {
     # Change rownames
     rownames(results) <- c(label_class, "tot")
     
-    #Return the data frame
     return (results)
 }

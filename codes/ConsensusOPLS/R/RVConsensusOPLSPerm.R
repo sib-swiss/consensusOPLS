@@ -7,20 +7,25 @@
 #' @param nbruns numeric. Number of random permutations. 
 #' @param PredLVs numeric. Number of predictive components.
 #' @param maxOrtholvs numeric. Maximum number of orthogonal LVs to compute.
+#' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
+#' for regression or \code{da} for discriminant analysis. Default value is
+#' \code{da}.
+#' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
+#' @param mc.cores Number of cores for parallel computing. Default: 1.
 #'
 #' @return 
-#' A list with the two results plots: \code{plot_R2val}: Plot RV vs R2val.\code{plot_Q2val}: Plot RV vs Q2val.
+#' A list with the two results plots: \code{plot_R2val} for RV vs R2val, \code{plot_Q2val} for RV vs Q2val.
 #'
 #' @examples
 #' data(demo_3_Omics)
 #' RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                     Y=demo_3_Omics$Y, nbruns=100, PredLVs=2, maxOrtholvs=2)
-#' @importFrom utils flush.console
+#'                     Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, modelType = 'da')
+#' @importFrom utils tail
+#' @importFrom parallel mclapply
 #' @import ggplot2
 #' @export
 #' 
-RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs, 
-                                maxOrtholvs){
+RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs, maxOrtholvs, modelType = 'da', cvType = 'nfold', mc.cores = 1) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -32,62 +37,63 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
     NbObs <- nrow(data[[1]])
     PermRes <- list()
     
-    # Extract parameters RVConsensusOPLS to define permutation parameters
-    modelCV <- RVConsensusOPLS(data = data, Y = Y, A = PredLVs, 
-                               maxOrtholvs = maxOrtholvs, nrcv = NbObs,
-                               cvType = "nfold", modelType = "da", 
-                               verbose = FALSE)
-    PermRes$lvnum[1] <- modelCV$model$cv$OrthoLVsOptimalNum + PredLVs
-    PermRes$R2val[1] <- modelCV$model$Model$R2Yhat[length(modelCV$model$Model$R2Yhat)]
-    PermRes$DQ2val[1] <- modelCV$model$cv$DQ2Yhat[PermRes$lvnum]
-    PermRes$Q2val[1] <- modelCV$model$cv$Q2Yhat[PermRes$lvnum]
-    PermRes$PredAc[1] <- modelCV$model$da$tot_sens[2]
-    PermRes$Y[[1]] <- Y
-    PermRes$RV[1] <- RVmodified(X = Y, Y = Y)
-    
-    # Progression bar
-    cat("Please wait... The random permutation process begins.")
-    flush.console()
-    
     # Permutations
-    for (i in 1:nbruns) {
-        #Fix and reproduce the random
+    perms <- mclapply(X=1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        # Fix the random seed
         set.seed(i)
         
-        # Progress bar update
-        cat("\r", "                                                         ", "\r")
-        progress <- round(i * 100 / nbruns, 0)
-        cat(sprintf("Progression : %.2f%% \r", progress))
-        flush.console()
-        
         # Random permutation of Y rows
-        Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), ]
+        if (i==1) 
+            Ys <- Y
+        else 
+            Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), ]
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = PredLVs, 
                                    maxOrtholvs = maxOrtholvs, nrcv = NbObs,
-                                   cvType = "nfold", modelType = "da", 
+                                   cvType = cvType, modelType = modelType, 
+                                   mc.cores = 1,
                                    verbose = FALSE)
-        PermRes$lvnum[i+1] <- modelCV$model$cv$OrthoLVsOptimalNum + PredLVs
-        PermRes$R2val[i+1] <- modelCV$model$Model$R2Yhat[length(modelCV$model$Model$R2Yhat)]
-        PermRes$DQ2val[i+1] <- modelCV$model$cv$DQ2Yhat[PermRes$lvnum[i+1]]
-        PermRes$Q2val[i+1] <- modelCV$model$cv$Q2Yhat[PermRes$lvnum[i+1]]
-        PermRes$PredAc[i+1] <- modelCV$model$da$tot_sens[2]
-        PermRes$Y[[i+1]] <- Ys
-        PermRes$RV[i+1] <- RVmodified(X = Y, Y = Ys)
-    }
+        return (list(Ys=Ys,
+                     modelCV=modelCV))
+    })
+    PermRes$lvnum <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + PredLVs
+    }))
+    PermRes$R2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
+    }))
+    PermRes$DQ2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        perms[[i]]$modelCV$cv$DQ2Yhat[PermRes$lvnum[i]]
+    }))
+    PermRes$Q2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        perms[[i]]$modelCV$cv$Q2Yhat[PermRes$lvnum[i]]
+    }))
+    PermRes$PredAc <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        perms[[i]]$modelCV$da$tot_sens[2]
+    }))
+    PermRes$Y <- mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        perms[[i]]$Ys
+    })
+    PermRes$RV <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+        RVmodified(X = Y, Y = perms[[i]]$Ys)
+    }))
     
-    # Progress bar update
-    cat("Random permutation is complete.                                  ")
-    flush.console()
-    
-    # Plot the results
+    # Plotting data
     PermRes_df <- data.frame(
-        "RV" = PermRes$RV,
-        "Values" = c(PermRes$R2val, PermRes$Q2val),
+        "RV" = c(PermRes$RV, 
+                 PermRes$RV),
+        "Values" = c(PermRes$R2val, 
+                     PermRes$Q2val),
         "Type" = c(rep("RV", times = length(PermRes$R2val)),
                    rep("Q2", times = length(PermRes$Q2val)))
     )
+    
+    theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
+                                       axis.title = element_text(size=16),
+                                       axis.text = element_text(size=14),
+                                       plot.title = element_text(size=16),
+                                       legend.title = element_text(size=14))
     
     # Scatterplots
     p1 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "RV"), ],
@@ -96,8 +102,7 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
         ggplot2::geom_smooth(method = 'lm')+
         ggplot2::xlab("RV") +
         ggplot2::ylab("R2 values") +
-        theme_bw()
-        #theme_graphs
+        theme_graphs
     
     p2 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "Q2"), ],
                           aes(x = RV, y = Values)) +
@@ -105,8 +110,7 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
         ggplot2::geom_smooth(method = 'lm')+
         ggplot2::xlab("RV") +
         ggplot2::ylab("Q2 values") +
-        theme_bw()
-        #theme_graphs
+        theme_graphs
     
     # Scatterplots all in one
     p3 <- ggplot2::ggplot(data = PermRes_df,
@@ -114,8 +118,7 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
         ggplot2::geom_point(size = 2.5)+
         ggplot2::xlab("RV") +
         ggplot2::ylab("R2 and Q2 values") +
-        theme_bw()
-        #theme_graphs
+        theme_graphs
     
     # Histograms
     p4 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "RV"), ],
@@ -124,8 +127,7 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
         ggplot2::geom_density(alpha=.2)+
         ggplot2::xlab("Frequency") +
         ggplot2::ylab("R2 values") +
-        theme_bw()
-        #theme_graphs
+        theme_graphs
     
     p5 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "Q2"), ],
                           aes(x = Values)) +
@@ -133,20 +135,18 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs,
         ggplot2::geom_density(alpha=.2)+
         ggplot2::xlab("Frequency") +
         ggplot2::ylab("Q2 values") +
-        theme_bw()
-        #theme_graphs
+        theme_graphs
     
     # Histograms all in one
     p6 <- ggplot2::ggplot(data = PermRes_df,
                           aes(x = Values, col = Type)) +
-        ggplot2::geom_histogram(size = 2.5)+
+        ggplot2::geom_histogram(linewidth = 1)+
         ggplot2::geom_density(alpha=.2)+
         ggplot2::xlab("RV") +
         ggplot2::ylab("Q2 values") +
-        theme_bw()
-        #theme_graphs
+        theme_graphs
     
-    return (list("Permut_results" = PermRes,
+    return (list("PermRes" = PermRes,
                  "Plots" = list("R2val" = p1, 
                                 "Q2val" = p2,
                                 "R2_and_Q2" = p3,

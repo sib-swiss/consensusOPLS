@@ -18,7 +18,7 @@
 #' test
 #' 
 #' @keywords internal
-
+#' 
 koplsBasicClassify <- function(X, k) {
     # Variable format control
     if (!is.matrix(X)) stop("X is not a matrix.")
@@ -53,7 +53,7 @@ koplsBasicClassify <- function(X, k) {
 #' test
 #' 
 #' @keywords internal
-
+#' 
 koplsMaxClassify <- function(X) {
     # Variable format control
     if (!is.matrix(X)) stop("X is not a matrix.")

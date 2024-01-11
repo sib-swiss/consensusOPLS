@@ -11,7 +11,7 @@
 #' class-balanced CV. Default is \code{nfold}.
 #' @param nfold numeric. Number of total nfold rounds (if type = \code{nfold}).
 #' @param nfoldRound numeric. Current nfold rounds (if type = \code{nfold}).
-#' @param mc.cores Number of cores for parallel computing. Default: 2.
+#' @param mc.cores Number of cores for parallel computing. Default: 1.
 #'
 #' @return A list with the following entries:
 #' \item{CV_param}{ data frame. It contains \code{type} a character for the 
@@ -33,17 +33,17 @@
 #' cvFrac <- 0.75 
 #' nfold <- 5  
 #' nfoldRound <- 1 
-#' test <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
+#' cvs <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
 #'                                          cvFrac = cvFrac,
 #'                                          type = type, nfold = nfold, 
 #'                                          nfoldRound = nfoldRound)
-#' test 
+#' cvs 
 #' 
 #' @keywords internal                         
-#' @import parallel
+#' @importFrom parallel mclapply
 #' 
 koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold", 
-                             nfold = NA, nfoldRound = NA, mc.cores = 2, random.seed = 10403) {
+                             nfold = NA, nfoldRound = NA, mc.cores = 1, random.seed = 10403) {
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -112,10 +112,10 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     if (type == "nfold") {
         #predInd <- seq(from = nfoldRound, to = nrow(Y), by = nfold) ## TODO: Wrong arguments
         #trainInd <- setdiff(x = seq_len(nrow(Y)), y = predInd)
-        #trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac)) ##TODO: put this back
-        #predInd <- setdiff(1:nrow(Y), trainInd)
-        trainInd <- 2:nrow(Y)
-        predInd <- 1  
+        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac)) ##TODO: put this back
+        predInd <- setdiff(1:nrow(Y), trainInd)
+        #trainInd <- 2:nrow(Y)
+        #predInd <- 1  
     }
     
     # Construct Kernel/Y matrices for training/test

@@ -22,7 +22,7 @@ A list containing the following entries:
 \item{meanV}{ vector. Contains the mean values for all columns in X.}
 \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
 \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
-Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
+Otherwise, scaled version of \code{scaleS$X} from input. Scaling is done 
 according to \code{centerType} and \code{scaleType}.
 }
 }

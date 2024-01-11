@@ -4,7 +4,16 @@
 \alias{RVConsensusOPLSPerm}
 \title{RVConsensusOPLSPerm}
 \usage{
-RVConsensusOPLSPerm(data, Y, nbruns, PredLVs, maxOrtholvs)
+RVConsensusOPLSPerm(
+  data,
+  Y,
+  nbruns,
+  PredLVs,
+  maxOrtholvs,
+  modelType = "da",
+  cvType = "nfold",
+  mc.cores = 1
+)
 }
 \arguments{
 \item{data}{list. The collection list containing each block of data.}
@@ -16,9 +25,17 @@ RVConsensusOPLSPerm(data, Y, nbruns, PredLVs, maxOrtholvs)
 \item{PredLVs}{numeric. Number of predictive components.}
 
 \item{maxOrtholvs}{numeric. Maximum number of orthogonal LVs to compute.}
+
+\item{modelType}{type of OPLS regression model. Can be defined as \code{reg} 
+for regression or \code{da} for discriminant analysis. Default value is
+\code{da}.}
+
+\item{cvType}{Type of cross-validation used. Either \code{nfold} for n-fold}
+
+\item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 }
 \value{
-A list with the two results plots: \code{plot_R2val}: Plot RV vs R2val.\code{plot_Q2val}: Plot RV vs Q2val.
+A list with the two results plots: \code{plot_R2val} for RV vs R2val, \code{plot_Q2val} for RV vs Q2val.
 }
 \description{
 Y random permutations for model validity estimation, with leave-on-out CV.
@@ -26,5 +43,5 @@ Y random permutations for model validity estimation, with leave-on-out CV.
 \examples{
 data(demo_3_Omics)
 RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                    Y=demo_3_Omics$Y, nbruns=100, PredLVs=2, maxOrtholvs=2)
+                    Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, modelType = 'da')
 }

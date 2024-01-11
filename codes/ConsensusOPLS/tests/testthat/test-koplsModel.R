@@ -10,10 +10,10 @@ test_that("koplsModel", {
     expect_equal(rvcopls$AMat[[1]][1,2], c(0.0328819715926973))
     expect_equal(rvcopls$AMat[[2]][7,7], c(0.104945253831102))
     expect_equal(rvcopls$AMat[[3]][9,11], c(0.121529241109287))
-    # expect_equal(rvcopls$Model$Sp,
-    #              1.12130867444689, tolerance=1e-4)
-    # expect_equal(unique(rvcopls$Model$Up[,1]),
-    #              c(-0.76149961050859, 0.652713951864506), tolerance=1e-4)
+    #expect_equal(rvcopls$Model$Sp,
+    #             1.12130867444689, tolerance=1e-4)
+    #expect_equal(unique(rvcopls$Model$Up[,1]),
+    #             c(-0.76149961050859, 0.652713951864506), tolerance=1e-4)
     # expect_equal(rvcopls$Model$Tp,
     #              c(-0.299320882028158,-0.234737503178361,-0.239561232530216,
     #                -0.329485836706056,-0.247801779546492,-0.414865384358841,

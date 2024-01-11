@@ -50,7 +50,7 @@
 #' pred
 
 #' @keywords internal
-
+#' 
 koplsPredict <- function(KteTr, Ktest, Ktrain,
                          model, nox, rescaleY = FALSE) {
     # Variable format control
@@ -59,13 +59,13 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     }
     if(!is.list(model)){
         stop("model is not a list containing model parameters.")
-    } else{if(model$Unique_params$class != "kopls"){stop("Model must be of type `kopls`.")}}
+    } else{if(model$params$class != "kopls"){stop("Model must be of type `kopls`.")}}
     if(!is.null(nox)){
         if(!is.numeric(nox)){stop("nox is not numeric.")}
-        if(nox > model$Unique_params$nox){
+        if(nox > model$params$OrthoLVsOptimalNum){
             warning("Number of Y-orthogonal components to use is higher than in model.
               Setting number of Yorth to max in model.")
-            nox <- model$Unique_params$nox
+            nox <- model$params$OrthoLVsOptimalNum
         }
     } else{
         stop('Number of Y-orthogonal components to use is missing.')
@@ -77,19 +77,19 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     # Step1: mean centering of K matrices
     # the order of the code below is important
     KteTeMc <- Ktest
-    if (model$Unique_params$preProcK == "mc") {
+    if (model$params$preProcK == "mc") {
         KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTe <- matrix(data = list(NULL), nrow = model$Unique_params$nox+1, 
-                    ncol = model$Unique_params$nox+1)
+    KteTe <- matrix(data = list(NULL), nrow = model$params$OrthoLVsOptimalNum+1, 
+                    ncol = model$params$OrthoLVsOptimalNum+1)
     KteTe[1,1][[1]] <- KteTeMc
     
     KteTrMc <- KteTr
-    if (model$Unique_params$preProcK == "mc") {
+    if (model$params$preProcK == "mc") {
         KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTrTmp <- matrix(data = list(NULL), nrow = model$Unique_params$nox+1, 
-                       ncol = model$Unique_params$nox+1)
+    KteTrTmp <- matrix(data = list(NULL), nrow = model$params$OrthoLVsOptimalNum+1, 
+                       ncol = model$params$OrthoLVsOptimalNum+1)
     KteTrTmp[1,1][[1]] <- KteTrMc
     KteTr <- KteTrTmp
     
@@ -161,7 +161,7 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
                       y = tcrossprod(model$Bt[[i+1]], model$Cp))
     
     if(!is.null(rescaleY)){
-        if(model$Unique_params$preProcY == "no"){
+        if(model$params$preProcY == "no"){
             if(length(model$preProc$paramsY) == 1 & model$preProc$paramsY == "no"){
                 scaleParams <- list()
                 scaleParams$centerType <- "no"

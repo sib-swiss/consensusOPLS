@@ -20,7 +20,7 @@ A list containing the following entries:
 \item{meanV}{ vector. Contains the mean values for all columns in X.}
 \item{stdV}{ vector. Contains the standard deviations for all columns in X.}
 \item{X}{ matrix. Scaled version of \code{varargin}, if defined. 
-Otherwise, scaled version of \code{scaleS$matrix} from input. Scaling is done 
+Otherwise, scaled version of \code{scaleS$X} from input. Scaling is done 
 according to \code{centerType} and \code{scaleType}.
 }
 }
@@ -30,8 +30,8 @@ Applies scaling from external scaling objects on a matrix X.
 \examples{
 X <- matrix(data = c(1,4,7, 8,4,0, 3,6,9), nrow = 3)
 Y <- ConsensusOPLS:::koplsScale(X = X, centerType = "mc", scaleType = "pa")
-Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$matrix)
-Z$matrix
+Z <- ConsensusOPLS:::koplsScaleApply(model = Y, X = Y$X)
+Z$X
 
 }
 \keyword{internal}
