@@ -8,7 +8,7 @@ Authors@R:
           email = "celine.bougel@laposte.net",
           comment = c(ORCID = "0000-0002-1598-7827")))
 Depends: R (>= 4.0.0)
-Imports: stats
+Imports: stats, ggplot2
 Description: To_be_completed.
 License: file LICENSE
 Encoding: UTF-8

@@ -63,7 +63,7 @@
 #' ls(test)
 #' 
 #' @keywords internal
-
+#' 
 koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # print("In model")
     # aaaaaa = t(Y) %*% koplsCenterKTrTr(K) %*% Y

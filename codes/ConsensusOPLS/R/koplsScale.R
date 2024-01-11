@@ -24,7 +24,7 @@
 #' 
 #' @import stats
 #' @keywords internal
-
+#' 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
     # Variable format control
     if (!is.matrix(X)) stop("X is not a matrix.")
