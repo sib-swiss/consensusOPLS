@@ -14,18 +14,27 @@
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
 #'
 #' @return 
-#' A list with the two results plots: \code{plot_R2val} for RV vs R2val, \code{plot_Q2val} for RV vs Q2val.
+#' A list with the two results plots: \code{plot_R2val} for RV vs R2val, 
+#' \code{plot_Q2val} for RV vs Q2val.
 #'
 #' @examples
 #' data(demo_3_Omics)
 #' RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                     Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, modelType = 'da')
+#'                     Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, 
+#'                     modelType = 'da')
 #' @importFrom utils tail
 #' @importFrom parallel mclapply
 #' @import ggplot2
 #' @export
 #' 
-RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs, maxOrtholvs, modelType = 'da', cvType = 'nfold', mc.cores = 1) {
+RVConsensusOPLSPerm <- function(data, 
+                                Y, 
+                                nbruns, 
+                                PredLVs, 
+                                maxOrtholvs, 
+                                modelType = 'da', 
+                                cvType = 'nfold', 
+                                mc.cores = 1) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -38,7 +47,7 @@ RVConsensusOPLSPerm <- function(data, Y, nbruns, PredLVs, maxOrtholvs, modelType
     PermRes <- list()
     
     # Permutations
-    perms <- mclapply(X=1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    perms <- parallel::mclapply(X=1:(1+nbruns), mc.cores=mc.cores, function(i) {
         # Fix the random seed
         set.seed(i)
         

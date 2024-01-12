@@ -35,7 +35,7 @@ RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
                             maxOrtholvs = 10, 
-                            nrcv = 100,
+                            nrcv = nrow(data),
                             cvType = "nfold",
                             cvFrac = 2/3,
                             modelType = "da",
@@ -75,7 +75,7 @@ RVConsensusOPLS <- function(data,
     }
     
     # For each data block
-    RA <- mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
+    RA <- parallel::mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
         # Produce the kernel of the data block
         tmp <- koplsKernel(X1 = data[[i]], X2 = NULL, Ktype = 'p', params = c(order=1))
         # Frobenius norm of the kernel
@@ -178,16 +178,17 @@ RVConsensusOPLS <- function(data,
     
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,
-                            mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(j) {
-                                diag(crossprod(x = modelCV$Model$T[, 1:A], 
-                                               y = crossprod(x = t(AMat[[j]]), 
-                                                             y = modelCV$Model$T[, 1:A])))
-                            })),
+                            parallel::mclapply(X = 1:ntable, mc.cores = mc.cores, 
+                                               FUN = function(j) {
+                                                 diag(crossprod(x = modelCV$Model$T[, 1:A], 
+                                                                y = crossprod(x = t(AMat[[j]]), 
+                                                                              y = modelCV$Model$T[, 1:A])))
+                                               })),
                     do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(j) {
-                                diag(crossprod(x = modelCV$Model$To[, 1:OrthoLVsNum], 
-                                               y = crossprod(x = t(AMat[[j]]), 
-                                                             y = modelCV$Model$To[, 1:OrthoLVsNum])))
+                              diag(crossprod(x = modelCV$Model$To[, 1:OrthoLVsNum], 
+                                             y = crossprod(x = t(AMat[[j]]), 
+                                                           y = modelCV$Model$To[, 1:OrthoLVsNum])))
                             })))
     
     # Stores raw lambda coefficient values in the model object
