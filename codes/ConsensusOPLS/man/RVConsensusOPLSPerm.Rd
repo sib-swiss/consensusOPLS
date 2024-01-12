@@ -35,7 +35,8 @@ for regression or \code{da} for discriminant analysis. Default value is
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 }
 \value{
-A list with the two results plots: \code{plot_R2val} for RV vs R2val, \code{plot_Q2val} for RV vs Q2val.
+A list with the two results plots: \code{plot_R2val} for RV vs R2val, 
+\code{plot_Q2val} for RV vs Q2val.
 }
 \description{
 Y random permutations for model validity estimation, with leave-on-out CV.
@@ -43,5 +44,6 @@ Y random permutations for model validity estimation, with leave-on-out CV.
 \examples{
 data(demo_3_Omics)
 RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                    Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, modelType = 'da')
+                    Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, 
+                    modelType = 'da')
 }

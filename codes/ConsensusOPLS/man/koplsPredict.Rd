@@ -52,7 +52,7 @@ KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr,
 KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
                                      Ktype='p', params=c(order=1.0))
 
-Y <- matrix(data = stats::rnorm(n = 15), nrow = 5)
+Y <- matrix(data = stats::rnorm(n = 5), nrow = 5)
 A <- 2
 nox <- 4
 preProcK <- "mc"

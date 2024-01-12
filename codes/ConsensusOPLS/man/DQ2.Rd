@@ -22,7 +22,7 @@ these values should not be penalized.
 }
 \examples{
 Y <- sample(x = 0:1, size = 100, replace = TRUE, prob = NULL)
-Ypred <- stats::runif(n = 100)  
+Ypred <- stats::runif(n = 100)
 result <- ConsensusOPLS:::DQ2(Ypred = Ypred, Y = Y)
 result$dqq
 result$PRESSD

@@ -66,9 +66,9 @@ parameter 'A') and 'Y'-orthogonal components (dimensionality determined
 by the parameter 'nox').
 }
 \examples{
-K <- ConsensusOPLS:::koplsKernel(X1 = matrix(stats::rnorm(n = 20), nrow = 5), 
+K <- ConsensusOPLS:::koplsKernel(X1 = demo_3_Omics[["MetaboData"]], 
                                  X2 = NULL, Ktype='p', params=c(order=1.0))
-Y <- matrix(stats::rnorm(n = 15), nrow = 5)
+Y <- demo_3_Omics$Y
 A <- 2
 nox <- 4
 preProcK <- "mc"

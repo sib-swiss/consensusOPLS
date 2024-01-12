@@ -47,7 +47,7 @@ RVConsensusOPLSPerm <- function(data,
     PermRes <- list()
     
     # Permutations
-    perms <- parallel::mclapply(X=1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    perms <- mclapply(X=1:(1+nbruns), mc.cores=mc.cores, function(i) {
         # Fix the random seed
         set.seed(i)
         

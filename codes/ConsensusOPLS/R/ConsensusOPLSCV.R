@@ -116,7 +116,6 @@ ConsensusOPLSCV <- function(K, Y,
                             modelType = "da", verbose = TRUE){
     # ----- Variable format control (part 1)
     if (!is.matrix(K)) stop("K is not a matrix.")
-    if (!is.matrix(Y)) stop("Y is not a matrix.")
     if (!is.numeric(A)) stop("A is not numeric.")
     if (!is.numeric(oax)) stop("oax is not numeric.")
     if (!is.numeric(nbrcv)) stop("nbrcv is not numeric.")
@@ -143,20 +142,19 @@ ConsensusOPLSCV <- function(K, Y,
         drRule <- "max"
         
         # Check the response matrix
-      #   if (all(Y %in% c(0, 1))) {
-      #       if (ncol(Y) == 1) 
-      #           Y <- koplsDummy(X = Y, numClasses = NA)
-      #       classVect <- koplsReDummy(Y = Y)
-      #   } else {
-      #       if (ncol(Y) == 1) {
-      #           classVect <- Y
-      #           Y <- koplsDummy(X = Y+1, numClasses = NA)
-      #       } else
-      #           stop("modelType is `da`, but Y appears to be neither dummy matrix nor 
-      # a vector of (integer) class labels.")
-      #   }
-        classVect <- as.vector(Y)
+        if (is.numeric(Y) && (ncol(Y) == 1 || is.vector(Y))) {
+            Y <- koplsDummy(X = Y+1, numClasses = NA)
+        } else if (is.null(colnames(Y)) && all(Y %in% c(0, 1))) {
+            colnames(Y) <- 1:ncol(Y)
+        } else {
+            stop("Y should be a vector of (integer) classes or its dummy matrix")
+        }
+        classVect <- koplsReDummy(Y = Y)
         nclasses <- length(unique(x = classVect))
+    } else {
+        if (! (is.numeric(Y) && (ncol(Y) == 1 || is.vector(Y)))) {
+            stop("Y should be a numeric vector")
+        }
     }
 
     # ----- Convert Y-scaling to more explicit format

@@ -50,12 +50,12 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     if (!is.matrix(Y)) stop("Y is not a matrix.")
     if (!is.numeric(cvFrac)) stop("cvFrac is not numeric.")
     if (!is.character(type)) stop("type is not a character.")
-    else if(!(type %in% c("nfold", "mccv", "mccvb")))
+    else if (!(type %in% c("nfold", "mccv", "mccvb")))
         stop("type must be `nfold`, `mccv` or `mccvb`.")
     
     if (!is.na(nfold)) {
         if (!is.numeric(nfold)) stop("nfold is not a number.")
-    } else if(type != "nfold")
+    } else if (type != "nfold")
         warning("type is not nfold, nfold is not defined (missing argument).")
     
     if (!is.na(nfoldRound)) {
@@ -79,13 +79,13 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
         uniqueClass <- unique(x = classVect)
         
         # Find samples of each class
-        indList <- parallel::mclapply(X = uniqueClass, 
-                                      mc.cores = mc.cores,
-                                      FUN = function(i){
-                                        ind <- which(classVect == i)
-                                        rand_ind <- sample(x = ind)
-                                        return (sample(x = ind))
-                                      })
+        indList <- mclapply(X = uniqueClass, 
+                            mc.cores = mc.cores,
+                            FUN = function(i){
+                                ind <- which(classVect == i)
+                                rand_ind <- sample(x = ind)
+                                return (sample(x = ind))
+                            })
         
         # Combine indices for all classes
         trainInd <- unlist(x = indList)
@@ -106,15 +106,11 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
         trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
         predInd <- setdiff(1:nrow(Y), trainInd)
     }
-    
+
     # Define N-fold Cross Validation
     if (type == "nfold") {
-        predInd <- seq(from = nfoldRound, to = nrow(K), by = nfold)
-        trainInd <- setdiff(x = seq_len(nrow(K)), y = predInd)
-        #trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac)) ##TODO: put this back
-        #predInd <- setdiff(1:nrow(Y), trainInd)
-        #trainInd <- 2:nrow(Y)
-        #predInd <- 1  
+        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
+        predInd <- setdiff(1:nrow(Y), trainInd)
     }
     
     # Construct Kernel/Y matrices for training/test

@@ -37,7 +37,7 @@
 #' KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
 #'                                      Ktype='p', params=c(order=1.0))
 #' 
-#' Y <- matrix(data = stats::rnorm(n = 15), nrow = 5)
+#' Y <- matrix(data = stats::rnorm(n = 5), nrow = 5)
 #' A <- 2
 #' nox <- 4
 #' preProcK <- "mc"
@@ -48,7 +48,6 @@
 #'                                      Ktrain = KtrTr, model = model, nox = nox,
 #'                                      rescaleY = FALSE)
 #' pred
-
 #' @keywords internal
 #' 
 koplsPredict <- function(KteTr, Ktest, Ktrain,
@@ -62,10 +61,10 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     } else{if(model$params$class != "kopls"){stop("Model must be of type `kopls`.")}}
     if(!is.null(nox)){
         if(!is.numeric(nox)){stop("nox is not numeric.")}
-        if(nox > model$params$OrthoLVsOptimalNum){
+        if(nox > model$params$nox){
             warning("Number of Y-orthogonal components to use is higher than in model.
               Setting number of Yorth to max in model.")
-            nox <- model$params$OrthoLVsOptimalNum
+            nox <- model$params$nox
         }
     } else{
         stop('Number of Y-orthogonal components to use is missing.')
@@ -80,16 +79,16 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     if (model$params$preProcK == "mc") {
         KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTe <- matrix(data = list(NULL), nrow = model$params$OrthoLVsOptimalNum+1, 
-                    ncol = model$params$OrthoLVsOptimalNum+1)
+    KteTe <- matrix(data = list(NULL), nrow = model$params$nox+1, 
+                    ncol = model$params$nox+1)
     KteTe[1,1][[1]] <- KteTeMc
     
     KteTrMc <- KteTr
     if (model$params$preProcK == "mc") {
         KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTrTmp <- matrix(data = list(NULL), nrow = model$params$OrthoLVsOptimalNum+1, 
-                       ncol = model$params$OrthoLVsOptimalNum+1)
+    KteTrTmp <- matrix(data = list(NULL), nrow = model$params$nox+1, 
+                       ncol = model$params$nox+1)
     KteTrTmp[1,1][[1]] <- KteTrMc
     KteTr <- KteTrTmp
     

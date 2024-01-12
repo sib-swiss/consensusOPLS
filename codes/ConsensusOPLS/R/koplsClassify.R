@@ -28,8 +28,7 @@ koplsBasicClassify <- function(X, k) {
     predClass <- apply(X > k, MARGIN = 1, 
                        FUN = function(row) which(row))
     
-    # Return the predicted class(es).
-    return(predClass)
+    return (predClass)
 }
 
 
@@ -59,10 +58,8 @@ koplsMaxClassify <- function(X) {
     if (!is.matrix(X)) stop("X is not a matrix.")
     
     # Search max position
-    predClass <- matrix(data = apply(X = X, MARGIN = 1,
-                                     FUN = function(row) which.max(row)),
-                        ncol = 1)
+    predClass <- apply(X = X, MARGIN = 1,
+                                     FUN = function(row) which.max(row))
     
-    # Return the predicted class(es)
-    return(predClass)
+    return (predClass)
 }

@@ -29,7 +29,7 @@ MBVIP <- function(data, Y, model = NULL, mc.cores = 1) {
     }
     if (!is.list(model)) stop("model is not a list.")
 
-    VIP <- parallel::mclapply(1:length(data), mc.cores=mc.cores, function(itable) {
+    VIP <- mclapply(1:length(data), mc.cores=mc.cores, function(itable) {
         # Dimensions of the data in the data
         nvariable <- ncol(data[[itable]])
         nsample   <- nrow(model$Model$T)

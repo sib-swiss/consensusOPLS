@@ -51,9 +51,9 @@
 #' \item{preProc$paramsY}{ character. Pre-processing scaling parameters for Y.}
 #'
 #' @examples
-#' K <- ConsensusOPLS:::koplsKernel(X1 = matrix(stats::rnorm(n = 20), nrow = 5), 
+#' K <- ConsensusOPLS:::koplsKernel(X1 = demo_3_Omics[["MetaboData"]], 
 #'                                  X2 = NULL, Ktype='p', params=c(order=1.0))
-#' Y <- matrix(stats::rnorm(n = 15), nrow = 5)
+#' Y <- demo_3_Omics$Y
 #' A <- 2
 #' nox <- 4
 #' preProcK <- "mc"
@@ -106,6 +106,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     
     # KOPLS model estimation
     ## step 1: SVD of Y'KY
+    A <- min(A, max(ncol(Y)-1, 1)) #TODO: sth simpler than rankMatrix(Y))
     CSV <- svd(x = crossprod(x = Y, 
                              y = crossprod(x = t(K[1,1][[1]]), 
                                            y = Y)),
@@ -113,13 +114,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # Extract left singular vectors
     Cp <- CSV$u
     # Extract the singular values
-    if( A > 1){
-        Sp <- diag(CSV$d[1:A])
-        Sps <- diag(CSV$d[1:A]^(-1/2)) #scaled version
-    } else{
-        Sp <- CSV$d[1]
-        Sps <- CSV$d[1]^(-1/2) #scaled version
-    }
+    Sp  <- diag(CSV$d[1:A], nrow=A)
+    Sps <- diag(CSV$d[1:A]^(-1/2), nrow=A)
     
     ## step 2: Define Up
     Up <- crossprod(x = t(Y), y = Cp)
@@ -134,10 +130,6 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         ## step 4: Compute Tp
         Tp[[i]] <- crossprod(x = K[1,i][[1]], 
                              y = tcrossprod(x = Up, y = t(Sps)))
-        # cat(i, " -- ", nox, " -- ", dim(Tp[[i]]),  "\n")
-        # print(Tp[[i]])
-        # print("################")
-        # print(crossprod(Tp[[i]]))
         Bt[[i]] <- crossprod(x = t(solve(crossprod(Tp[[i]]))), 
                              y = crossprod(x = Tp[[i]], y = Up))
         ## step 5: SVD of T'KT
@@ -226,7 +218,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     
     # Group parameters in data.frame
     params <- data.frame("A" = A,
-                         "OrthoLVsOptimalNum" = nox, 
+                         "nox" = nox, 
                          "sstot_K" = sstot_K,
                          "sstot_Y" = sstot_Y,
                          "R2Y" = R2Y,

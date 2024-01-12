@@ -33,5 +33,5 @@ RVmodified <- function(X, Y){
     RV <- sum(diag(crossprod(x = AA, y = BB))) / 
         ((sqrt(sum(AA^2))) * (sqrt(sum(BB^2))))
     
-    return(RV)
+    return (RV)
 }

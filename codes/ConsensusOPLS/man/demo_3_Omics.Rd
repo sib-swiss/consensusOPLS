@@ -8,7 +8,8 @@
 Three-block omics data
 }
 \references{
-J. Boccard and D.N. Rutledge. A consensus OPLS-DA strategy for multiblock Omics data fusion. Analytica Chimica Acta, 769, 30-39, 2013.
+J. Boccard and D.N. Rutledge. A consensus OPLS-DA strategy for 
+multiblock Omics data fusion. Analytica Chimica Acta, 769, 30-39, 2013.
 }
 \author{
 Boccard & Rutledge

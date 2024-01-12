@@ -9,7 +9,7 @@ RVConsensusOPLS(
   Y,
   A = 1,
   maxOrtholvs = 10,
-  nrcv = 100,
+  nrcv = 10,
   cvType = "nfold",
   cvFrac = 2/3,
   modelType = "da",
@@ -54,7 +54,5 @@ DQ2 computation for discriminant analysis.
 \examples{
 data(demo_3_Omics)
 RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1)
-#RVConsensusOPLS(data=data, 
-#               Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1)
+                Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=1)
 }
