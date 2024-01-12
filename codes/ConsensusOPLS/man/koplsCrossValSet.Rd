@@ -58,11 +58,11 @@ type <- "nfold"
 cvFrac <- 0.75 
 nfold <- 5  
 nfoldRound <- 1 
-test <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
+cvs <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
                                          cvFrac = cvFrac,
                                          type = type, nfold = nfold, 
                                          nfoldRound = nfoldRound)
-test 
+cvs 
 
 }
 \keyword{internal}
