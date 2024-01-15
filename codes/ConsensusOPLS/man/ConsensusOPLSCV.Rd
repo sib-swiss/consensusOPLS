@@ -47,14 +47,14 @@ mean-centering and no scaling.}
 \item{cvFrac}{numeric. Fraction of observations in the training set during 
 cross-validation.}
 
+\item{modelType}{character. Type of model used for the ConsensusOPLS method. 
+It could be \code{da} for discriminant analysis or \code{reg} for regression. 
+If \code{da} (default), sensitivity and specificity will be calculated.}
+
 \item{verbose}{logical. Indicates whether the user wants to see the 
 progress bar printed. If \code{FALSE}, no output will be printed. If 
 \code{TRUE} (default) some output will be printed regarding the 
 cross-validation progress.}
-
-\item{modelType:}{character. Type of model used for the ConsensusOPLS method. 
-It could be \code{da} for discriminant analysis or \code{reg} for regression. 
-If \code{da} (default), sensitivity and specificity will be calculated.}
 }
 \value{
 A list with the following entries (diagnostic parameters which can be 
@@ -137,6 +137,6 @@ This function was first implemented in KOPLS1.1 MATLAB package, but was
 modified in 2012 for the ConsensusOPLS method.
 }
 \examples{
-#TO DO
+#TODO
 }
 \keyword{internal}

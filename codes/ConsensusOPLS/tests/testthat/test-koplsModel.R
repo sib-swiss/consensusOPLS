@@ -1,8 +1,17 @@
 test_that("koplsModel", {
+    rvcopls.dummy <- RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+                                     Y=demo_3_Omics$Y,
+                                     cvFrac=13/14,
+                                     nrcv = 1)
     rvcopls <- RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
-                               Y=demo_3_Omics$Y,
+                               Y=factor(c(rep('M',7), rep('F',7))),
                                cvFrac=13/14,
                                nrcv = 1)
+    rvcopls.reg <- RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+                                   Y=rnorm(14),
+                                   cvFrac=13/14,
+                                   modelType = "reg",
+                                   nrcv = 1)
     expect_equal(rvcopls$Model$Cp[,1],
                  c(-0.707106781186547,
                    0.707106781186548))

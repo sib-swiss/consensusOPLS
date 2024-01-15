@@ -26,7 +26,7 @@
 #' 
 koplsSensSpec <- function(trueClass, predClass) {
     # Contingency table
-    contingency <- table(trueClass, predClass)
+    contingency <- table(trueClass, as.character(predClass))
     label_class <- as.character(sort(x = union(x = trueClass, y = predClass)))
     
     # Define TruePositifs

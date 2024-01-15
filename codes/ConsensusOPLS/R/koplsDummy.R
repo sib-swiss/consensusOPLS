@@ -37,13 +37,12 @@ koplsDummy <- function(X, numClasses = NA) {
                           tmp <- numeric(length = length(labels))
                           tmp[match(x = class, table = labels)] <- 1
                           return (tmp)
-                      }
+                      }, USE.NAMES = F
     ))
     
     # Change dummy's column names
     colnames(dummy) <- as.character(labels)
     
-    # Return the matrix
     return (dummy)
 }
 
@@ -71,7 +70,7 @@ koplsReDummy <- function(Y) {
     if (any(! Y %in% c(0, 1))) stop("Y must contain only 0 and 1 values.")
     
     # Rebuild the vector
-    X <- apply(X = Y, MARGIN = 1, FUN = function(X) as.numeric(colnames(Y))[X == 1])
+    X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(Y)[X == 1])#as.numeric(colnames(Y))[X == 1])
     
     # Return the reverted dummy matrix to the original vector of class labels
     return (X)

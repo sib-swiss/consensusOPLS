@@ -152,20 +152,20 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' 
 koplsScaleApply <- function(model, X){
     # Variable format control
-    if(!is.list(model)){stop("model is not a list with scaling parameters.")}
-    if(!is.matrix(X)){stop("X is not a matrix.")}
+    if (!is.list(model)) stop("model is not a list with scaling parameters.")
+    if (!is.matrix(X)) stop("X is not a matrix.")
     
     # Center the matrix
-    if(model$centerType == "mc"){X <- X - model$meanV}
+    if (model$centerType == "mc") X <- X - model$meanV
     
     # Scale the matrix
-    if(model$scaleType == "uv"){X <- X / model$stdV}
-    if(model$scaleType == "pa"){X <- X / sqrt(model$stdV)}
+    if (model$scaleType == "uv") X <- X / model$stdV
+    if (model$scaleType == "pa") X <- X / sqrt(model$stdV)
     
     # Return a list with all parameters
-    return(list("centerType" = model$centerType,
-                "scaleType" = model$scaleType,
-                "meanV" = model$meanV,
-                "stdV" = model$stdV,
-                "X" = X))
+    return (list("centerType" = model$centerType,
+                 "scaleType" = model$scaleType,
+                 "meanV" = model$meanV,
+                 "stdV" = model$stdV,
+                 "X" = X))
 }

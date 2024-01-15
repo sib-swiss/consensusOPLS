@@ -23,7 +23,7 @@
 #' mean-centering and no scaling.
 #' @param cvFrac numeric. Fraction of observations in the training set during 
 #' cross-validation. 
-#' @param modelType: character. Type of model used for the ConsensusOPLS method. 
+#' @param modelType character. Type of model used for the ConsensusOPLS method. 
 #' It could be \code{da} for discriminant analysis or \code{reg} for regression. 
 #' If \code{da} (default), sensitivity and specificity will be calculated.
 #' @param verbose logical. Indicates whether the user wants to see the 
@@ -104,7 +104,7 @@
 #'            \item{A}{ integer. Number of Y-predictive components.}
 #' \item{class}{ character. Model class is \code{koplscv}.}
 #' @examples
-#' #TO DO
+#' #TODO
 #' @importFrom utils flush.console
 #' @keywords internal 
 #'  
@@ -129,11 +129,11 @@ ConsensusOPLSCV <- function(K, Y,
         stop("preProcY must be `mc`, `uv`, `pareto` or `no`.")
     if (!is.numeric(cvFrac)) stop("cvFrac is not numeric.")
     if (!is.character(modelType)) stop("modelType is not a character.")
-    else if(!(modelType %in% c("da", "re"))) stop("modelType must me `da` or `re`.")
+    else if(!(modelType %in% c("da", "reg"))) stop("modelType must be `da` or `reg`.")
     if (!is.logical(verbose)) stop("verbose must be `TRUE` or `FALSE`.")
     
     # ----- Default values control
-    if (cvType == "mccvb" & modelType != "da")
+    if (cvType == "mccvb" && modelType != "da")
         stop("Class balanced MC CV only applicable to `da` modelling.")
 
     # ----- Variable format control (part 2)
@@ -142,18 +142,13 @@ ConsensusOPLSCV <- function(K, Y,
         drRule <- "max"
         
         # Check the response matrix
-        if (is.numeric(Y) && (ncol(Y) == 1 || is.vector(Y))) {
-            Y <- koplsDummy(X = Y+1, numClasses = NA)
-        } else if (is.null(colnames(Y)) && all(Y %in% c(0, 1))) {
-            colnames(Y) <- 1:ncol(Y)
-        } else {
-            stop("Y should be a vector of (integer) classes or its dummy matrix")
-        }
+        if (! (all(Y %in% c(0, 1)) && ncol(Y) > 1)) stop("Y is not a dummy matrix.")
+        
         classVect <- koplsReDummy(Y = Y)
         nclasses <- length(unique(x = classVect))
     } else {
         if (! (is.numeric(Y) && (ncol(Y) == 1 || is.vector(Y)))) {
-            stop("Y should be a numeric vector")
+            stop("Y should be a numeric vector.")
         }
     }
 

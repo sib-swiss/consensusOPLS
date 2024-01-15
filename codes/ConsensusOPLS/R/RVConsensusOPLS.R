@@ -41,7 +41,7 @@ RVConsensusOPLS <- function(data,
                             verbose = FALSE) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
-    if (!is.matrix(Y)) stop("Y is not a matrix.")
+    if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
     if (!is.numeric(A)) stop("A is not numeric.")
     if (!is.numeric(maxOrtholvs)) stop("maxOrtholvs is not numeric.")
     if (!is.numeric(nrcv)) stop("nrcv is not numeric.")
@@ -66,9 +66,18 @@ RVConsensusOPLS <- function(data,
     preProcY <- "mc"
     
     if (modelType == "reg") {
+        Y <- as.matrix(Y)
+        if (ncol(Y) > 1) stop("modelType is not appropriate to Y.")
+        if (all(Y %in% c(0,1))) stop("modelType is preferably `da`.") #TODO: is it possible to do logistic regression?
         koplsScale <- koplsScale(X = Y, centerType = preProcY, scaleType = "no")
         Yc <- koplsScale$X
     } else {
+        if (nlevels(as.factor(Y)) > length(Y)/2) { # TODO: something better than this check: if at least 2 samples belong to every class
+            stop("modelType is preferably `reg`")
+        }
+        if (is.vector(Y) || is.factor(Y) || ncol(Y) == 1) {
+            Y <- koplsDummy(as.vector(Y))
+        }
         Yc <- Y
     }
     
