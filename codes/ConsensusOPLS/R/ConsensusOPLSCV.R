@@ -311,7 +311,6 @@ ConsensusOPLSCV <- function(K, Y,
                 warning(paste0('Decision rule given: ', drRule, 
                                ' is not valid/implemented.'))
             }
-            
             # Calculate sensitivity and specificity
             daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex],
                                        predClass = predClass)

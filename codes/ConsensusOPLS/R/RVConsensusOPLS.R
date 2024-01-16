@@ -78,6 +78,7 @@ RVConsensusOPLS <- function(data,
         if (is.vector(Y) || is.factor(Y) || ncol(Y) == 1) {
             Y <- koplsDummy(as.vector(Y))
         }
+        if (is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
         Yc <- Y
     }
     

@@ -70,7 +70,7 @@ koplsReDummy <- function(Y) {
     if (any(! Y %in% c(0, 1))) stop("Y must contain only 0 and 1 values.")
     
     # Rebuild the vector
-    X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(Y)[X == 1])#as.numeric(colnames(Y))[X == 1])
+    X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(Y)[X == 1])
     
     # Return the reverted dummy matrix to the original vector of class labels
     return (X)
