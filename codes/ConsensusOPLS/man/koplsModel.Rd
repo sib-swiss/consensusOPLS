@@ -48,7 +48,7 @@ model.}
 \item{R2XO}{ numeric. Cumulative explained variation for Y-orthogonal model 
 components.}
 \item{R2XC}{ numeric. Explained variation for predictive model components 
-after addition of Y-orthogonal model components.}
+after addition of Y-orthogonal model components. Ignored in this version.}
 \item{sstot_Y}{ numeric. Total sums of squares in Y.}
 \item{R2Y}{ numeric. Explained variation of Y.}
 \item{R2Yhat}{ numeric. Variance explained by the i-th latent component of 

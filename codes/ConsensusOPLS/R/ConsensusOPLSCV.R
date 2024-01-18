@@ -138,9 +138,6 @@ ConsensusOPLSCV <- function(K, Y,
 
     # ----- Variable format control (part 2)
     if (modelType == "da") {
-        # Define a parameter for DA decision rule
-        drRule <- "max"
-        
         # Check the response matrix
         if (! (all(Y %in% c(0, 1)) && ncol(Y) > 1)) stop("Y is not a dummy matrix.")
         
@@ -157,9 +154,8 @@ ConsensusOPLSCV <- function(K, Y,
     YscaleType <- "no"
     if (preProcY != "no") {
         YcenterType <- "mc"
-        if(preProcY != "mc")
+        if (preProcY != "mc")
             YscaleType <- preProcY
-        
     }
     
     # ----- Parameters init
@@ -170,8 +166,9 @@ ConsensusOPLSCV <- function(K, Y,
     pressyTot <- matrix(data = 0, nrow = oax+1, ncol = 1)
     pressyVarsTot <- matrix(data = 0, nrow = oax+1, ncol = 1)
     YhatDaSave <- list()
-    cvTestIndex <- c()
-    cvTrainingIndex <- c()
+    cvTestIndex <- list()
+    cvTrainingIndex <- list()
+    modelMain <- list()
     
     if (verbose) {
         cat("Please wait... The cross-validation process begins.")
@@ -180,7 +177,7 @@ ConsensusOPLSCV <- function(K, Y,
     
     AllYhat <- c()
 
-    for (icv in 1:nbrcv) {
+    for (icv in 0:nbrcv) {
         # Update progression bar
         if (verbose) {
             cat("\r", "                                           ", "\r")
@@ -191,17 +188,18 @@ ConsensusOPLSCV <- function(K, Y,
         
         # Set up Cross-Validation
         cvSet <- koplsCrossValSet(K = K, Y = Y, cvFrac = cvFrac, type = cvType, 
-                                  nfold = nbrcv, nfoldRound = icv)
-        cvTestIndex <- c(cvTestIndex, cvSet$testIndex)
-        cvTrainingIndex <- c(cvTrainingIndex, cvSet$trainingIndex)
-
+                                  nfold = nbrcv, nfoldRound = icv, random.seed = 10403+icv)
+        #TODO: check when nbrcv > 1, i.e. repeated test samples
+        cvTestIndex[[length(cvTestIndex)+1]] <- cvSet$testIndex #rbind(cvTestIndex, cvSet$testIndex)
+        cvTrainingIndex[[length(cvTrainingIndex)+1]] <- cvSet$trainingIndex #rbind(cvTrainingIndex, cvSet$trainingIndex)
+        
         # Get Kernel matrices 
         # % change so that this is done in the K matrix only once and 
         # selected by indices.
         KtrTr <- cvSet$KTrTr
         KteTe <- cvSet$KTeTe
         KteTr <- cvSet$KTeTr
-
+        
         # Center Y and kernel matrices
         YScaleObj <- koplsScale(X = cvSet$yTraining, 
                                 centerType = YcenterType,
@@ -211,28 +209,27 @@ ConsensusOPLSCV <- function(K, Y,
         if (preProcK == "mc") {
             KteTe <- koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
             KteTr <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
-            KtrTr <- koplsCenterKTrTr(K = KtrTr)
+            KtrTr <- koplsCenterKTrTr(K = KtrTr) #TODO: check koplsCenterTrTr as this is not centered version of cvSet$KTrTr
         }
 
         # Estimate K-OPLS model
         model <- koplsModel(K = KtrTr, Y = YScaleObj$X, A = A, 
                             nox = oax, preProcK = "no", preProcY = "no")
-
+        
         # Set up model stats
-        ssy <- sum(YScaleObjTest$X^2)
+        ssy     <- sum(YScaleObjTest$X^2)
         ssyVars <- sum(YScaleObjTest$X^2)
-        ssx <- sum(diag(KteTe))
+        #ssx     <- sum(diag(KteTe))
         
         if (icv == 1) {
-            ssyTot <- ssy
+            ssyTot     <- ssy
             ssyVarsTot <- ssyVars
-            ssxTot <- ssx
-        } else {
-            ssyTot <- ssyTot+ssy
+            #ssxTot     <- ssx
+        } else if (icv > 1) {
+            ssyTot     <- ssyTot+ssy
             ssyVarsTot <- ssyVarsTot+ssyVars        
-            ssxTot <- ssxTot+ssx
+            #ssxTot     <- ssxTot+ssx
         }
-
         # for each combination of Y-osc components
         AllYhatind <- c()
         
@@ -243,41 +240,40 @@ ConsensusOPLSCV <- function(K, Y,
                                        model = model, nox = ioax-1, 
                                        rescaleY = FALSE)
             tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
+            colnames(tmp$X) <- paste0(colnames(tmp$X), ifelse(ioax==1, "_p", paste0("_po", ioax-1)))
             AllYhatind <- cbind(AllYhatind, tmp$X)
-            pressy[ioax, ioay] <- sum((YScaleObjTest$X - 
-                                           modelPredy$Yhat)^2)
+            pressy[ioax, ioay]     <- sum((YScaleObjTest$X - 
+                                               modelPredy$Yhat)^2)
             pressyVars[ioax, ioay] <- sum((YScaleObjTest$X - 
                                                modelPredy$Yhat)^2)
             
             if (icv == 1) {
-                pressyTot[ioax, ioay] <- pressy[ioax, ioay]
+                pressyTot[ioax, ioay]     <- pressy[ioax, ioay]
                 pressyVarsTot[ioax, ioay] <- pressyVars[ioax, ioay]
             } else {
-                pressyTot[ioax,ioay] <- pressyTot[ioax,ioay] + pressy[ioax,ioay]
-                pressyVarsTot[ioax,ioay] <- pressyVarsTot[ioax,ioay] + pressyVars[ioax,ioay]
+                pressyTot[ioax,ioay]      <- pressyTot[ioax,ioay] + pressy[ioax,ioay]
+                pressyVarsTot[ioax,ioay]  <- pressyVarsTot[ioax,ioay] + pressyVars[ioax,ioay]
             }
             
-            # If 'da', save Yhat for all rounds
-            if (modelType == "da") {
-                if (icv == 1) {
-                    YhatDaSave[[ioax]] <- list()
-                }
-                
-                # + mean on Yhat
-                tmp <- koplsRescale(YScaleObj, modelPredy$Yhat)
-                YhatDaSave[[ioax]] <- rbind(YhatDaSave[[ioax]], tmp$X)
+            # Save Yhat for all rounds
+            if (icv == 0) {
+                YhatDaSave[[ioax]] <- list()
             }
+            
+            # + mean on Yhat
+            tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
+            YhatDaSave[[ioax]][[length(YhatDaSave[[ioax]])+1]] <- tmp$X
             
             # If highest number of oscs, save Yhat and Xhat
-            if (ioax == oax+1) {  # && ioay == oay + 1) 
-                if (icv == 1) {
+            if (ioax == oax+1) {
+                if (icv == 0) {
                     Yhat <- list()
                 }
-                tmp <- koplsRescale(YScaleObj, modelPredy$Yhat)
-                Yhat <- rbind(Yhat, tmp$X)
+                tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
+                Yhat[[length(Yhat)+1]] <- tmp$X
             }
         }
-        AllYhat <- rbind(AllYhat, AllYhatind)
+        AllYhat <- rbind(AllYhat, AllYhatind) #TODO: use list
     } # end icv
 
     if (verbose) {
@@ -285,70 +281,110 @@ ConsensusOPLSCV <- function(K, Y,
         flush.console()
     }
     
-    KtrTr <- K
-    modelMain <- list()
-    modelMain$Model <- koplsModel(K = KtrTr, Y = Y, A = A, nox = oax, 
-                                  preProcK = preProcK, preProcY = preProcY)
-    modelMain$cv$Yhat <- matrix(data = unlist(Yhat), 
-                                ncol = length(Yhat[1,]))
-    modelMain$cv$AllYhat <- AllYhat
-    modelMain$cv$Tcv <- modelMain$cv$Yhat %*% modelMain$Model$Cp %*% modelMain$Model$Bt[[oax + 1]]
-    modelMain$cv$Q2Yhat <- 1 - pressyTot/ssyTot
-    modelMain$cv$Q2YhatVars <- 1 - pressyVarsTot/ssyVarsTot
-    modelMain$cv$cvTestIndex <- cvTestIndex
-    modelMain$cv$cvTrainingIndex <- cvTrainingIndex
-    
-    daMetrics_list <- list()
     if (modelType == "da") {
+        ## CV DA metrics
+        daMetrics_list <- list()
+        daMetrics_list$sens <- daMetrics_list$spec <- matrix(nrow=nclasses, ncol=0)
+        daMetrics_list$observed <- matrix(classVect[unlist(cvTestIndex[-1])], ncol=1)
+        daMetrics_list$predicted <- matrix(NA, nrow=nrow(daMetrics_list$observed), ncol=oax+1, dimnames=list(NULL, c("p", paste0("po", 1:oax))))
         # Get sens/spec for each y-orth component
         for (i in 1:(oax + 1)) {
-            if (drRule == "max") {
-                predClass <- koplsMaxClassify(X = YhatDaSave[[i]])
-            } else if (drRule == "fixed") {
-                predClass <- koplsBasicClassify(X = YhatDaSave[[i]], 
-                                                k = 1/nclasses)
-            } else {
-                warning(paste0('Decision rule given: ', drRule, 
-                               ' is not valid/implemented.'))
-            }
+            # Predicted class on test
+            predClass <- koplsMaxClassify(X = do.call(rbind, YhatDaSave[[i]][-1]))
+
             # Calculate sensitivity and specificity
-            daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex],
-                                       predClass = predClass)
-            daMetrics_list$sens[i] <- daMetrics[i, "sens"]
-            daMetrics_list$spec[i] <- daMetrics[i, "spec"]
-            daMetrics_list$tot_sens[i] <- daMetrics[nrow(daMetrics), "sens"]
-            daMetrics_list$meanSens[i] <- daMetrics[nrow(daMetrics), "meanSens"]
-            daMetrics_list$meanSpec[i] <- daMetrics[nrow(daMetrics), "meanSpec"]
+            #TODO: nbrcv CV rounds are combined here, so testing samples are repeatedly drawn
+            daMetrics <- koplsSensSpec(trueClass = classVect[unlist(cvTestIndex[-1])],
+                                       predClass = predClass,
+                                       labelClass = colnames(Y)) 
+            daMetrics_list$sens <- cbind(daMetrics_list$sens, 
+                                         matrix(daMetrics[, "sens"], 
+                                                dimnames=list(rownames(daMetrics), 
+                                                              ifelse(i==1, "p", paste0("po", i-1)))))
+            daMetrics_list$spec <- cbind(daMetrics_list$spec, 
+                                         matrix(daMetrics[, "spec"], 
+                                                dimnames=list(rownames(daMetrics), 
+                                                              ifelse(i==1, "p", paste0("po", i-1)))))
+            #daMetrics_list$tot_sens[i] <- daMetrics[nrow(daMetrics), "sens"]
+            #daMetrics_list$meanSens[i] <- daMetrics[nrow(daMetrics), "meanSens"]
+            #daMetrics_list$meanSpec[i] <- daMetrics[nrow(daMetrics), "meanSpec"]
+            daMetrics_list$confusMatrix[[i]] <- koplsConfusionMatrix(trueClass = classVect[unlist(cvTestIndex[-1])], 
+                                                                     predClass = predClass)
+            daMetrics_list$predicted[,i] <- predClass
         }
+        daMetrics_list$nclasses <- nclasses
+        modelMain$cv$da <- daMetrics_list
         
-        # Calculate sensitivity and specificity
-        daMetrics_list$confusMatrix <- koplsConfusionMatrix(trueClass = classVect[cvTestIndex], 
-                                                            predClass = predClass)
-        daMetrics_list$trueClass <- classVect[cvTestIndex]
+        ## Reprediction DA metrics
+        daMetrics_list <- list()
+        daMetrics_list$sens <- daMetrics_list$spec <- matrix(nrow=nclasses, ncol=0)
+        daMetrics_list$observed <- matrix(classVect[cvTestIndex[[1]]], ncol=1)
+        daMetrics_list$predicted <- matrix(NA, nrow=nrow(daMetrics_list$observed), ncol=oax+1, dimnames=list(NULL, c("p", paste0("po", 1:oax))))
+        # Get sens/spec for each y-orth component
+        for (i in 1:(oax + 1)) {
+            # Predicted class on all samples
+            predClass <- koplsMaxClassify(X = YhatDaSave[[i]][[1]])
+            
+            # Calculate sensitivity and specificity
+            daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex[[1]]],
+                                       predClass = predClass,
+                                       labelClass = colnames(Y)) 
+            daMetrics_list$sens <- cbind(daMetrics_list$sens, 
+                                         matrix(daMetrics[, "sens"], 
+                                                dimnames=list(rownames(daMetrics),
+                                                              ifelse(i==1, "p", paste0("po", i-1)))))
+            daMetrics_list$spec <- cbind(daMetrics_list$spec, 
+                                         matrix(daMetrics[, "spec"], 
+                                                dimnames=list(rownames(daMetrics),
+                                                              ifelse(i==1, "p", paste0("po", i-1)))))
+            daMetrics_list$confusMatrix[[i]] <- koplsConfusionMatrix(trueClass = classVect[cvTestIndex[[1]]], 
+                                                                     predClass = predClass)
+            daMetrics_list$predicted[,i] <- predClass
+        }
         daMetrics_list$nclasses <- nclasses
         modelMain$da <- daMetrics_list
-        modelMain$da$predClass <- predClass
-        modelMain$da$decisionRule <- drRule
-        
-        # Change to original order if NFOLD CV
-        if (cvType == "nfold") {
-            cvOrder <- sort(x = cvTestIndex, decreasing = FALSE)
-            modelMain$da$predClass <- modelMain$da$predClass[cvOrder]
-            modelMain$da$trueClass <- modelMain$da$trueClass[cvOrder]
+        #modelMain$cv$da$args$oax <- oax
+        #modelMain$cv$da$args$A <- A
+    } else if (modelType == "reg") {
+        ## CV metrics
+        Metrics_list <- list()
+        Metrics_list$observed <- Y[unlist(cvTestIndex[-1]),, drop=F]
+        Metrics_list$predicted <- matrix(NA, nrow=nrow(Metrics_list$observed), ncol=oax+1, dimnames=list(NULL, c("p", paste0("po", 1:oax))))
+        # Get sens/spec for each y-orth component
+        for (i in 1:(oax + 1)) {
+            # Predicted values
+            Metrics_list$predicted[,i] <- do.call(rbind, YhatDaSave[[i]][-1])
         }
+        modelMain$cv$reg <- Metrics_list
+        
+        ## Reprediction metrics
+        Metrics_list <- list()
+        Metrics_list$observed <- Y
+        Metrics_list$predicted <- matrix(NA, nrow=nrow(Metrics_list$observed), ncol=oax+1, dimnames=list(NULL, c("p", paste0("po", 1:oax))))
+        # Get sens/spec for each y-orth component
+        for (i in 1:(oax + 1)) {
+            # Predicted values
+            Metrics_list$predicted[,i] <- YhatDaSave[[i]][[1]]
+        }
+        modelMain$reg <- Metrics_list
     }
-
-    # Change to original order if NFOLD CV
-    if (cvType == "nfold") {
-        cvOrder <- order(x = cvTestIndex, decreasing = FALSE)
-        modelMain$cv$Yhat <- modelMain$cv$Yhat[cvOrder, ]
-        modelMain$cv$Tcv <- modelMain$cv$Tcv[cvOrder, ]
-    }
+   
+    KtrTr <- K
+    modelMain$Model <- koplsModel(K = KtrTr, Y = Y, A = A, nox = oax, 
+                                  preProcK = preProcK, preProcY = preProcY)
+    
+    modelMain$cv$Yhat <- matrix(data = unlist(Yhat[-1]), 
+                                ncol = ncol(Yhat[[2]]), 
+                                dimnames = list(NULL, colnames(Y)))
+    modelMain$cv$AllYhat <- AllYhat[-(1:nrow(Y)),,drop=F]
+    modelMain$cv$Tcv     <- modelMain$cv$Yhat %*% modelMain$Model$Cp %*% modelMain$Model$Bt[[oax + 1]]
+    modelMain$cv$Q2Yhat     <- 1 - pressyTot/ssyTot
+    modelMain$cv$Q2YhatVars <- 1 - pressyVarsTot/ssyVarsTot
+    modelMain$cv$cvTestIndex     <- cvTestIndex[-1]
+    modelMain$cv$cvTrainingIndex <- cvTrainingIndex[-1]
     
     modelMain$class <- "koplscv"
-    modelMain$da$args$oax <- oax
-    modelMain$da$args$A <- A
-
+    
     return (modelMain)
 }
 

@@ -81,15 +81,19 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
         # Find samples of each class
         indList <- mclapply(X = uniqueClass, 
                             mc.cores = mc.cores,
-                            FUN = function(i){
+                            FUN = function(i) {
                                 ind <- which(classVect == i)
                                 rand_ind <- sample(x = ind)
                                 return (sample(x = ind))
                             })
         
         # Combine indices for all classes
-        trainInd <- unlist(x = indList)
-        predInd <- setdiff(x = seq_len(nrow(Y)), y = trainInd)
+        if (nfoldRound > 0) {
+            trainInd <- unlist(x = indList)
+            predInd <- setdiff(x = seq_len(nrow(Y)), y = trainInd)
+        } else {
+            trainInd <- predInd <- 1:nrow(Y)
+        }
     }
     
     # Define Monte-Carlos Cross Validation
@@ -103,14 +107,22 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
         # Divides the sample into train and test
         #trainInd <- rand_ind[1:trainSize]
         #predInd <- rand_ind[(trainSize+1):nrow(K)]
-        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
-        predInd <- setdiff(1:nrow(Y), trainInd)
+        if (nfoldRound > 0) {
+            trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
+            predInd <- setdiff(1:nrow(Y), trainInd)
+        } else {
+            trainInd <- predInd <- 1:nrow(Y)
+        }
     }
 
     # Define N-fold Cross Validation
     if (type == "nfold") {
-        trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
-        predInd <- setdiff(1:nrow(Y), trainInd)
+        if (nfoldRound > 0) {
+            trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
+            predInd <- setdiff(1:nrow(Y), trainInd)
+        } else {
+            trainInd <- predInd <- 1:nrow(Y)
+        }
     }
     
     # Construct Kernel/Y matrices for training/test

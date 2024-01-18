@@ -4,6 +4,8 @@
 #' @param trueClass matrix. Row vector of true class assignments (template). 
 #' @param predClass matrix. Matrix (or row vector) of class assignments to be 
 #' compared.
+#' @param labelClass A vector of all potential classes. Default, NULL, labels found
+#' in \code{trueClass} and \code{codeClass} are considered.
 #'
 #' @return 
 #' \item{data}{ A data frame containing, for each class (on lines), the number 
@@ -24,36 +26,37 @@
 #' 
 #' @keywords internal
 #' 
-koplsSensSpec <- function(trueClass, predClass) {
+koplsSensSpec <- function(trueClass, predClass, labelClass = NULL) {
     # Contingency table
     contingency <- table(trueClass, as.character(predClass))
-    label_class <- as.character(sort(x = union(x = trueClass, y = predClass)))
+    if (is.null(labelClass))
+        labelClass <- as.character(sort(x = union(x = trueClass, y = predClass)))
     
     # Define TruePositifs
-    TP <- sapply(label_class,
+    TP <- sapply(labelClass,
                  FUN = function(x) {
                      if (x %in% rownames(contingency) && 
                          x %in% colnames(contingency)) {
                          contingency[x, x]
-                     } else{0}
+                     } else 0
                  })
     # Define TrueNegatifs
-    TN <- sapply(label_class,
+    TN <- sapply(labelClass,
                  FUN = function(x) {
                      sum(TP) - if(x %in% rownames(contingency) && 
                                   x %in% colnames(contingency)){
                          contingency[x, x]
-                     } else{0}
+                     } else 0
                  })
     # Define FalsePositifs
-    FN <- sapply(label_class,
+    FN <- sapply(labelClass,
                  FUN = function(x) {
                      if(x %in% rownames(contingency)) {
                          sum(contingency[x, colnames(contingency) != x])
                      } else 0
                  })
     # Define FalseNegatifs
-    FP <- sapply(label_class,
+    FP <- sapply(labelClass,
                  FUN = function(x) {
                      if (x %in% colnames(contingency)) {
                          sum(contingency[rownames(contingency) != x, x])
@@ -70,18 +73,21 @@ koplsSensSpec <- function(trueClass, predClass) {
     spec[is.na(spec)] <- 0
     
     # Results for each class
-    results <- data.frame(TP = c(TP, sum(TP)),
-                          TN = c(TN, sum(TN)),
-                          FP = c(FP, sum(FP)),
-                          FN = c(FN, sum(FN)),
-                          N = c(TP+TN+FP+FN, sum(TP+FP)),
-                          sens = c(sens, sum(TP)/ sum(TP + FN)),
-                          spec = c(spec, sum(TN)/ sum(TN + FP)),
-                          meanSens = c(sens, mean(sens)),
-                          meanSpec = c(spec, mean(spec)))
-    
-    # Change rownames
-    rownames(results) <- c(label_class, "tot")
+    # results <- data.frame(TP = c(TP, sum(TP)),
+    #                       TN = c(TN, sum(TN)),
+    #                       FP = c(FP, sum(FP)),
+    #                       FN = c(FN, sum(FN)),
+    #                       N = c(TP+TN+FP+FN, sum(TP+FP)),
+    #                       sens = c(sens, sum(TP)/ sum(TP + FN)),
+    #                       spec = c(spec, sum(TN)/ sum(TN + FP)),
+    #                       meanSens = c(sens, mean(sens)),
+    #                       meanSpec = c(spec, mean(spec)))
+    results <- data.frame(TP=TP,
+                          TN=TN,
+                          FP=FP,
+                          FN=FN,
+                          sens=sens,
+                          spec=spec)
     
     return (results)
 }

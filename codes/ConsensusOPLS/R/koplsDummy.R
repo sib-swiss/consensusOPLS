@@ -25,23 +25,23 @@ koplsDummy <- function(X, numClasses = NA) {
         stop("X must be a vector or a matrix of 1 column.")
     
     if (is.na(numClasses)) {
-        labels <- sort(x = unique(x = X))
+        labelClass <- sort(x = unique(x = X))
     } else {
         if (!is.numeric(numClasses)) stop("numClasses must be numeric.")
-        labels <- 1:numClasses
+        labelClass <- 1:numClasses
     }
     
     # Search for class membership
     dummy <- t(sapply(X = X,
                       FUN = function(class) {
-                          tmp <- numeric(length = length(labels))
-                          tmp[match(x = class, table = labels)] <- 1
+                          tmp <- numeric(length = length(labelClass))
+                          tmp[match(x = class, table = labelClass)] <- 1
                           return (tmp)
                       }, USE.NAMES = F
     ))
     
     # Change dummy's column names
-    colnames(dummy) <- as.character(labels)
+    colnames(dummy) <- as.character(labelClass)
     
     return (dummy)
 }

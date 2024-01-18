@@ -4,13 +4,16 @@
 \alias{koplsSensSpec}
 \title{koplsSensSpec}
 \usage{
-koplsSensSpec(trueClass, predClass)
+koplsSensSpec(trueClass, predClass, labelClass = NULL)
 }
 \arguments{
 \item{trueClass}{matrix. Row vector of true class assignments (template).}
 
 \item{predClass}{matrix. Matrix (or row vector) of class assignments to be 
 compared.}
+
+\item{labelClass}{A vector of all potential classes. Default, NULL, labels found
+in \code{trueClass} and \code{codeClass} are considered.}
 }
 \value{
 \item{data}{ A data frame containing, for each class (on lines), the number 

@@ -41,7 +41,7 @@
 #' \item{R2XO}{ numeric. Cumulative explained variation for Y-orthogonal model 
 #' components.}
 #' \item{R2XC}{ numeric. Explained variation for predictive model components 
-#' after addition of Y-orthogonal model components.}
+#' after addition of Y-orthogonal model components. Ignored in this version.}
 #' \item{sstot_Y}{ numeric. Total sums of squares in Y.}
 #' \item{R2Y}{ numeric. Explained variation of Y.}
 #' \item{R2Yhat}{ numeric. Variance explained by the i-th latent component of 
@@ -113,6 +113,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                nu = A, nv = A)
     # Extract left singular vectors
     Cp <- CSV$u
+    rownames(Cp) <- colnames(Y)
     # Extract the singular values
     Sp  <- diag(CSV$d[1:A], nrow=A)
     Sps <- diag(CSV$d[1:A]^(-1/2), nrow=A)
@@ -150,7 +151,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                                          t(co[[i]])), t(1/sqrt(so[[i]])))
         
         ## step 7: toNorm
-        toNorm[[i]] <- c(sqrt( crossprod(to[[i]]) ))
+        toNorm[[i]] <- c(sqrt(crossprod(to[[i]])))
         
         ## step 8: Normalize to
         to[[i]] <- to[[i]] / toNorm[[i]]
@@ -178,6 +179,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     
     # ---------- extra stuff -----------------
     # should work but not fully tested (MB 2007-02-19)
+    # TODO check
     sstot_Y <- sum( sum(Y**2))
     FY <- Y - tcrossprod(x = Up, y = Cp)
     R2Y <- 1 - sum(sum(FY^2))/sstot_Y
@@ -199,7 +201,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                            sum( diag( K[i,i][[1]] ))    
                        }) / sstot_K
     
-    Yhat <- sapply(1 : (nox+1),
+    Yhat <- lapply(1 : (nox+1),
                    function(i){
                        crossprod(t(Tp[[i]]), tcrossprod(Bt[[i]], Cp))
                    })
@@ -217,11 +219,10 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     }
     
     # Group parameters in data.frame
-    params <- data.frame("A" = A,
-                         "nox" = nox, 
+    params <- data.frame("N_pred" = A,
+                         "N_ortho" = nox, 
                          "sstot_K" = sstot_K,
                          "sstot_Y" = sstot_Y,
-                         "R2Y" = R2Y,
                          "preProcK" = preProcK, 
                          "preProcY" = preProcY, 
                          "class" = "kopls")
@@ -242,11 +243,11 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                  "K" = K, 
                  
                  #extra stuff
-                 "EEprime" =EEprime, 
-                 "R2X" = R2X, 
-                 "R2XO" = R2XO, 
-                 "R2XC" = R2XC, 
-                 "R2Yhat" = R2Yhat, # R2Yhat 22 Jan 2010 / MR
+                 "EEprime" = EEprime, 
+                 "R2X"     = R2X, 
+                 "R2XO"    = R2XO, 
+                 #"R2Y"     = R2Y,
+                 "R2Yhat"  = R2Yhat, # R2Yhat 22 Jan 2010 / MR
                  
                  #pre-processing
                  "preProc" = list("paramsY" = ifelse(test = (preProcY != "no"),

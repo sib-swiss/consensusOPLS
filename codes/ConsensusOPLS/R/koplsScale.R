@@ -96,7 +96,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' 
 koplsRescale <- function(scaleS, varargin = NULL){
     # Variable format control
-    if (!is.list(scaleS)) stop("scaleS must be a list (result of 'koplsScale()').")
+    if (!is.list(scaleS)) stop("scaleS must be a list (result of `koplsScale()`).")
     if (!is.null(varargin)) {
         if (!is.matrix(varargin)) stop("varargin must be a matrix.")
         X <- varargin
@@ -114,12 +114,11 @@ koplsRescale <- function(scaleS, varargin = NULL){
     if (scaleS$scaleType == "pa") 
         X <- X * sqrt(scaleS$stdV)
     
-    # Return the list of parameters
-    return(list("centerType" = "no",
-                "scaleType" = "no",
-                "meanV" = scaleS$meanV, 
-                "stdV" = scaleS$stdV,
-                "X" = X))
+    return (list("centerType" = "no",
+                 "scaleType" = "no",
+                 "meanV" = scaleS$meanV, 
+                 "stdV" = scaleS$stdV,
+                 "X" = X))
 }
 
 

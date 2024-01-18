@@ -59,15 +59,16 @@ RVConsensusOPLS <- function(data,
     # Check collection dimension
     ntable <- length(data)
     nsample <- nrow(data[[1]])
+    nvar <- sapply(data, ncol)
     
     # Initialize parameters
-    W_mat <- matrix(data = 0, nrow = nsample, ncol = nsample)
+    #W_mat <- matrix(data = 0, nrow = nsample, ncol = nsample)
     preProcK <- "mc"
     preProcY <- "mc"
     
     if (modelType == "reg") {
         Y <- as.matrix(Y)
-        if (ncol(Y) > 1) stop("modelType is not appropriate to Y.")
+        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is not appropriate to Y.")
         if (all(Y %in% c(0,1))) stop("modelType is preferably `da`.") #TODO: is it possible to do logistic regression?
         koplsScale <- koplsScale(X = Y, centerType = preProcY, scaleType = "no")
         Yc <- koplsScale$X
@@ -95,6 +96,7 @@ RVConsensusOPLS <- function(data,
         
         return (list(RV=RV, AMat=AMat))
     })
+    names(RA) <- names(data)
     # RV coefficient 
     RV <- mclapply(RA, mc.cores = mc.cores, FUN = function(x) x$RV)
     # Normalized kernel
@@ -103,6 +105,10 @@ RVConsensusOPLS <- function(data,
     W_mat <- Reduce("+", mclapply(1:ntable, mc.cores = mc.cores, FUN = function(i) {
         RA[[i]]$RV * RA[[i]]$AMat
     }))
+    
+    # Control maxOrtholvs
+    maxOrtholvs <- min(c(maxOrtholvs, nsample, nvar))
+    
     # Performs a Kernel-OPLS cross-validation for W_mat
     modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
                                nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
@@ -113,19 +119,19 @@ RVConsensusOPLS <- function(data,
     
     # Search for the optimal model based on DQ2
     if (modelType == 'da') {
-        mc <- (maxOrtholvs+1)*Ylarg
-        mcj <- 1 #min(sqrt(mc), Ylarg)
-        mci <- 1 #max(floor(mc.cores/mcj), 1)
+        mc <- min((maxOrtholvs+1)*Ylarg, mc.cores)
+        mcj <- min(sqrt(mc), Ylarg)
+        mci <- max(floor(mc.cores/mcj), 1)
         
         results <- mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 # For each Y column, perform the DQ2
                 result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
                                              ncol = 1), 
-                              Y = Y[modelCV$cv$cvTestIndex, j, drop=F])
-                              #Y = Y[, j, drop=F]) 
-                #TODO: 1. length(Ypred) != length(Y); 2. 0-1 in Y is dummy code, not to confuse with two classes
-                #ERROR from Matlab
+                              Y = Y[unlist(modelCV$cv$cvTestIndex), j, drop=F])
+                #Y = Y[, j, drop=F]) 
+                #TODO: 1. length(Ypred) != length(Y)
+                #ERROR probably from Matlab
                 return (result)
             })
         })
@@ -141,7 +147,7 @@ RVConsensusOPLS <- function(data,
         }))
         
         dq2 <- rowMeans(dqq)
-        index <- A  
+        index <- A + 1
         
         # Finds the optimal number of orthogonal components as a function of DQ2
         while (index < (maxOrtholvs+A) && 
@@ -156,7 +162,7 @@ RVConsensusOPLS <- function(data,
         modelCV$cv$OrthoLVsOptimalNum <- index - A
         
     } else { # if modelType == "reg"
-        index <- A 
+        index <- A + 1
         
         # Finds the optimal number of orthogonal components as a function of Q2Yhat
         while (index < (maxOrtholvs+A) && 
@@ -168,33 +174,35 @@ RVConsensusOPLS <- function(data,
     }
     
     # Simplifies the name to be used afterwards
-    if (modelCV$cv$OrthoLVsOptimalNum == 0) {
-        OrthoLVsNum <- 1 # TODO: check with Julien
-    } else {
-        OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
-    }
+    # if (modelCV$cv$OrthoLVsOptimalNum == 0) {
+    #     OrthoLVsNum <- 1 # TODO: check with Julien
+    # } else {
+    OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
+    #}
     
     # Recompute the optimal model using OrthoLVsNum parameters
     modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
                                 preProcK = preProcK, preProcY = preProcY)
-
-    # Adjust Yhat to the selected model size
-    modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), drop=F]
     
+    # Adjust Yhat to the selected model size
+    modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), drop=F] ### TODO: check ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), should be Ylarg*1 + 1:Ylarg
+
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, 
-                                               FUN = function(j) {
-                                                 diag(crossprod(x = modelCV$Model$T[, 1:A], 
-                                                                y = crossprod(x = t(AMat[[j]]), 
-                                                                              y = modelCV$Model$T[, 1:A])))
-                                               })),
+                                     FUN = function(j) {
+                                         diag(crossprod(x = modelCV$Model$T[, 1:A], 
+                                                        y = crossprod(x = t(AMat[[j]]), 
+                                                                      y = modelCV$Model$T[, 1:A])))
+                                     })),
                     do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(j) {
-                              diag(crossprod(x = modelCV$Model$To[, 1:OrthoLVsNum], 
-                                             y = crossprod(x = t(AMat[[j]]), 
-                                                           y = modelCV$Model$To[, 1:OrthoLVsNum])))
+                                diag(crossprod(x = modelCV$Model$To[, 1:OrthoLVsNum], 
+                                               y = crossprod(x = t(AMat[[j]]), 
+                                                             y = modelCV$Model$To[, 1:OrthoLVsNum])))
                             })))
+    rownames(lambda) <- names(data)
+    colnames(lambda) <- c(paste0("p_", 1:A), paste0("o_", 1:OrthoLVsNum))
     
     # Stores raw lambda coefficient values in the model object
     modelCV$Model$lambda_raw <- lambda 
@@ -208,20 +216,28 @@ RVConsensusOPLS <- function(data,
     # Compute the loadings for the selected model size
     loadings.list <- list( 
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
-            tcrossprod(crossprod(x = data[[i]], 
-                                 y = modelCV$Model$T[, 1:A, drop=F]), 
-                       diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
+            lpi <- tcrossprod(crossprod(x = data[[i]], 
+                                        y = modelCV$Model$T[, 1:A, drop=F]), 
+                              diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
+            colnames(lpi) <- paste0("p", 1:A)
+            return (lpi)
         }),
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
-            tcrossprod(crossprod(x = data[[i]],
-                                 y = modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
-                       diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
+            loi <- tcrossprod(crossprod(x = data[[i]],
+                                        y = modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
+                              diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
+            colnames(loi) <- paste0("o", 1:OrthoLVsNum)
+            return (loi)
         }))
     loadings <- mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) { 
-        cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
+        li <- cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
+        colnames(li) <- c(paste0("p_", 1:A), paste0("o_", 1:OrthoLVsNum))
+        return (li)
     })
+    names(loadings) <- names(data)
+    
     # Add RV coefficients in the model objects
-    modelCV$RV <- RV  
+    modelCV$RV <- unlist(RV)
     # Add normalized kernels in the model objects
     modelCV$AMat <- AMat  
     # Add the loadings in the model objects

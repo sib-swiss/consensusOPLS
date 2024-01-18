@@ -56,22 +56,18 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     if (!is.matrix(KteTr) || !is.matrix(Ktest) || !is.matrix(Ktrain)) {
         stop("One or more kernel inputs are not matrices.")
     }
-    if(!is.list(model)){
-        stop("model is not a list containing model parameters.")
-    } else{if(model$params$class != "kopls"){stop("Model must be of type `kopls`.")}}
-    if(!is.null(nox)){
-        if(!is.numeric(nox)){stop("nox is not numeric.")}
-        if(nox > model$params$nox){
+    if (!is.list(model)) stop("model is not a list containing model parameters.")
+    else if(model$params$class != "kopls") stop("Model must be of type `kopls`.")
+    if (!is.null(nox)) {
+        if (!is.numeric(nox)) stop("nox is not numeric.")
+        if (nox > model$params$N_ortho) {
             warning("Number of Y-orthogonal components to use is higher than in model.
-              Setting number of Yorth to max in model.")
-            nox <- model$params$nox
+              Setting number of Y-orthogonal to max in model.")
+            nox <- model$params$N_ortho
         }
-    } else{
-        stop('Number of Y-orthogonal components to use is missing.')
-    }
-    if(is.null(rescaleY)){
-        rescaleY <- 0
-    } else{if(!is.logical(rescaleY)){stop("rescaleY is not logical.")}}
+    } else stop('Number of Y-orthogonal components to use is missing.')
+    if (is.null(rescaleY)) rescaleY <- 0
+    else if (!is.logical(rescaleY)) stop("rescaleY is not logical.")
     
     # Step1: mean centering of K matrices
     # the order of the code below is important
@@ -79,16 +75,16 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     if (model$params$preProcK == "mc") {
         KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTe <- matrix(data = list(NULL), nrow = model$params$nox+1, 
-                    ncol = model$params$nox+1)
+    KteTe <- matrix(data = list(NULL), nrow = model$params$N_ortho+1, 
+                    ncol = model$params$N_ortho+1)
     KteTe[1,1][[1]] <- KteTeMc
     
     KteTrMc <- KteTr
     if (model$params$preProcK == "mc") {
         KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
     }
-    KteTrTmp <- matrix(data = list(NULL), nrow = model$params$nox+1, 
-                       ncol = model$params$nox+1)
+    KteTrTmp <- matrix(data = list(NULL), nrow = model$params$N_ortho+1, 
+                       ncol = model$params$N_ortho+1)
     KteTrTmp[1,1][[1]] <- KteTrMc
     KteTr <- KteTrTmp
     
@@ -97,8 +93,8 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     
     # Step2: KOPLS prediction
     ## Step2.1: for each Y-orth component
-    if(nox > 0){
-        for(i in 1:nox){
+    if (nox > 0) {
+        for (i in 1:nox) {
             ## Step2.2: Predicted predictive score matrix
             Tp[[i]] <- crossprod(x = t(KteTr[i,1][[1]]),
                                  y = tcrossprod(x = model$Up, 
@@ -148,9 +144,7 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
                                         y = crossprod(x = t(model$K[i,i][[1]]), 
                                                       y = tcrossprod(model$to[[i]]))))
         } # Step2.7: end loop
-    }
-    
-    if (nox == 0) {
+    } else if (nox == 0) {
         i <- 0
     }
     
@@ -159,18 +153,18 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     Yhat <- crossprod(x = t(Tp[[i+1]]),
                       y = tcrossprod(model$Bt[[i+1]], model$Cp))
     
-    if(!is.null(rescaleY)){
-        if(model$params$preProcY == "no"){
-            if(length(model$preProc$paramsY) == 1 & model$preProc$paramsY == "no"){
+    if (!is.null(rescaleY)) {
+        if (model$params$preProcY == "no") {
+            if (length(model$preProc$paramsY) == 1 && model$preProc$paramsY == "no") {
                 scaleParams <- list()
                 scaleParams$centerType <- "no"
                 scaleParams$scaleType <- "no"
-            } else{
+            } else {
                 scaleParams <- model$preProc$paramsY
             }
             YhatRescaled <- koplsRescale(scaleS = scaleParams, varargin = Yhat)
             Yhat <- YhatRescaled$X
-        } else{
+        } else {
             warning("Attempted re-scale of Yhat although no pre-processing 
               parameters have been set.")
         }
@@ -181,10 +175,10 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     #--------------------------------------------------
     
     # Return the list of prediction parameters
-    return(list("Tp" = Tp,
-                "to" = to,
-                "T" = Tp[[nox+1]],
-                "KteTr" = KteTr,
-                "EEprime" = EEprime,
-                "Yhat" = Yhat))
+    return (list("Tp" = Tp,
+                 "to" = to,
+                 "T" = Tp[[nox+1]],
+                 "KteTr" = KteTr,
+                 "EEprime" = EEprime,
+                 "Yhat" = Yhat))
 }

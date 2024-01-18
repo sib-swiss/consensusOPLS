@@ -2,7 +2,7 @@
 % Please edit documentation in R/koplsClassify.R
 \name{koplsBasicClassify}
 \alias{koplsBasicClassify}
-\title{koplsBasicClassify}
+\title{koplsBasicClassify (deprecated)}
 \usage{
 koplsBasicClassify(X, k)
 }
@@ -18,15 +18,5 @@ Predicted classification.
 \description{
 Classification function that assesses class belonging of a 
 predicted response in \code{data} based on a fixed threshold \code{k}.
-}
-\examples{
-data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),
-                             x2 = c(7, 1, 1, 5),
-                             x3 = c(9, 5, 4, 9),
-                             x4 = c(3, 4, 1, 2)))
-k <- 4
-test <- ConsensusOPLS:::koplsBasicClassify(X = data, k = k)
-test
-
 }
 \keyword{internal}
