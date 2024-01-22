@@ -107,11 +107,13 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # KOPLS model estimation
     ## step 1: SVD of Y'KY
     A <- min(A, max(ncol(Y)-1, 1)) #TODO: sth simpler than rankMatrix(Y))
+    # TOREMOVE: nclass * nsample * nsample * nsample * nsample * nclass = nclass * nclass
     CSV <- svd(x = crossprod(x = Y, 
                              y = crossprod(x = t(K[1,1][[1]]), 
                                            y = Y)),
                nu = A, nv = A)
     # Extract left singular vectors
+    # TOREMOVE: nclass * ncomp
     Cp <- CSV$u
     rownames(Cp) <- colnames(Y)
     # Extract the singular values
@@ -119,6 +121,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     Sps <- diag(CSV$d[1:A]^(-1/2), nrow=A)
     
     ## step 2: Define Up
+    # TOREMOVE: nsample * nclass * nclass * ncomp = nsample * ncomp
     Up <- crossprod(x = t(Y), y = Cp)
     
     # Initiate Yorth related variables
@@ -129,18 +132,22 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     ## step3: Loop over nox iterations
     while (i <= nox) {
         ## step 4: Compute Tp
+        # TOREMOVE: nsample * nsample * nsample * ncomp * ncomp * ncomp = nsample * ncomp
         Tp[[i]] <- crossprod(x = K[1,i][[1]], 
                              y = tcrossprod(x = Up, y = t(Sps)))
+        # TOREMOVE: ncomp * ncomp * ncomp * nsample * nsample * ncomp = ncomp * ncomp
         Bt[[i]] <- crossprod(x = t(solve(crossprod(Tp[[i]]))), 
                              y = crossprod(x = Tp[[i]], y = Up))
         ## step 5: SVD of T'KT
-        temp <- svd(x = 
-                        crossprod(x = Tp[[i]], 
+        # TOREMOVE: ncomp * nsample * nsample * nsample * nsample * ncomp = ncomp * ncomp
+        temp <- svd(x = crossprod(x = Tp[[i]], 
                                   y = tcrossprod(x = K[i,i][[1]] -
                                                      tcrossprod(Tp[[i]]), 
                                                  y = t(Tp[[i]]))),
-                    nu = 1, nv = 1) 
+                    nu = 1, nv = 1)
+        # TOREMOVE: ncomp * 1
         co[[i]] <- temp$u
+        # TOREMOVE: 1
         so[[i]] <- temp$d[1]
 
         ## TODO: so[[i]] is scalar then? problem in koplsPredict line 116

@@ -25,14 +25,14 @@
 #' @examples
 #' data(demo_3_Omics)
 #' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=1)
+#'                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=3)
 #' @importFrom parallel mclapply
 #' @export
 #' 
 RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
-                            maxOrtholvs = 10, 
+                            maxOrtholvs = 3, 
                             nrcv = 10,
                             cvType = "nfold",
                             cvFrac = 2/3,
@@ -129,9 +129,6 @@ RVConsensusOPLS <- function(data,
                 result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
                                              ncol = 1), 
                               Y = Y[unlist(modelCV$cv$cvTestIndex), j, drop=F])
-                #Y = Y[, j, drop=F]) 
-                #TODO: 1. length(Ypred) != length(Y)
-                #ERROR probably from Matlab
                 return (result)
             })
         })
@@ -147,7 +144,7 @@ RVConsensusOPLS <- function(data,
         }))
         
         dq2 <- rowMeans(dqq)
-        index <- A + 1
+        index <- A + 1 #TODO
         
         # Finds the optimal number of orthogonal components as a function of DQ2
         while (index < (maxOrtholvs+A) && 
@@ -174,19 +171,15 @@ RVConsensusOPLS <- function(data,
     }
     
     # Simplifies the name to be used afterwards
-    # if (modelCV$cv$OrthoLVsOptimalNum == 0) {
-    #     OrthoLVsNum <- 1 # TODO: check with Julien
-    # } else {
     OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
-    #}
     
     # Recompute the optimal model using OrthoLVsNum parameters
     modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
                                 preProcK = preProcK, preProcY = preProcY)
     
     # Adjust Yhat to the selected model size
-    modelCV$cv$Yhat <- modelCV$cv$AllYhat[, ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), drop=F] ### TODO: check ((Ylarg*A)+(OrthoLVsNum*A)) + 0:(Ylarg-1), should be Ylarg*1 + 1:Ylarg
-
+    modelCV$cv$Yhat <- modelCV$cv$AllYhat[, Ylarg*OrthoLVsNum + 1:Ylarg, drop=F]
+    
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, 

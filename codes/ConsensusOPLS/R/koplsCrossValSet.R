@@ -52,7 +52,6 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     if (!is.character(type)) stop("type is not a character.")
     else if (!(type %in% c("nfold", "mccv", "mccvb")))
         stop("type must be `nfold`, `mccv` or `mccvb`.")
-    
     if (!is.na(nfold)) {
         if (!is.numeric(nfold)) stop("nfold is not a number.")
     } else if (type != "nfold")
@@ -98,15 +97,7 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     
     # Define Monte-Carlos Cross Validation
     if (type == "mccv") {
-        # Create a random indices
-        #rand_ind <- sample(x = seq_len(nrow(K)))
-        
-        # Calculates the sample size of the training data
-        #trainSize <- floor(x = nrow(K)*cvFrac)
-        
-        # Divides the sample into train and test
-        #trainInd <- rand_ind[1:trainSize]
-        #predInd <- rand_ind[(trainSize+1):nrow(K)]
+        # Divides the sample randomly into train and test
         if (nfoldRound > 0) {
             trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
             predInd <- setdiff(1:nrow(Y), trainInd)
@@ -118,8 +109,8 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     # Define N-fold Cross Validation
     if (type == "nfold") {
         if (nfoldRound > 0) {
-            trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
-            predInd <- setdiff(1:nrow(Y), trainInd)
+            predInd <- seq.int(from=nfoldRound, to=nrow(Y), by=nfold)
+            trainInd <- setdiff(1:nrow(Y), predInd)
         } else {
             trainInd <- predInd <- 1:nrow(Y)
         }

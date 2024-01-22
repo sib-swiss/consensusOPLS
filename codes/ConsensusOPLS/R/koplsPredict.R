@@ -150,6 +150,7 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     
     Tp[[i+1]] <- crossprod(x = t(KteTr[i+1,1][[1]]),
                            y = tcrossprod(model$Up, t(model$Sps)))
+    # TOREMOVE: nsample * ncomp * ncomp * ncomp * ncomp * nclass = nsample * nclass
     Yhat <- crossprod(x = t(Tp[[i+1]]),
                       y = tcrossprod(model$Bt[[i+1]], model$Cp))
     
