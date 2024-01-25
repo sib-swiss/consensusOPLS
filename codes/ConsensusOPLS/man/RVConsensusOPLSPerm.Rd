@@ -27,6 +27,8 @@ RVConsensusOPLSPerm(
 
 \item{maxOrtholvs}{numeric. Maximum number of orthogonal LVs to compute.}
 
+\item{nrcv}{Number of cross-validation rounds (integer).}
+
 \item{modelType}{type of OPLS regression model. Can be defined as \code{reg} 
 for regression or \code{da} for discriminant analysis. Default value is
 \code{da}.}

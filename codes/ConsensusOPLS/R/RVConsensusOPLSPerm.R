@@ -7,6 +7,7 @@
 #' @param nbruns numeric. Number of random permutations. 
 #' @param PredLVs numeric. Number of predictive components.
 #' @param maxOrtholvs numeric. Maximum number of orthogonal LVs to compute.
+#' @param nrcv Number of cross-validation rounds (integer).
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default value is
 #' \code{da}.
@@ -63,8 +64,11 @@ RVConsensusOPLSPerm <- function(data,
                                    cvType = cvType, modelType = modelType, 
                                    mc.cores = 1,
                                    verbose = FALSE)
+        WIP <- MBVIP(data = data, Y = Ys, model=modelCV)
         return (list(Ys=Ys,
-                     modelCV=modelCV))
+                     modelCV=modelCV,
+                     WIP=WIP)
+                )
     })
     PermRes$lvnum <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + PredLVs
@@ -155,7 +159,8 @@ RVConsensusOPLSPerm <- function(data,
         ggplot2::ylab("Q2 values") +
         theme_graphs
     
-    return (list("PermRes" = PermRes,
+    return (list("perms" = perms,
+                 "PermRes" = PermRes,
                  "Plots" = list("R2val" = p1, 
                                 "Q2val" = p2,
                                 "R2_and_Q2" = p3,
