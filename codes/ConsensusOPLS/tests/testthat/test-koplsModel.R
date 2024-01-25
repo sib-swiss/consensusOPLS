@@ -9,6 +9,14 @@ test_that("koplsModel", {
                                    Y=c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01)),
                                    modelType="reg",
                                    nrcv=3)
+    rvcopls.perm <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+                                   Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
+                                   PredLVs=1,
+                                   maxOrtholvs=3,
+                                   nbruns=10,
+                                   modelType="reg",
+                                   mc.cores=1,
+                                   nrcv=3)
     expect_equal(rvcopls$Model$Cp[,1],
                  c(F=-0.707106781186547,
                    M=0.707106781186548))

@@ -56,7 +56,7 @@ RVConsensusOPLSPerm <- function(data,
         if (i==1) 
             Ys <- Y
         else 
-            Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), ]
+            Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), ,drop=F]
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = PredLVs, 
