@@ -10,6 +10,7 @@ RVConsensusOPLSPerm(
   nbruns,
   PredLVs,
   maxOrtholvs,
+  nrcv = 5,
   modelType = "da",
   cvType = "nfold",
   mc.cores = 1

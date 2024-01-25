@@ -293,7 +293,6 @@ ConsensusOPLSCV <- function(K, Y,
             predClass <- koplsMaxClassify(X = do.call(rbind, YhatDaSave[[i]][-1]))
 
             # Calculate sensitivity and specificity
-            #TODO: nbrcv CV rounds are combined here, so testing samples are repeatedly drawn
             daMetrics <- koplsSensSpec(trueClass = classVect[unlist(cvTestIndex[-1])],
                                        predClass = predClass,
                                        labelClass = colnames(Y)) 
@@ -324,7 +323,7 @@ ConsensusOPLSCV <- function(K, Y,
         for (i in 1:(oax + 1)) {
             # Predicted class on all samples
             predClass <- koplsMaxClassify(X = YhatDaSave[[i]][[1]])
-            print(head(YhatDaSave[[i]][[1]]))
+            print(YhatDaSave[[i]][[1]])
             # Calculate sensitivity and specificity
             daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex[[1]]],
                                        predClass = predClass,

@@ -32,6 +32,7 @@ RVConsensusOPLSPerm <- function(data,
                                 nbruns, 
                                 PredLVs, 
                                 maxOrtholvs, 
+                                nrcv = 5,
                                 modelType = 'da', 
                                 cvType = 'nfold', 
                                 mc.cores = 1) {
@@ -43,7 +44,6 @@ RVConsensusOPLSPerm <- function(data,
     if (!is.numeric(maxOrtholvs)) stop("maxOrtholvs is not numeric.")
     
     # Init parameters
-    NbObs <- nrow(data[[1]])
     PermRes <- list()
     
     # Permutations
@@ -59,7 +59,7 @@ RVConsensusOPLSPerm <- function(data,
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = PredLVs, 
-                                   maxOrtholvs = maxOrtholvs, nrcv = NbObs,
+                                   maxOrtholvs = maxOrtholvs, nrcv = nrcv,
                                    cvType = cvType, modelType = modelType, 
                                    mc.cores = 1,
                                    verbose = FALSE)

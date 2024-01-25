@@ -7,7 +7,6 @@ test_that("koplsModel", {
                                nrcv=5)
     rvcopls.reg <- RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
                                    Y=c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01)),
-                                   cvFrac=3/4,
                                    modelType="reg",
                                    nrcv=3)
     expect_equal(rvcopls$Model$Cp[,1],
