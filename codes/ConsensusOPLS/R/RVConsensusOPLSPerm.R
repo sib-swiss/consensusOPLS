@@ -64,10 +64,10 @@ RVConsensusOPLSPerm <- function(data,
                                    cvType = cvType, modelType = modelType, 
                                    mc.cores = 1,
                                    verbose = FALSE)
-        WIP <- MBVIP(data = data, Y = Ys, model=modelCV)
+        VIP <- MBVIP(data = data, Y = Ys, model=modelCV)
         return (list(Ys=Ys,
                      modelCV=modelCV,
-                     WIP=WIP)
+                     VIP=VIP)
                 )
     })
     PermRes$lvnum <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
