@@ -40,7 +40,7 @@ RVConsensusOPLSPerm <- function(data,
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
-    if (!is.numeric(nbruns)) stop("A is not numeric.")
+    if (!is.numeric(nbruns)) stop("nbruns is not numeric.")
     if (!is.numeric(PredLVs)) stop("PredLVs is not numeric.")
     if (!is.numeric(maxOrtholvs)) stop("maxOrtholvs is not numeric.")
     
