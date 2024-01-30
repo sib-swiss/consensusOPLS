@@ -4,36 +4,36 @@
 #' DQ2 computation for discriminant analysis.
 #' 
 #' @param data the collection list containing each block of data.
-#' @param Y The response matrix (un-centered/scaled).
+#' @param Y The response.
 #' @param A The number of Y-predictive components (integer). 
 #' @param maxOrtholvs The maximal number of Y-orthogonal components (integer).
 #' @param nrcv Number of cross-validation rounds (integer).
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
 #' Carlo class-balanced CV.
-#' @param cvFrac numeric. Fraction (in percent) of observations used in the 
-#' training set. By default is 2/3. Fraction of data to be used for cross-validation
+#' @param cvFrac numeric. Fraction of observations used in the training set. 
+#' Default, 2/3. Fraction of data to be used for \code{mccv} and \code{mccvb}
+#' cross-validation
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
-#' for regression or \code{da} for discriminant analysis. Default value is
-#' \code{da}.
+#' for regression or \code{da} for discriminant analysis. Default \code{da}.
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
-#' @param verbose logical which indicates whether the user wants to see the 
+#' @param verbose Logical which indicates whether the user wants to see the 
 #' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
 #' @return A consensus OPLS model
 #'
 #' @examples
 #' data(demo_3_Omics)
-#' RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=3)
+#' ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#'                                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=3)
 #' @importFrom parallel mclapply
-#' @export
+#' @keywords internal
 #' 
 RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
                             maxOrtholvs = 3, 
-                            nrcv = 10,
+                            nrcv = 3,
                             cvType = "nfold",
                             cvFrac = 2/3,
                             modelType = "da",

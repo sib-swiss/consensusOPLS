@@ -2,7 +2,6 @@
 #' @description
 #' A short description...
 #' 
-#' # ------------------------------------------------------------------------ #
 #' This package uses functions from the K-OPLS package, developed by Max Bylesjo, 
 #' University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
 #' 
@@ -10,7 +9,7 @@
 #' 
 #' This code has been extended and adapted under the terms of the GNU General 
 #' Public License version 2 as published by the Free Software Foundation.
-#' # ------------------------------------------------------------------------ #
+#'
 #' @name ConsensusOPLS
 #' @aliases ConsensusOPLS-package ConsensusOPLS
 #' @docType package

@@ -9,7 +9,6 @@
 \description{
 A short description...
 
-# ------------------------------------------------------------------------ #
 This package uses functions from the K-OPLS package, developed by Max Bylesjo, 
 University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
 
@@ -17,7 +16,6 @@ Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen
 
 This code has been extended and adapted under the terms of the GNU General 
 Public License version 2 as published by the Free Software Foundation.
-# ------------------------------------------------------------------------ #
 }
 \author{
 \strong{Maintainer}: Celine Bougel \email{celine.bougel@laposte.net} (\href{https://orcid.org/0000-0002-1598-7827}{ORCID})

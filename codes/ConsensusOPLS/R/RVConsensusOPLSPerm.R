@@ -8,11 +8,13 @@
 #' @param PredLVs numeric. Number of predictive components.
 #' @param maxOrtholvs numeric. Maximum number of orthogonal LVs to compute.
 #' @param nrcv Number of cross-validation rounds (integer).
+#' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default value is
 #' \code{da}.
-#' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
+#' @param verbose Logical which indicates whether the user wants to see the 
+#' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
 #' @return 
 #' A list with the two results plots: \code{plot_R2val} for RV vs R2val, 
@@ -28,21 +30,22 @@
 #' @import ggplot2
 #' @export
 #' 
-RVConsensusOPLSPerm <- function(data, 
-                                Y, 
-                                nbruns, 
-                                PredLVs, 
-                                maxOrtholvs, 
+RVConsensusOPLSPerm <- function(data,
+                                Y,
+                                nbruns,
+                                PredLVs,
+                                maxOrtholvs,
                                 nrcv = 5,
-                                modelType = 'da', 
-                                cvType = 'nfold', 
-                                mc.cores = 1) {
+                                cvType = 'nfold',
+                                modelType = 'da',
+                                mc.cores = 1,
+                                verbose = FALSE) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
-    if (!is.matrix(Y)) stop("Y is not a matrix.")
-    if (!is.numeric(nbruns)) stop("nbruns is not numeric.")
-    if (!is.numeric(PredLVs)) stop("PredLVs is not numeric.")
-    if (!is.numeric(maxOrtholvs)) stop("maxOrtholvs is not numeric.")
+    if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
+    if (nbruns != as.integer(nbruns)) stop("nbruns is not an integer.")
+    if (PredLVs != as.integer(PredLVs)) stop("PredLVs is not an integer")
+    if (maxOrtholvs != as.integer(maxOrtholvs)) stop("maxOrtholvs is not an integer")
     
     # Init parameters
     PermRes <- list()
@@ -56,7 +59,7 @@ RVConsensusOPLSPerm <- function(data,
         if (i==1) 
             Ys <- Y
         else 
-            Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), ,drop=F]
+            Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), , drop=F]
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = PredLVs, 
@@ -65,30 +68,31 @@ RVConsensusOPLSPerm <- function(data,
                                    mc.cores = 1,
                                    verbose = FALSE)
         VIP <- MBVIP(data = data, Y = Ys, model=modelCV)
+        
         return (list(Ys=Ys,
                      modelCV=modelCV,
                      VIP=VIP)
                 )
     })
-    PermRes$lvnum <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$lvnum  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + PredLVs
     }))
-    PermRes$R2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$R2val  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
     }))
     PermRes$DQ2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[PermRes$lvnum[i]]
     }))
-    PermRes$Q2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$Q2val  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$Q2Yhat[PermRes$lvnum[i]]
     }))
     PermRes$PredAc <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$da$tot_sens[2]
     }))
-    PermRes$Y <- mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$Y      <- mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         perms[[i]]$Ys
     })
-    PermRes$RV <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$RV     <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         RVmodified(X = Y, Y = perms[[i]]$Ys)
     }))
     
@@ -111,16 +115,16 @@ RVConsensusOPLSPerm <- function(data,
     # Scatterplots
     p1 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "RV"), ],
                           aes(x = RV, y = Values)) +
-        ggplot2::geom_point(size = 2.5)+
-        ggplot2::geom_smooth(method = 'lm')+
+        ggplot2::geom_point(size = 2.5) +
+        ggplot2::geom_smooth(method = 'lm') +
         ggplot2::xlab("RV") +
         ggplot2::ylab("R2 values") +
         theme_graphs
     
     p2 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "Q2"), ],
                           aes(x = RV, y = Values)) +
-        ggplot2::geom_point(size = 2.5)+
-        ggplot2::geom_smooth(method = 'lm')+
+        ggplot2::geom_point(size = 2.5) +
+        ggplot2::geom_smooth(method = 'lm') +
         ggplot2::xlab("RV") +
         ggplot2::ylab("Q2 values") +
         theme_graphs
@@ -128,7 +132,7 @@ RVConsensusOPLSPerm <- function(data,
     # Scatterplots all in one
     p3 <- ggplot2::ggplot(data = PermRes_df,
                           aes(x = RV, y = Values, col = Type)) +
-        ggplot2::geom_point(size = 2.5)+
+        ggplot2::geom_point(size = 2.5) +
         ggplot2::xlab("RV") +
         ggplot2::ylab("R2 and Q2 values") +
         theme_graphs
@@ -136,16 +140,16 @@ RVConsensusOPLSPerm <- function(data,
     # Histograms
     p4 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "RV"), ],
                           aes(x = Values)) +
-        ggplot2::geom_histogram(color="black", fill="white")+
-        ggplot2::geom_density(alpha=.2)+
+        ggplot2::geom_histogram(color="black", fill="white") +
+        ggplot2::geom_density(alpha=.2) +
         ggplot2::xlab("Frequency") +
         ggplot2::ylab("R2 values") +
         theme_graphs
     
     p5 <- ggplot2::ggplot(data = PermRes_df[which(PermRes_df$Type == "Q2"), ],
                           aes(x = Values)) +
-        ggplot2::geom_histogram(color="black", fill="white")+
-        ggplot2::geom_density(alpha=.2)+
+        ggplot2::geom_histogram(color="black", fill="white") +
+        ggplot2::geom_density(alpha=.2) +
         ggplot2::xlab("Frequency") +
         ggplot2::ylab("Q2 values") +
         theme_graphs
@@ -153,8 +157,8 @@ RVConsensusOPLSPerm <- function(data,
     # Histograms all in one
     p6 <- ggplot2::ggplot(data = PermRes_df,
                           aes(x = Values, col = Type)) +
-        ggplot2::geom_histogram(linewidth = 1)+
-        ggplot2::geom_density(alpha=.2)+
+        ggplot2::geom_histogram(linewidth = 1) +
+        ggplot2::geom_density(alpha=.2) +
         ggplot2::xlab("RV") +
         ggplot2::ylab("Q2 values") +
         theme_graphs
