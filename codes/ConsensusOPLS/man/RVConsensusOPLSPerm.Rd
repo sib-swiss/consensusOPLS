@@ -50,7 +50,8 @@ Y random permutations for model validity estimation, with leave-on-out CV.
 }
 \examples{
 data(demo_3_Omics)
-RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                    Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, 
-                    modelType = 'da')
+res <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+                           Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, 
+                           modelType='da')
+str(res)
 }

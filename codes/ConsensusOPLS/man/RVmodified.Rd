@@ -22,8 +22,8 @@ calculation is modified for the present method, as it is adjusted over the
 range [0, 1].
 }
 \examples{
-X <- matrix(stats::runif(n = 36), nrow=2)
-Y <- matrix(stats::runif(n = 54), nrow=2)
+X <- matrix(stats::rnorm(n = 3600), nrow=200)
+Y <- matrix(stats::rnorm(n = 5400), nrow=200)
 result <- ConsensusOPLS:::RVmodified(X = X, Y = Y)
 result
 

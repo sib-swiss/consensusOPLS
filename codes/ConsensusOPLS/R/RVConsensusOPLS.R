@@ -62,7 +62,6 @@ RVConsensusOPLS <- function(data,
     nvar <- sapply(data, ncol)
     
     # Initialize parameters
-    #W_mat <- matrix(data = 0, nrow = nsample, ncol = nsample)
     preProcK <- "mc"
     preProcY <- "mc"
     
@@ -126,7 +125,7 @@ RVConsensusOPLS <- function(data,
         results <- mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 # For each Y column, perform the DQ2
-                result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
+                result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j], #TODO: AllYhat is different from that of Matlab from 3rd column.
                                              ncol = 1), 
                               Y = Y[unlist(modelCV$cv$cvTestIndex), j, drop=F])
                 return (result)
@@ -134,7 +133,7 @@ RVConsensusOPLS <- function(data,
         })
         dqq <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
             do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
-                return (results[[i+1]][[j]]$dqq)
+                return (results[[i+1]][[j]]$dqq) #TODO: why two columns are the same
             }))
         }))
         PRESSD <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
@@ -172,7 +171,8 @@ RVConsensusOPLS <- function(data,
     
     # Simplifies the name to be used afterwards
     OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
-    
+    print("debug************************")
+    print(OrthoLVsNum)
     # Recompute the optimal model using OrthoLVsNum parameters
     modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
                                 preProcK = preProcK, preProcY = preProcY)
