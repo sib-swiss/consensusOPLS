@@ -209,7 +209,7 @@ ConsensusOPLSCV <- function(K, Y,
         if (preProcK == "mc") {
             KteTe <- koplsCenterKTeTe(KteTe = KteTe, KteTr = KteTr, KtrTr = KtrTr)
             KteTr <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
-            KtrTr <- koplsCenterKTrTr(K = KtrTr) #TODO: check koplsCenterTrTr as this is not centered version of cvSet$KTrTr
+            KtrTr <- koplsCenterKTrTr(K = KtrTr)
         }
 
         # Estimate K-OPLS model

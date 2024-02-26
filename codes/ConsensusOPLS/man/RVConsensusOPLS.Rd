@@ -8,7 +8,7 @@ RVConsensusOPLS(
   data,
   Y,
   A = 1,
-  maxOrtholvs = 3,
+  maxOcomp = 5,
   nrcv = 3,
   cvType = "nfold",
   cvFrac = 2/3,
@@ -24,7 +24,7 @@ RVConsensusOPLS(
 
 \item{A}{The number of Y-predictive components (integer).}
 
-\item{maxOrtholvs}{The maximal number of Y-orthogonal components (integer).}
+\item{maxOcomp}{Maximum number of orthogonal components to compute.}
 
 \item{nrcv}{Number of cross-validation rounds (integer).}
 

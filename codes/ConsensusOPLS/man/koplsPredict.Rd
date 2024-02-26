@@ -22,7 +22,9 @@ number used during model training will be employed.}
 
 \item{rescaleY}{logical. If \code{TRUE}, predicted values of the
 response (Yhat) is rescaled according to the pre-processing settings of 
-the model. If \code{FALSE}, Yhat is not rescaled (default).}
+the model. If \code{FALSE}, Yhat is not rescaled (default).
+
+#TODO: Why Tp, to, T, ... are produced here?}
 }
 \value{
 A list with the following entries:

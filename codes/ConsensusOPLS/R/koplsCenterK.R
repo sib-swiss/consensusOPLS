@@ -45,7 +45,7 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
                                                       y = KtrTr))
     
     # Return the centered test kernel matrix
-    return(KteTe)
+    return (KteTe)
 }
 
 
@@ -92,7 +92,7 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
                         y = diag(nrow(KtrTr)) - 1/nrow(KtrTr) * tcrossprod(I_nTrain))
     
     # Return the centered kernel matrix.
-    return(KteTr)
+    return (KteTr)
 }
 
 
@@ -114,16 +114,18 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
 #' @keywords internal
 #' 
 koplsCenterKTrTr <- function(K) {
-    # Variable format control
-    if (!is.matrix(K)) stop("K is not a matrix.")
+    return (scale(t(scale(K, scale=F)), scale=F))
     
-    # Define parameters
-    scaling_matrix <- diag(nrow(K)) - 1/nrow(K)
-    
-    # Center the kernel
-    K <- crossprod(x = scaling_matrix, 
-                   y = crossprod(x = t(K), y = scaling_matrix))
-    
-    # Return the centered kernel matrix
-    return (K)
+    # # Variable format control
+    # if (!is.matrix(K)) stop("K is not a matrix.")
+    # 
+    # # Define parameters
+    # scaling_matrix <- diag(nrow(K)) - 1/nrow(K)
+    # 
+    # # Center the kernel
+    # K <- crossprod(x = scaling_matrix, 
+    #                y = crossprod(x = t(K), y = scaling_matrix))
+    # 
+    # # Return the centered kernel matrix
+    # return (K)
 }

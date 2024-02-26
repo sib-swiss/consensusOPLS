@@ -82,66 +82,60 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # Initialize parameters
     I <- diag(ncol(K))
     
-    # Check kernel centering
-    if (preProcK == "mc") {
-        Kmc <- koplsCenterKTrTr(K = K)
-    } else{
-        Kmc <- K
-    }
-    K <- matrix(data = list(), ncol = nox+1, nrow = nox+1)
-    K[1,1] <- list(Kmc)
-    
-    # Save a copy of Y
-    Y_old <- Y
+    # Preprocess K
+    Kpreproc <- if (preProcK == "mc") koplsCenterKTrTr(K = K) else K
+    # TODO: not necessary to store all K matrices
+    Kdeflate <- matrix(data = list(), ncol = nox+1, nrow = nox+1)
+    Kdeflate[1,1] <- list(Kpreproc)
     
     # Preprocess Y
     if (preProcY != "no") {
-        scaleParams <- koplsScale(X = Y_old, 
+        scaleParams <- koplsScale(X = Y, 
                                   centerType = ifelse(preProcY == "mc", 
                                                       yes = "mc", no = "no"), 
                                   scaleType = ifelse(preProcY == "mc", 
                                                      yes = "no", no = preProcY))
-        Y <- scaleParams$X
-    }
+        Ypreproc <- scaleParams$X
+    } else Ypreproc <- Y
     
     # KOPLS model estimation
     ## step 1: SVD of Y'KY
     A <- min(A, max(ncol(Y)-1, 1)) #TODO: sth simpler than rankMatrix(Y))
     # TOREMOVE: nclass * nsample * nsample * nsample * nsample * nclass = nclass * nclass
-    CSV <- svd(x = crossprod(x = Y, 
-                             y = crossprod(x = t(K[1,1][[1]]), 
-                                           y = Y)),
+    # for demo data: Y'KY == rbind(c(sum(K[1:7, 1:7]), sum(K[1:7, 8:14])), c(sum(K[1:7, 8:14]), sum(K[8:14, 8:14]))) 
+    CSV <- svd(x = crossprod(x = Ypreproc, 
+                             y = crossprod(x = t(Kdeflate[1,1][[1]]), 
+                                           y = Ypreproc)),
                nu = A, nv = A)
     # Extract left singular vectors
-    # TOREMOVE: nclass * ncomp
+    # TOREMOVE: nclass * ncomp, ncomp=A
     Cp <- CSV$u
-    rownames(Cp) <- colnames(Y)
+    rownames(Cp) <- colnames(Ypreproc)
     # Extract the singular values
     Sp  <- diag(CSV$d[1:A], nrow=A)
     Sps <- diag(CSV$d[1:A]^(-1/2), nrow=A)
     
     ## step 2: Define Up
     # TOREMOVE: nsample * nclass * nclass * ncomp = nsample * ncomp
-    Up <- crossprod(x = t(Y), y = Cp)
+    Up <- crossprod(x = t(Ypreproc), y = Cp)
     
-    # Initiate Yorth related variables
-    to <- list(); co <- list(); so <- list(); toNorm <- list();
-    Tp <- list(); Bt <- list();
+    # Initiate Y-orthogonal related variables
+    to <- co <- so <- toNorm <- Tp <- Bt <- list()
     i <- 1
     
     ## step3: Loop over nox iterations
     while (i <= nox) {
         ## step 4: Compute Tp
         # TOREMOVE: nsample * nsample * nsample * ncomp * ncomp * ncomp = nsample * ncomp
-        Tp[[i]] <- crossprod(x = K[1,i][[1]], 
-                             y = tcrossprod(x = Up, y = t(Sps)))
+        Tp[[i]] <- crossprod(x = Kdeflate[1,i][[1]], 
+                             y = tcrossprod(x = Up, y = t(Sps))) #TODO: Why Sps here?
         # TOREMOVE: ncomp * ncomp * ncomp * nsample * nsample * ncomp = ncomp * ncomp
         Bt[[i]] <- crossprod(x = t(solve(crossprod(Tp[[i]]))), 
                              y = crossprod(x = Tp[[i]], y = Up))
         ## step 5: SVD of T'KT
         # TOREMOVE: ncomp * nsample * nsample * nsample * nsample * ncomp = ncomp * ncomp
         temp <- svd(x = crossprod(x = Tp[[i]], 
-                                  y = tcrossprod(x = K[i,i][[1]] -
+                                  y = tcrossprod(x = Kdeflate[i,i][[1]] -
                                                      tcrossprod(Tp[[i]]), 
                                                  y = t(Tp[[i]]))),
                     nu = 1, nv = 1)
@@ -149,13 +143,13 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         co[[i]] <- temp$u
         # TOREMOVE: 1
         so[[i]] <- temp$d[1]
-
-        ## TODO: so[[i]] is scalar then? problem in koplsPredict line 116
+        ## TODO: so[[i]] is scalar then?
+        
         ## step 6: to
-        to[[i]] <- tcrossprod(tcrossprod(tcrossprod(K[i,i][[1]] - 
-                                                        tcrossprod(Tp[[i]]), 
-                                                    t(Tp[[i]])),
-                                         t(co[[i]])), t(1/sqrt(so[[i]])))
+        to[[i]] <- tcrossprod(x = tcrossprod(x = tcrossprod(x = Kdeflate[i,i][[1]] - tcrossprod(Tp[[i]]), 
+                                                            y = t(Tp[[i]])),
+                                             y = t(co[[i]])), 
+                              y = t(1/sqrt(so[[i]])))
         
         ## step 7: toNorm
         toNorm[[i]] <- c(sqrt(crossprod(to[[i]])))
@@ -165,20 +159,22 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         
         ## step 9: Update K
         scale_matrix <- I - tcrossprod(to[[i]])
-        K[1, i+1][[1]] <- tcrossprod(x = K[1,i][[1]], y = t(scale_matrix))
+        Kdeflate[1, i+1][[1]] <- tcrossprod(x = Kdeflate[1,i][[1]], y = t(scale_matrix))
         
         ## step 10: Update Kii
-        K[i+1, i+1][[1]] <- tcrossprod(x = scale_matrix, 
+        Kdeflate[i+1, i+1][[1]] <- tcrossprod(x = scale_matrix, 
                                        y = tcrossprod(x = t(scale_matrix),
-                                                      y = t(K[i, i][[1]])))
+                                                      y = t(Kdeflate[i, i][[1]])))
         
         # Update i
         i <- i + 1
     }## step 11: end loop
 
     ## step 12: Tp[[nox+1]]
-    Tp[[nox+1]] <- crossprod(x = K[1, nox+1][[1]], 
+    Tp[[nox+1]] <- crossprod(x = Kdeflate[1, nox+1][[1]], 
                              y = crossprod(x = t(Up), y = Sps))
+    colnames(Tp[[nox+1]]) <- paste0("p_", 1:A)
+    #TODO: Why is Y-predictive score determined by the optimal number of orthogonal components?
     
     ## step 13: Bt[[nox+1]]
     Bt[[nox+1]] <- crossprod(x = t(solve( crossprod(Tp[[nox+1]]) )),
@@ -187,25 +183,25 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # ---------- extra stuff -----------------
     # should work but not fully tested (MB 2007-02-19)
     # TODO check
-    sstot_Y <- sum( sum(Y**2))
-    FY <- Y - tcrossprod(x = Up, y = Cp)
+    sstot_Y <- sum( sum(Ypreproc**2))
+    FY <- Ypreproc - tcrossprod(x = Up, y = Cp)
     R2Y <- 1 - sum(sum(FY^2))/sstot_Y
     # --------- #
     
-    EEprime <- K[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
-    sstot_K <- sum( diag(K[1,1][[1]]))
+    EEprime <- Kdeflate[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
+    sstot_K <- sum( diag(Kdeflate[1,1][[1]]))
     
     R2X <- 1 - sapply(1 : (nox+1),
                       function(i){
-                          sum( diag(K[i,i][[1]] - tcrossprod(Tp[[nox+1]])) )
+                          sum( diag(Kdeflate[i,i][[1]] - tcrossprod(Tp[[nox+1]])) )
                       }) / sstot_K
     
-    R2XC <- rep(1 - sum(diag(K[1,1][[1]] - tcrossprod(Tp[[nox+1]]))) / sstot_K,
+    R2XC <- rep(1 - sum(diag(Kdeflate[1,1][[1]] - tcrossprod(Tp[[nox+1]]))) / sstot_K,
                 times = nox+1)
     
     R2XO <- 1 - sapply(1 : (nox+1),
                        function(i){
-                           sum( diag( K[i,i][[1]] ))    
+                           sum( diag( Kdeflate[i,i][[1]] ))    
                        }) / sstot_K
     
     Yhat <- lapply(1 : (nox+1),
@@ -214,51 +210,51 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                    })
     R2Yhat <- 1 - sapply(Yhat,
                          function(i){
-                             sum( sum((i - Y)**2) )/sstot_Y 
+                             sum( sum((i - Ypreproc)**2) )/sstot_Y 
                          })
     
     # Convert to matrix structure
     if (nox > 0) {
-        To <- matrix(data = unlist(to), nrow = nrow(Tp[[nox+1]]), 
-                     ncol = nox, byrow = FALSE)
+        To <- do.call(cbind, to)
+        colnames(To) <- paste0("o_", 1:ncol(To))
     } else {
         To <- NULL
     }
     
     # Group parameters in data.frame
-    params <- data.frame("N_pred" = A,
-                         "N_ortho" = nox, 
-                         "sstot_K" = sstot_K,
-                         "sstot_Y" = sstot_Y,
+    params <- data.frame("ncomp_p"  = A,
+                         "ncomp_o"  = nox, 
+                         "sstot_K"  = sstot_K,
+                         "sstot_Y"  = sstot_Y,
                          "preProcK" = preProcK, 
                          "preProcY" = preProcY, 
-                         "class" = "kopls")
+                         "class"    = "kopls")
     
-    return (list("params" = params,
-                 "Cp" = Cp, 
-                 "Sp" = Sp, 
-                 "Sps" = Sps, 
-                 "Up" = Up,
-                 "Tp" = Tp, 
-                 "T" = as.matrix(Tp[[nox+1]]), 
-                 "co" = co,
-                 "so" = so, 
-                 "to" = to, 
-                 "To" = To,
-                 "toNorm" = toNorm, 
-                 "Bt" = Bt, 
-                 "K" = K, 
+    return (list("params"   = params,
+                 "scores_p" = Tp[[nox+1]],
+                 "scores_o" = To,
+                 "Cp"       = Cp,
+                 "Sp"       = Sp,
+                 "Sps"      = Sps,
+                 "Up"       = Up,
+                 "Tp"       = Tp,
+                 "co"       = co,
+                 "so"       = so,
+                 "to"       = to,
+                 "toNorm"   = toNorm,
+                 "Bt"       = Bt,
+                 "K"        = Kdeflate,
                  
                  #extra stuff
-                 "EEprime" = EEprime, 
-                 "R2X"     = R2X, 
-                 "R2XO"    = R2XO, 
+                 "EEprime"  = EEprime,
+                 "R2X"      = R2X,
+                 "R2XO"     = R2XO,
                  #"R2Y"     = R2Y,
-                 "R2Yhat"  = R2Yhat, # R2Yhat 22 Jan 2010 / MR
+                 "R2Yhat"   = R2Yhat, # R2Yhat 22 Jan 2010 / MR
                  
                  #pre-processing
-                 "preProc" = list("paramsY" = ifelse(test = (preProcY != "no"),
-                                                     yes = scaleParams,
-                                                     no = "no"))
+                 "preProc"  = list("paramsY" = ifelse(test = (preProcY != "no"),
+                                                      yes = scaleParams,
+                                                      no = "no"))
     ))
 }

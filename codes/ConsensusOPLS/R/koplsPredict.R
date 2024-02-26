@@ -16,6 +16,7 @@
 #' response (Yhat) is rescaled according to the pre-processing settings of 
 #' the model. If \code{FALSE}, Yhat is not rescaled (default).
 #'
+#' #TODO: Why Tp, to, T, ... are produced here?
 #' @return A list with the following entries:
 #' \item{Tp}{ matrix. Predicted predictive score matrix for all generations 0: 
 #' \code{nox} of Y-orthogonal vectors.}
@@ -57,13 +58,13 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
         stop("One or more kernel inputs are not matrices.")
     }
     if (!is.list(model)) stop("model is not a list containing model parameters.")
-    else if(model$params$class != "kopls") stop("Model must be of type `kopls`.")
+    else if (model$params$class != "kopls") stop("Model must be of type `kopls`.")
     if (!is.null(nox)) {
         if (!is.numeric(nox)) stop("nox is not numeric.")
-        if (nox > model$params$N_ortho) {
+        if (nox > model$params$ncomp_o) {
             warning("Number of Y-orthogonal components to use is higher than in model.
               Setting number of Y-orthogonal to max in model.")
-            nox <- model$params$N_ortho
+            nox <- model$params$ncomp_o
         }
     } else stop('Number of Y-orthogonal components to use is missing.')
     if (is.null(rescaleY)) rescaleY <- 0
@@ -71,70 +72,75 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     
     # Step1: mean centering of K matrices
     # the order of the code below is important
-    KteTeMc <- Ktest
-    if (model$params$preProcK == "mc") {
-        KteTeMc <- koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain)
-    }
-    KteTe <- matrix(data = list(NULL), nrow = model$params$N_ortho+1, 
-                    ncol = model$params$N_ortho+1)
-    KteTe[1,1][[1]] <- KteTeMc
+    KteTepreproc <- if (model$params$preProcK == "mc") 
+        koplsCenterKTeTe(KteTe = Ktest, KteTr = KteTr, KtrTr = Ktrain) else 
+            Ktest
+
+    KteTedeflate <- matrix(data = list(NULL), 
+                           nrow = model$params$ncomp_o + 1, 
+                           ncol = model$params$ncomp_o + 1)
+    KteTedeflate[1,1][[1]] <- KteTepreproc
     
-    KteTrMc <- KteTr
-    if (model$params$preProcK == "mc") {
-        KteTrMc <- koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain)
-    }
-    KteTrTmp <- matrix(data = list(NULL), nrow = model$params$N_ortho+1, 
-                       ncol = model$params$N_ortho+1)
-    KteTrTmp[1,1][[1]] <- KteTrMc
-    KteTr <- KteTrTmp
-    
+    KteTrpreproc <- if (model$params$preProcK == "mc") 
+        koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain) else 
+            KteTr
+    KteTrdeflate <- matrix(data = list(NULL), 
+                           nrow = model$params$ncomp_o + 1, 
+                           ncol = model$params$ncomp_o + 1)
+    KteTrdeflate[1,1][[1]] <- KteTrpreproc
+
     # Initialize variables
-    to <- list() ; Tp <- list()
+    to <- Tp <- list()
     
     # Step2: KOPLS prediction
     ## Step2.1: for each Y-orth component
     if (nox > 0) {
         for (i in 1:nox) {
             ## Step2.2: Predicted predictive score matrix
-            Tp[[i]] <- crossprod(x = t(KteTr[i,1][[1]]),
+            Tp[[i]] <- crossprod(x = t(KteTrdeflate[i,1][[1]]),
                                  y = tcrossprod(x = model$Up, 
                                                 y = t(model$Sps)))
             
             # Step2.3: Predicted Y-orthogonal score vectors
-            to[[i]] <- crossprod(x = t((KteTr[i,i][[1]] - 
-                                            tcrossprod(x = Tp[[i]], 
-                                                       y = model$Tp[[i]]))),
-                                 y = tcrossprod(x = model$Tp[[i]], 
-                                                y = tcrossprod(x = t(sqrt(model$so[[i]])), 
-                                                               #y = t(model$co[[i]]))))
-                                                               y = model$co[[i]])))
+            # to[[i]] <- crossprod(x = t((KteTrdeflate[i,i][[1]] - 
+            #                                 tcrossprod(x = Tp[[i]], 
+            #                                            y = model$Tp[[i]]))),
+            #                      y = tcrossprod(x = model$Tp[[i]], 
+            #                                     y = tcrossprod(x = t(sqrt(model$so[[i]])),
+            #                                                    #y = t(model$co[[i]]))))
+            #                                                    y = model$co[[i]])))
+            to[[i]] <- tcrossprod(x = tcrossprod(x = tcrossprod(x = KteTrdeflate[i,i][[1]] - tcrossprod(x = Tp[[i]], 
+                                                                                                    y = model$Tp[[i]]), 
+                                                                y = t(model$Tp[[i]])),
+                                                 y = t(model$co[[i]])),
+                                  y = t(1/sqrt(model$so[[i]])))
             
             # Step2.4: Normalize to
             to[[i]] <- to[[i]]/model$toNorm[[i]]
             
-            # Step2.4.5: deflate KteTe (this is an EXTRA feature - not in alg. in paper)
-            KteTe[i+1,i+1][[1]] <- KteTe[i,i][[1]] - 
-                crossprod(x = t(KteTr[i,i][[1]]), 
+            # Step2.4.5: deflate KteTedeflate (this is an EXTRA feature - not in alg. in paper)
+            KteTedeflate[i+1,i+1][[1]] <- KteTedeflate[i,i][[1]] - 
+                crossprod(x = t(KteTrdeflate[i,i][[1]]), 
                           y = tcrossprod(x = model$to[[i]], 
                                          y = to[[i]])) - 
                 crossprod(x = t(to[[i]]), 
                           y = crossprod(x = model$to[[i]], 
-                                        y = t(KteTr[i,i][[1]]))) +
+                                        y = t(KteTrdeflate[i,i][[1]]))) +
                 crossprod(x = t(to[[i]]),
                           y = crossprod(x = model$to[[i]],
                                         y = crossprod(x = t(model$K[i,i][[1]]),
                                                       y = tcrossprod(x = model$to[[i]],
                                                                      y = to[[i]]))))
             
-            # Step2.5: Update KTeTr
-            KteTr[i+1,1][[1]] <- KteTr[i,1][[1]] - 
+            # Step2.5: Update KteTrdeflate
+            KteTrdeflate[i+1,1][[1]] <- KteTrdeflate[i,1][[1]] - 
                 crossprod(x = t(to[[i]]),
                           y = crossprod(x = model$to[[i]], 
                                         y = t(model$K[1,i][[1]])))
             
-            # Step2.6: Update KTeTr
-            KteTr[i+1,i+1][[1]] <- KteTr[i,i][[1]] - 
-                crossprod(x = t(KteTr[i,i][[1]]),
+            # Step2.6: Update KteTrdeflate
+            KteTrdeflate[i+1,i+1][[1]] <- KteTrdeflate[i,i][[1]] - 
+                crossprod(x = t(KteTrdeflate[i,i][[1]]),
                           y = tcrossprod(model$to[[i]])) - 
                 crossprod(x = t(to[[i]]),
                           y = crossprod(x = model$to[[i]], 
@@ -148,7 +154,7 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
         i <- 0
     }
     
-    Tp[[i+1]] <- crossprod(x = t(KteTr[i+1,1][[1]]),
+    Tp[[i+1]] <- crossprod(x = t(KteTrdeflate[i+1,1][[1]]),
                            y = tcrossprod(model$Up, t(model$Sps)))
     # TOREMOVE: nsample * ncomp * ncomp * ncomp * ncomp * nclass = nsample * nclass
     Yhat <- crossprod(x = t(Tp[[i+1]]),
@@ -172,14 +178,14 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     }
     
     #---- Extra stuff ----------------------------------
-    EEprime <- KteTe[i+1,i+1][[1]] - tcrossprod(Tp[[i+1]])
+    EEprime <- KteTedeflate[i+1,i+1][[1]] - tcrossprod(Tp[[i+1]])
     #--------------------------------------------------
     
     # Return the list of prediction parameters
-    return (list("Tp" = Tp,
-                 "to" = to,
-                 "T" = Tp[[nox+1]],
-                 "KteTr" = KteTr,
-                 "EEprime" = EEprime,
-                 "Yhat" = Yhat))
+    return (list(#"Tp"           = Tp,
+                 #"to"           = to,
+                 #"T"            = Tp[[nox+1]],
+                 #"KteTrdeflate" = KteTrdeflate,
+                 #"EEprime"      = EEprime,
+                 "Yhat"         = Yhat))
 }

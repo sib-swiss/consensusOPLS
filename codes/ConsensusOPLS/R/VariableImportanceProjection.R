@@ -32,17 +32,17 @@ MBVIP <- function(data, Y, model = NULL, mc.cores = 1) {
     VIP <- mclapply(1:length(data), mc.cores=mc.cores, function(itable) {
         # Dimensions of the data in the data
         nvariable <- ncol(data[[itable]])
-        nsample   <- nrow(model$Model$T)
-        ncomp     <- ncol(model$Model$T)
+        nsample   <- nrow(model$Model$scores_p)
+        ncomp     <- ncol(model$Model$scores_p)
 
-        Qs <- crossprod(Y, model$Model$T) %*% diag(1/diag(crossprod(model$Model$T)), 
+        Qs <- crossprod(Y, model$Model$scores_p) %*% diag(1/diag(crossprod(model$Model$scores_p)), 
                                                    ncol=ncomp) #nclass x ncomp
         Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)), 
                                            ncol=ncomp) #nsample x ncomp
         Ws <- crossprod(data[[itable]], Us) %*% diag(1/diag(crossprod(Us)), 
                                                      ncol=ncomp) #nvariable x ncomp
         Ws <- apply(Ws, 2, function(x) x/norm(x, type='2'))
-        s <- diag(crossprod(model$Model$T) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
+        s <- diag(crossprod(model$Model$scores_p) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
     
         VIP.itable <- apply(Ws, 1, function(x) {
             q <- crossprod(s, x^2)

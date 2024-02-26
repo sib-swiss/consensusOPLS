@@ -5,8 +5,8 @@
 #' @param data list. The collection list containing each block of data.
 #' @param Y matrix. The response matrix.
 #' @param nbruns numeric. Number of random permutations. 
-#' @param PredLVs numeric. Number of predictive components.
-#' @param maxOrtholvs numeric. Maximum number of orthogonal LVs to compute.
+#' @param maxPcomp numeric. Maximum number of predictive components.
+#' @param maxOcomp numeric. Maximum number of orthogonal components.
 #' @param nrcv Number of cross-validation rounds (integer).
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
@@ -23,7 +23,7 @@
 #' @examples
 #' data(demo_3_Omics)
 #' res <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                            Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, 
+#'                            Y=demo_3_Omics$Y, nbruns=5, maxPcomp=1, maxOcomp=2, 
 #'                            modelType='da')
 #' str(res)
 #' @importFrom utils tail
@@ -34,8 +34,8 @@
 RVConsensusOPLSPerm <- function(data,
                                 Y,
                                 nbruns,
-                                PredLVs,
-                                maxOrtholvs,
+                                maxPcomp,
+                                maxOcomp,
                                 nrcv = 5,
                                 cvType = 'nfold',
                                 modelType = 'da',
@@ -45,8 +45,8 @@ RVConsensusOPLSPerm <- function(data,
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
     if (nbruns != as.integer(nbruns)) stop("nbruns is not an integer.")
-    if (PredLVs != as.integer(PredLVs)) stop("PredLVs is not an integer")
-    if (maxOrtholvs != as.integer(maxOrtholvs)) stop("maxOrtholvs is not an integer")
+    if (maxPcomp != as.integer(maxPcomp)) stop("maxPcomp is not an integer")
+    if (maxOcomp != as.integer(maxOcomp)) stop("maxOcomp is not an integer")
     
     # Init parameters
     PermRes <- list()
@@ -63,8 +63,8 @@ RVConsensusOPLSPerm <- function(data,
             Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), , drop=F]
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
-        modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = PredLVs, 
-                                   maxOrtholvs = maxOrtholvs, nrcv = nrcv,
+        modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = maxPcomp, 
+                                   maxOcomp = maxOcomp, nrcv = nrcv,
                                    cvType = cvType, modelType = modelType, 
                                    mc.cores = 1,
                                    verbose = FALSE)
@@ -76,7 +76,7 @@ RVConsensusOPLSPerm <- function(data,
                 )
     })
     PermRes$lvnum  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
-        perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + PredLVs
+        perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + maxPcomp
     }))
     PermRes$R2val  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
         tail(perms[[i]]$modelCV$Model$R2Yhat, 1)

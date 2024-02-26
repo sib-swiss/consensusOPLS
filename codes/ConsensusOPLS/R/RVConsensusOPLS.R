@@ -6,7 +6,7 @@
 #' @param data the collection list containing each block of data.
 #' @param Y The response.
 #' @param A The number of Y-predictive components (integer). 
-#' @param maxOrtholvs The maximal number of Y-orthogonal components (integer).
+#' @param maxOcomp Maximum number of orthogonal components to compute.
 #' @param nrcv Number of cross-validation rounds (integer).
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
@@ -32,7 +32,7 @@
 RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
-                            maxOrtholvs = 3, 
+                            maxOcomp = 5, 
                             nrcv = 3,
                             cvType = "nfold",
                             cvFrac = 2/3,
@@ -43,7 +43,7 @@ RVConsensusOPLS <- function(data,
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
     if (!is.numeric(A)) stop("A is not numeric.")
-    if (!is.numeric(maxOrtholvs)) stop("maxOrtholvs is not numeric.")
+    if (!is.numeric(maxOcomp)) stop("maxOcomp is not numeric.")
     if (!is.numeric(nrcv)) stop("nrcv is not numeric.")
     if (!is.character(cvType))
         stop("cvType is not a character.")
@@ -105,11 +105,11 @@ RVConsensusOPLS <- function(data,
         RA[[i]]$RV * RA[[i]]$AMat
     }))
     
-    # Control maxOrtholvs
-    maxOrtholvs <- min(c(maxOrtholvs, nsample, nvar))
+    # Control maxOcomp
+    maxOcomp <- min(c(maxOcomp, nsample, nvar))
     
     # Performs a Kernel-OPLS cross-validation for W_mat
-    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOrtholvs, 
+    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOcomp, 
                                nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
                                preProcY = preProcY, cvFrac = cvFrac, 
                                modelType = modelType, verbose = verbose)
@@ -118,11 +118,11 @@ RVConsensusOPLS <- function(data,
     
     # Search for the optimal model based on DQ2
     if (modelType == 'da') {
-        mc <- min((maxOrtholvs+1)*Ylarg, mc.cores)
+        mc <- min((maxOcomp+1)*Ylarg, mc.cores)
         mcj <- min(sqrt(mc), Ylarg)
         mci <- max(floor(mc.cores/mcj), 1)
         
-        results <- mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
+        results <- mclapply(X = 0:maxOcomp, mc.cores = mci, FUN = function(i) {
             mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 # For each Y column, perform the DQ2
                 result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j], #TODO: AllYhat is different from that of Matlab from 3rd column.
@@ -131,12 +131,12 @@ RVConsensusOPLS <- function(data,
                 return (result)
             })
         })
-        dqq <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
+        dqq <- do.call(rbind, mclapply(X = 0:maxOcomp, mc.cores = mci, FUN = function(i) {
             do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 return (results[[i+1]][[j]]$dqq) #TODO: why two columns are the same
             }))
         }))
-        PRESSD <- do.call(rbind, mclapply(X = 0:maxOrtholvs, mc.cores = mci, FUN = function(i) {
+        PRESSD <- do.call(rbind, mclapply(X = 0:maxOcomp, mc.cores = mci, FUN = function(i) {
             do.call(cbind, mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 return (results[[i+1]][[j]]$PRESSD)
             }))
@@ -146,7 +146,7 @@ RVConsensusOPLS <- function(data,
         index <- A + 1 #TODO
         
         # Finds the optimal number of orthogonal components as a function of DQ2
-        while (index < (maxOrtholvs+A) && 
+        while (index < (maxOcomp+A) && 
                !is.na((dq2[index+1] - dq2[index])) &&
                (dq2[index+1] - dq2[index]) > 0.01) {
             index <- index + 1
@@ -161,7 +161,7 @@ RVConsensusOPLS <- function(data,
         index <- A + 1
         
         # Finds the optimal number of orthogonal components as a function of Q2Yhat
-        while (index < (maxOrtholvs+A) && 
+        while (index < (maxOcomp+A) && 
                (modelCV$cv$Q2Yhat[index+1] - modelCV$cv$Q2Yhat[index]) > 0.01) {
             index <- index + 1
         }
@@ -179,20 +179,20 @@ RVConsensusOPLS <- function(data,
     
     # Adjust Yhat to the selected model size
     modelCV$cv$Yhat <- modelCV$cv$AllYhat[, Ylarg*OrthoLVsNum + 1:Ylarg, drop=F]
-    
+
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, 
                                      FUN = function(j) {
-                                         diag(crossprod(x = modelCV$Model$T[, 1:A], 
+                                         diag(crossprod(x = modelCV$Model$scores_p[, 1:A], 
                                                         y = crossprod(x = t(AMat[[j]]), 
-                                                                      y = modelCV$Model$T[, 1:A])))
+                                                                      y = modelCV$Model$scores_p[, 1:A])))
                                      })),
                     do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(j) {
-                                diag(crossprod(x = modelCV$Model$To[, 1:OrthoLVsNum], 
+                                diag(crossprod(x = modelCV$Model$scores_o[, 1:OrthoLVsNum], 
                                                y = crossprod(x = t(AMat[[j]]), 
-                                                             y = modelCV$Model$To[, 1:OrthoLVsNum])))
+                                                             y = modelCV$Model$scores_o[, 1:OrthoLVsNum])))
                             })))
     rownames(lambda) <- names(data)
     colnames(lambda) <- c(paste0("p_", 1:A), paste0("o_", 1:OrthoLVsNum))
@@ -210,15 +210,15 @@ RVConsensusOPLS <- function(data,
     loadings.list <- list( 
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             lpi <- tcrossprod(crossprod(x = data[[i]], 
-                                        y = modelCV$Model$T[, 1:A, drop=F]), 
-                              diag(diag(crossprod(modelCV$Model$T[, 1:A, drop=F]))^-1, ncol=A))
+                                        y = modelCV$Model$scores_p[, 1:A, drop=F]), 
+                              diag(diag(crossprod(modelCV$Model$scores_p[, 1:A, drop=F]))^(-1), ncol=A))
             colnames(lpi) <- paste0("p", 1:A)
             return (lpi)
         }),
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             loi <- tcrossprod(crossprod(x = data[[i]],
-                                        y = modelCV$Model$To[, 1:OrthoLVsNum, drop=F]),
-                              diag(diag(crossprod(modelCV$Model$To[, 1:OrthoLVsNum, drop=F]))^-1, ncol=OrthoLVsNum))
+                                        y = modelCV$Model$scores_o[, 1:OrthoLVsNum, drop=F]),
+                              diag(diag(crossprod(modelCV$Model$scores_o[, 1:OrthoLVsNum, drop=F]))^(-1), ncol=OrthoLVsNum))
             colnames(loi) <- paste0("o", 1:OrthoLVsNum)
             return (loi)
         }))
@@ -235,6 +235,8 @@ RVConsensusOPLS <- function(data,
     modelCV$AMat <- AMat  
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
+    # Add the scores in the model objects
+    modelCV$Model$scores <- cbind(modelCV$Model$scores_p, modelCV$Model$scores_o)
     
     # Return the final model
     return (modelCV)

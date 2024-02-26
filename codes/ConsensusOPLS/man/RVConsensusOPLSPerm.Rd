@@ -8,8 +8,8 @@ RVConsensusOPLSPerm(
   data,
   Y,
   nbruns,
-  PredLVs,
-  maxOrtholvs,
+  maxPcomp,
+  maxOcomp,
   nrcv = 5,
   cvType = "nfold",
   modelType = "da",
@@ -24,9 +24,9 @@ RVConsensusOPLSPerm(
 
 \item{nbruns}{numeric. Number of random permutations.}
 
-\item{PredLVs}{numeric. Number of predictive components.}
+\item{maxPcomp}{numeric. Maximum number of predictive components.}
 
-\item{maxOrtholvs}{numeric. Maximum number of orthogonal LVs to compute.}
+\item{maxOcomp}{numeric. Maximum number of orthogonal components.}
 
 \item{nrcv}{Number of cross-validation rounds (integer).}
 
@@ -51,7 +51,7 @@ Y random permutations for model validity estimation, with leave-on-out CV.
 \examples{
 data(demo_3_Omics)
 res <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                           Y=demo_3_Omics$Y, nbruns=5, PredLVs=1, maxOrtholvs=2, 
+                           Y=demo_3_Omics$Y, nbruns=5, maxPcomp=1, maxOcomp=2, 
                            modelType='da')
 str(res)
 }
