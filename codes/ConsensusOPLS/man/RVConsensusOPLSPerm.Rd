@@ -7,10 +7,10 @@
 RVConsensusOPLSPerm(
   data,
   Y,
-  nbruns,
   maxPcomp,
   maxOcomp,
-  nrcv = 5,
+  nfold = 5,
+  nperm = 100,
   cvType = "nfold",
   modelType = "da",
   mc.cores = 1,
@@ -22,13 +22,13 @@ RVConsensusOPLSPerm(
 
 \item{Y}{matrix. The response matrix.}
 
-\item{nbruns}{numeric. Number of random permutations.}
-
 \item{maxPcomp}{numeric. Maximum number of predictive components.}
 
 \item{maxOcomp}{numeric. Maximum number of orthogonal components.}
 
-\item{nrcv}{Number of cross-validation rounds (integer).}
+\item{nfold}{Number of cross-validation rounds (integer).}
+
+\item{nperm}{numeric. Number of random permutations.}
 
 \item{cvType}{Type of cross-validation used. Either \code{nfold} for n-fold}
 
@@ -51,7 +51,7 @@ Y random permutations for model validity estimation, with leave-on-out CV.
 \examples{
 data(demo_3_Omics)
 res <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                           Y=demo_3_Omics$Y, nbruns=5, maxPcomp=1, maxOcomp=2, 
+                           Y=demo_3_Omics$Y, nperm=5, maxPcomp=1, maxOcomp=2, 
                            modelType='da')
 str(res)
 }

@@ -7,7 +7,7 @@
 #' @param Y The response.
 #' @param A The number of Y-predictive components (integer). 
 #' @param maxOcomp Maximum number of orthogonal components to compute.
-#' @param nrcv Number of cross-validation rounds (integer).
+#' @param nfold Number of cross-validation rounds (integer).
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
 #' Carlo class-balanced CV.
@@ -25,7 +25,7 @@
 #' @examples
 #' data(demo_3_Omics)
 #' ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=3)
+#'                                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nfold=3)
 #' @importFrom parallel mclapply
 #' @keywords internal
 #' 
@@ -33,7 +33,7 @@ RVConsensusOPLS <- function(data,
                             Y,
                             A = 1, 
                             maxOcomp = 5, 
-                            nrcv = 3,
+                            nfold = 3,
                             cvType = "nfold",
                             cvFrac = 2/3,
                             modelType = "da",
@@ -44,7 +44,7 @@ RVConsensusOPLS <- function(data,
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
     if (!is.numeric(A)) stop("A is not numeric.")
     if (!is.numeric(maxOcomp)) stop("maxOcomp is not numeric.")
-    if (!is.numeric(nrcv)) stop("nrcv is not numeric.")
+    if (!is.numeric(nfold)) stop("nfold is not numeric.")
     if (!is.character(cvType))
         stop("cvType is not a character.")
     else if (!(cvType %in% c("nfold", "mccv", "mccvb")))
@@ -109,8 +109,8 @@ RVConsensusOPLS <- function(data,
     maxOcomp <- min(c(maxOcomp, nsample, nvar))
     
     # Performs a Kernel-OPLS cross-validation for W_mat
-    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, oax = maxOcomp, 
-                               nbrcv = nrcv, cvType = cvType, preProcK = preProcK, 
+    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, maxOcomp = maxOcomp, 
+                               nfold = nfold, cvType = cvType, preProcK = preProcK, 
                                preProcY = preProcY, cvFrac = cvFrac, 
                                modelType = modelType, verbose = verbose)
     
@@ -171,14 +171,14 @@ RVConsensusOPLS <- function(data,
     
     # Simplifies the name to be used afterwards
     OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
-    print("debug************************")
-    print(OrthoLVsNum)
+    # print("debug************************")
+    # print(OrthoLVsNum)
     # Recompute the optimal model using OrthoLVsNum parameters
     modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
                                 preProcK = preProcK, preProcY = preProcY)
     
     # Adjust Yhat to the selected model size
-    modelCV$cv$Yhat <- modelCV$cv$AllYhat[, Ylarg*OrthoLVsNum + 1:Ylarg, drop=F]
+    #modelCV$cv$Yhat <- modelCV$cv$AllYhat[, Ylarg*OrthoLVsNum + 1:Ylarg, drop=F]
 
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,

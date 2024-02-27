@@ -1,0 +1,5 @@
+file	old	new
+koplsModel	Kmc	Kpreproc
+koplsModel	K	Kdeflate
+T	scores_p
+To	scores_o

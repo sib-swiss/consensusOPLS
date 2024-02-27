@@ -8,13 +8,14 @@ ConsensusOPLSCV(
   K,
   Y,
   A,
-  oax,
-  nbrcv,
+  maxOcomp,
+  nfold,
   cvType,
   preProcK = "no",
   preProcY = "no",
   cvFrac,
   modelType = "da",
+  mc.cores = 1,
   verbose = TRUE
 )
 }
@@ -27,9 +28,9 @@ details.}
 
 \item{A}{numeric. The number of Y-predictive components (integer).}
 
-\item{oax}{numeric. The number of Y-orthogonal components (integer).}
+\item{maxOcomp}{numeric. The number of Y-orthogonal components (integer).}
 
-\item{nbrcv}{numeric. Number of cross-validation rounds (integer).}
+\item{nfold}{numeric. Number of cross-validation rounds (integer).}
 
 \item{cvType}{character. Type of cross-validation used. Either \code{nfold} 
 for n-fold cross-validation, \code{mccv} for Monte Carlo cross-validation or 
@@ -126,7 +127,7 @@ analysis:}
      \item{decisionRule}{ character. Decision rule used: \code{max} or 
      \code{fixed}.}
      \item{args}{ list. Arguments to the function:}
-           \item{oax}{ integer. Number of Y-orthogonal components.}
+           \item{maxOcomp}{ integer. Number of Y-orthogonal components.}
            \item{A}{ integer. Number of Y-predictive components.}
 \item{class}{ character. Model class is \code{koplscv}.}
 }

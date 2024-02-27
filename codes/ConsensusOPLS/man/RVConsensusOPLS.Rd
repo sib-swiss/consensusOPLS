@@ -9,7 +9,7 @@ RVConsensusOPLS(
   Y,
   A = 1,
   maxOcomp = 5,
-  nrcv = 3,
+  nfold = 3,
   cvType = "nfold",
   cvFrac = 2/3,
   modelType = "da",
@@ -26,7 +26,7 @@ RVConsensusOPLS(
 
 \item{maxOcomp}{Maximum number of orthogonal components to compute.}
 
-\item{nrcv}{Number of cross-validation rounds (integer).}
+\item{nfold}{Number of cross-validation rounds (integer).}
 
 \item{cvType}{Type of cross-validation used. Either \code{nfold} for n-fold
 cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
@@ -54,6 +54,6 @@ DQ2 computation for discriminant analysis.
 \examples{
 data(demo_3_Omics)
 ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                                Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nrcv=3)
+                                Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nfold=3)
 }
 \keyword{internal}

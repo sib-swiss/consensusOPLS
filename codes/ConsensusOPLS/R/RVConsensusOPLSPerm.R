@@ -4,10 +4,10 @@
 #' 
 #' @param data list. The collection list containing each block of data.
 #' @param Y matrix. The response matrix.
-#' @param nbruns numeric. Number of random permutations. 
+#' @param nperm numeric. Number of random permutations. 
 #' @param maxPcomp numeric. Maximum number of predictive components.
 #' @param maxOcomp numeric. Maximum number of orthogonal components.
-#' @param nrcv Number of cross-validation rounds (integer).
+#' @param nfold Number of cross-validation rounds (integer).
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default value is
@@ -23,7 +23,7 @@
 #' @examples
 #' data(demo_3_Omics)
 #' res <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                            Y=demo_3_Omics$Y, nbruns=5, maxPcomp=1, maxOcomp=2, 
+#'                            Y=demo_3_Omics$Y, nperm=5, maxPcomp=1, maxOcomp=2, 
 #'                            modelType='da')
 #' str(res)
 #' @importFrom utils tail
@@ -33,10 +33,10 @@
 #' 
 RVConsensusOPLSPerm <- function(data,
                                 Y,
-                                nbruns,
                                 maxPcomp,
                                 maxOcomp,
-                                nrcv = 5,
+                                nfold = 5,
+                                nperm = 100,
                                 cvType = 'nfold',
                                 modelType = 'da',
                                 mc.cores = 1,
@@ -44,7 +44,7 @@ RVConsensusOPLSPerm <- function(data,
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
-    if (nbruns != as.integer(nbruns)) stop("nbruns is not an integer.")
+    if (nperm != as.integer(nperm)) stop("nperm is not an integer.")
     if (maxPcomp != as.integer(maxPcomp)) stop("maxPcomp is not an integer")
     if (maxOcomp != as.integer(maxOcomp)) stop("maxOcomp is not an integer")
     
@@ -52,7 +52,7 @@ RVConsensusOPLSPerm <- function(data,
     PermRes <- list()
     
     # Permutations
-    perms <- mclapply(X=1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    perms <- mclapply(X=1:(1+nperm), mc.cores=mc.cores, function(i) {
         # Fix the random seed
         set.seed(i)
         
@@ -64,7 +64,7 @@ RVConsensusOPLSPerm <- function(data,
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = maxPcomp, 
-                                   maxOcomp = maxOcomp, nrcv = nrcv,
+                                   maxOcomp = maxOcomp, nfold = nfold,
                                    cvType = cvType, modelType = modelType, 
                                    mc.cores = 1,
                                    verbose = FALSE)
@@ -75,25 +75,25 @@ RVConsensusOPLSPerm <- function(data,
                      VIP=VIP)
                 )
     })
-    PermRes$lvnum  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + maxPcomp
     }))
-    PermRes$R2val  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$R2val  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
     }))
-    PermRes$DQ2val <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$DQ2val <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[PermRes$lvnum[i]]
     }))
-    PermRes$Q2val  <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$Q2val  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$Q2Yhat[PermRes$lvnum[i]]
     }))
-    PermRes$PredAc <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$PredAc <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$da$tot_sens[2]
     }))
-    PermRes$Y      <- mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$Y      <- mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$Ys
     })
-    PermRes$RV     <- unlist(mclapply(1:(1+nbruns), mc.cores=mc.cores, function(i) {
+    PermRes$RV     <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         RVmodified(X = Y, Y = perms[[i]]$Ys)
     }))
     
