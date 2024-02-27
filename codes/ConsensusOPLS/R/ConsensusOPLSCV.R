@@ -8,8 +8,8 @@
 #' details.
 #' @param Y matrix. The response matrix (un-centered/scaled). Could be binary 
 #' (for discriminant analysis) or real-valued (for classical OPLS analysis).
-#' @param A numeric. The number of Y-predictive components (integer). 
-#' @param maxOcomp numeric. The number of Y-orthogonal components (integer).
+#' @param maxPcomp numeric. The number of Y-predictive components. 
+#' @param maxOcomp numeric. The number of Y-orthogonal components.
 #' @param nfold numeric. Number of cross-validation rounds (integer).
 #' @param cvType character. Type of cross-validation used. Either \code{nfold} 
 #' for n-fold cross-validation, \code{mccv} for Monte Carlo cross-validation or 
@@ -101,7 +101,7 @@
 #'      \code{fixed}.}
 #'      \item{args}{ list. Arguments to the function:}
 #'            \item{maxOcomp}{ integer. Number of Y-orthogonal components.}
-#'            \item{A}{ integer. Number of Y-predictive components.}
+#'            \item{maxPcomp}{ integer. Number of Y-predictive components.}
 #' \item{class}{ character. Model class is \code{koplscv}.}
 #' @examples
 #' #TODO
@@ -109,14 +109,14 @@
 #' @keywords internal 
 #'  
 ConsensusOPLSCV <- function(K, Y, 
-                            A, maxOcomp, nfold, 
+                            maxPcomp, maxOcomp, nfold, 
                             cvType,
                             preProcK = "no", preProcY = "no", 
                             cvFrac, 
                             modelType = "da", mc.cores = 1, verbose = TRUE){
     # ----- Variable format control (part 1)
     if (!is.matrix(K)) stop("K is not a matrix.")
-    if (!is.numeric(A)) stop("A is not numeric.")
+    if (!is.numeric(maxPcomp)) stop("maxPcomp is not numeric.")
     if (!is.numeric(maxOcomp)) stop("maxOcomp is not numeric.")
     if (!is.numeric(nfold)) stop("nfold is not numeric.")
     if (!is.character(cvType)) stop("cvType is not a character.")
@@ -161,8 +161,6 @@ ConsensusOPLSCV <- function(K, Y,
     # ----- Parameters init
     release <- ""
 
-    pressy <- matrix(data = 0, nrow = maxOcomp+1, ncol = 1)
-    pressyVars <- matrix(data = 0, nrow = maxOcomp+1, ncol = 1)
     pressyTot <- matrix(data = 0, nrow = maxOcomp+1, ncol = 1)
     pressyVarsTot <- matrix(data = 0, nrow = maxOcomp+1, ncol = 1)
     YhatDaSave <- list()
@@ -213,7 +211,7 @@ ConsensusOPLSCV <- function(K, Y,
         }
 
         # Estimate K-OPLS model
-        model <- koplsModel(K = KtrTr, Y = YScaleObj$X, A = A, 
+        model <- koplsModel(K = KtrTr, Y = YScaleObj$X, A = maxPcomp, 
                             nox = maxOcomp, preProcK = "no", preProcY = "no")
         
         # Set up model stats
@@ -230,10 +228,7 @@ ConsensusOPLSCV <- function(K, Y,
             ssyVarsTot <- ssyVarsTot+ssyVars        
             #ssxTot     <- ssxTot+ssx
         }
-        # for each combination of Y-osc components
-        AllYhatind <- c()
-        
-        if (TRUE) {
+
         modelPredys <- mclapply(1:(maxOcomp+1), mc.cores=mc.cores, function(nOcomp) {
             # Consensus OPLS predict Yhat
             modelPredy <- koplsPredict(KteTr = KteTr, Ktest = KteTe, Ktrain = KtrTr,
@@ -273,51 +268,6 @@ ConsensusOPLSCV <- function(K, Y,
                 tmp <- koplsRescale(scaleS = YScaleObj, varargin = mp$modelPredy$Yhat)
                 Yhat[[length(Yhat)+1]] <- tmp$X
             }
-        }
-        }
-        
-        if (FALSE) { #TODO: remove
-        for (nOcomp in 1:(maxOcomp+1)) {
-            ioay <- 1 #TODO remove this
-            # Consensus OPLS predict Yhat
-            modelPredy <- koplsPredict(KteTr = KteTr, Ktest = KteTe, Ktrain = KtrTr,
-                                       model = model, nox = nOcomp-1, 
-                                       rescaleY = FALSE)
-            tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
-            colnames(tmp$X) <- paste0(colnames(tmp$X), ifelse(nOcomp==1, "_p", paste0("_po", nOcomp-1)))
-            AllYhatind <- cbind(AllYhatind, tmp$X)
-            #TODO change X in koplsScale to other name
-            pressy[nOcomp, ioay]     <- sum((YScaleObjTest$X -
-                                               modelPredy$Yhat)^2)
-            pressyVars[nOcomp, ioay] <- sum((YScaleObjTest$X - 
-                                               modelPredy$Yhat)^2)
-            
-            if (icv == 1) {
-                pressyTot[nOcomp, ioay]     <- pressy[nOcomp, ioay]
-                pressyVarsTot[nOcomp, ioay] <- pressyVars[nOcomp, ioay]
-            } else {
-                pressyTot[nOcomp,ioay]      <- pressyTot[nOcomp,ioay] + pressy[nOcomp,ioay]
-                pressyVarsTot[nOcomp,ioay]  <- pressyVarsTot[nOcomp,ioay] + pressyVars[nOcomp,ioay]
-            }
-            
-            # Save Yhat for all rounds
-            if (icv == 0) {
-                YhatDaSave[[nOcomp]] <- list()
-            }
-            
-            # + mean on Yhat
-            tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
-            YhatDaSave[[nOcomp]][[length(YhatDaSave[[nOcomp]])+1]] <- tmp$X
-            
-            # If highest number of nOcomp, save Yhat and Xhat
-            if (nOcomp == maxOcomp+1) {
-                if (icv == 0) {
-                    Yhat <- list()
-                }
-                tmp <- koplsRescale(scaleS = YScaleObj, varargin = modelPredy$Yhat)
-                Yhat[[length(Yhat)+1]] <- tmp$X
-            }
-        }
         }
         
         AllYhat <- rbind(AllYhat, AllYhatind) #TODO: use list
@@ -393,7 +343,7 @@ ConsensusOPLSCV <- function(K, Y,
         daMetrics_list$nclasses <- nclasses
         modelMain$da <- daMetrics_list
         #modelMain$cv$da$args$maxOcomp <- maxOcomp
-        #modelMain$cv$da$args$A <- A
+        #modelMain$cv$da$args$maxPcomp <- maxPcomp
     } else if (modelType == "reg") {
         ## CV metrics
         Metrics_list <- list()
@@ -424,7 +374,7 @@ ConsensusOPLSCV <- function(K, Y,
         modelMain$reg <- Metrics_list
     }
    
-    modelMain$Model <- koplsModel(K = K, Y = Y, A = A, nox = maxOcomp, 
+    modelMain$Model <- koplsModel(K = K, Y = Y, A = maxPcomp, nox = maxOcomp, 
                                   preProcK = preProcK, preProcY = preProcY)
 
     #modelMain$cv$Yhat <- do.call(rbind, Yhat[-1])

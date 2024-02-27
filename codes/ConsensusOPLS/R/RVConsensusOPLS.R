@@ -5,8 +5,8 @@
 #' 
 #' @param data the collection list containing each block of data.
 #' @param Y The response.
-#' @param A The number of Y-predictive components (integer). 
-#' @param maxOcomp Maximum number of orthogonal components to compute.
+#' @param maxPcomp Maximum number of Y-predictive components. 
+#' @param maxOcomp Maximum number of Y-orthogonal components.
 #' @param nfold Number of cross-validation rounds (integer).
 #' @param cvType Type of cross-validation used. Either \code{nfold} for n-fold
 #' cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
@@ -25,13 +25,13 @@
 #' @examples
 #' data(demo_3_Omics)
 #' ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                                 Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nfold=3)
+#'                                 Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
 #' @importFrom parallel mclapply
 #' @keywords internal
 #' 
 RVConsensusOPLS <- function(data,
                             Y,
-                            A = 1, 
+                            maxPcomp = 1, 
                             maxOcomp = 5, 
                             nfold = 3,
                             cvType = "nfold",
@@ -42,7 +42,7 @@ RVConsensusOPLS <- function(data,
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
-    if (!is.numeric(A)) stop("A is not numeric.")
+    if (!is.numeric(maxPcomp)) stop("maxPcomp is not numeric.")
     if (!is.numeric(maxOcomp)) stop("maxOcomp is not numeric.")
     if (!is.numeric(nfold)) stop("nfold is not numeric.")
     if (!is.character(cvType))
@@ -109,7 +109,7 @@ RVConsensusOPLS <- function(data,
     maxOcomp <- min(c(maxOcomp, nsample, nvar))
     
     # Performs a Kernel-OPLS cross-validation for W_mat
-    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, A = A, maxOcomp = maxOcomp, 
+    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, maxPcomp = maxPcomp, maxOcomp = maxOcomp, 
                                nfold = nfold, cvType = cvType, preProcK = preProcK, 
                                preProcY = preProcY, cvFrac = cvFrac, 
                                modelType = modelType, verbose = verbose)
@@ -143,10 +143,10 @@ RVConsensusOPLS <- function(data,
         }))
         
         dq2 <- rowMeans(dqq)
-        index <- A + 1 #TODO
+        index <- maxPcomp + 1 #TODO
         
         # Finds the optimal number of orthogonal components as a function of DQ2
-        while (index < (maxOcomp+A) && 
+        while (index < (maxOcomp+maxPcomp) && 
                !is.na((dq2[index+1] - dq2[index])) &&
                (dq2[index+1] - dq2[index]) > 0.01) {
             index <- index + 1
@@ -155,18 +155,18 @@ RVConsensusOPLS <- function(data,
         # Add DQ2 in the model objects
         modelCV$cv$DQ2Yhat <- dq2 
         # Add optimal number of orthogonal components in the model objects
-        modelCV$cv$OrthoLVsOptimalNum <- index - A
+        modelCV$cv$OrthoLVsOptimalNum <- index - maxPcomp
         
     } else { # if modelType == "reg"
-        index <- A + 1
+        index <- maxPcomp + 1
         
         # Finds the optimal number of orthogonal components as a function of Q2Yhat
-        while (index < (maxOcomp+A) && 
+        while (index < (maxOcomp+maxPcomp) && 
                (modelCV$cv$Q2Yhat[index+1] - modelCV$cv$Q2Yhat[index]) > 0.01) {
             index <- index + 1
         }
         # Add optimal number of orthogonal components in the model objects
-        modelCV$cv$OrthoLVsOptimalNum <- index - A
+        modelCV$cv$OrthoLVsOptimalNum <- index - maxPcomp
     }
     
     # Simplifies the name to be used afterwards
@@ -174,7 +174,7 @@ RVConsensusOPLS <- function(data,
     # print("debug************************")
     # print(OrthoLVsNum)
     # Recompute the optimal model using OrthoLVsNum parameters
-    modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = A, nox = OrthoLVsNum, 
+    modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = maxPcomp, nox = OrthoLVsNum, 
                                 preProcK = preProcK, preProcY = preProcY)
     
     # Adjust Yhat to the selected model size
@@ -184,18 +184,18 @@ RVConsensusOPLS <- function(data,
     lambda <- cbind(do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, 
                                      FUN = function(j) {
-                                         diag(crossprod(x = modelCV$Model$scores_p[, 1:A], 
+                                         diag(crossprod(x = modelCV$Model$scoresP[, 1:maxPcomp], 
                                                         y = crossprod(x = t(AMat[[j]]), 
-                                                                      y = modelCV$Model$scores_p[, 1:A])))
+                                                                      y = modelCV$Model$scoresP[, 1:maxPcomp])))
                                      })),
                     do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(j) {
-                                diag(crossprod(x = modelCV$Model$scores_o[, 1:OrthoLVsNum], 
+                                diag(crossprod(x = modelCV$Model$scoresO[, 1:OrthoLVsNum], 
                                                y = crossprod(x = t(AMat[[j]]), 
-                                                             y = modelCV$Model$scores_o[, 1:OrthoLVsNum])))
+                                                             y = modelCV$Model$scoresO[, 1:OrthoLVsNum])))
                             })))
     rownames(lambda) <- names(data)
-    colnames(lambda) <- c(paste0("p_", 1:A), paste0("o_", 1:OrthoLVsNum))
+    colnames(lambda) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:OrthoLVsNum))
     
     # Stores raw lambda coefficient values in the model object
     modelCV$Model$lambda_raw <- lambda 
@@ -210,21 +210,21 @@ RVConsensusOPLS <- function(data,
     loadings.list <- list( 
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             lpi <- tcrossprod(crossprod(x = data[[i]], 
-                                        y = modelCV$Model$scores_p[, 1:A, drop=F]), 
-                              diag(diag(crossprod(modelCV$Model$scores_p[, 1:A, drop=F]))^(-1), ncol=A))
-            colnames(lpi) <- paste0("p", 1:A)
+                                        y = modelCV$Model$scoresP[, 1:maxPcomp, drop=F]), 
+                              diag(diag(crossprod(modelCV$Model$scoresP[, 1:maxPcomp, drop=F]))^(-1), ncol=maxPcomp))
+            colnames(lpi) <- paste0("p", 1:maxPcomp)
             return (lpi)
         }),
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             loi <- tcrossprod(crossprod(x = data[[i]],
-                                        y = modelCV$Model$scores_o[, 1:OrthoLVsNum, drop=F]),
-                              diag(diag(crossprod(modelCV$Model$scores_o[, 1:OrthoLVsNum, drop=F]))^(-1), ncol=OrthoLVsNum))
+                                        y = modelCV$Model$scoresO[, 1:OrthoLVsNum, drop=F]),
+                              diag(diag(crossprod(modelCV$Model$scoresO[, 1:OrthoLVsNum, drop=F]))^(-1), ncol=OrthoLVsNum))
             colnames(loi) <- paste0("o", 1:OrthoLVsNum)
             return (loi)
         }))
     loadings <- mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) { 
         li <- cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
-        colnames(li) <- c(paste0("p_", 1:A), paste0("o_", 1:OrthoLVsNum))
+        colnames(li) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:OrthoLVsNum))
         return (li)
     })
     names(loadings) <- names(data)
@@ -236,7 +236,7 @@ RVConsensusOPLS <- function(data,
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
     # Add the scores in the model objects
-    modelCV$Model$scores <- cbind(modelCV$Model$scores_p, modelCV$Model$scores_o)
+    modelCV$Model$scores <- cbind(modelCV$Model$scoresP, modelCV$Model$scoresO)
     
     # Return the final model
     return (modelCV)

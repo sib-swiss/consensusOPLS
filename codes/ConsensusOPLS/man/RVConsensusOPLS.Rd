@@ -7,7 +7,7 @@
 RVConsensusOPLS(
   data,
   Y,
-  A = 1,
+  maxPcomp = 1,
   maxOcomp = 5,
   nfold = 3,
   cvType = "nfold",
@@ -22,9 +22,9 @@ RVConsensusOPLS(
 
 \item{Y}{The response.}
 
-\item{A}{The number of Y-predictive components (integer).}
+\item{maxPcomp}{Maximum number of Y-predictive components.}
 
-\item{maxOcomp}{Maximum number of orthogonal components to compute.}
+\item{maxOcomp}{Maximum number of Y-orthogonal components.}
 
 \item{nfold}{Number of cross-validation rounds (integer).}
 
@@ -54,6 +54,6 @@ DQ2 computation for discriminant analysis.
 \examples{
 data(demo_3_Omics)
 ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-                                Y=demo_3_Omics$Y, modelType="da", A=1, mc.cores=1, nfold=3)
+                                Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
 }
 \keyword{internal}

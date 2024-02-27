@@ -61,10 +61,10 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
     else if (model$params$class != "kopls") stop("Model must be of type `kopls`.")
     if (!is.null(nox)) {
         if (!is.numeric(nox)) stop("nox is not numeric.")
-        if (nox > model$params$ncomp_o) {
+        if (nox > model$params$nOcomp) {
             warning("Number of Y-orthogonal components to use is higher than in model.
               Setting number of Y-orthogonal to max in model.")
-            nox <- model$params$ncomp_o
+            nox <- model$params$nOcomp
         }
     } else stop('Number of Y-orthogonal components to use is missing.')
     if (is.null(rescaleY)) rescaleY <- 0
@@ -77,16 +77,16 @@ koplsPredict <- function(KteTr, Ktest, Ktrain,
             Ktest
 
     KteTedeflate <- matrix(data = list(NULL), 
-                           nrow = model$params$ncomp_o + 1, 
-                           ncol = model$params$ncomp_o + 1)
+                           nrow = model$params$nOcomp + 1, 
+                           ncol = model$params$nOcomp + 1)
     KteTedeflate[1,1][[1]] <- KteTepreproc
     
     KteTrpreproc <- if (model$params$preProcK == "mc") 
         koplsCenterKTeTr(KteTr = KteTr, KtrTr = Ktrain) else 
             KteTr
     KteTrdeflate <- matrix(data = list(NULL), 
-                           nrow = model$params$ncomp_o + 1, 
-                           ncol = model$params$ncomp_o + 1)
+                           nrow = model$params$nOcomp + 1, 
+                           ncol = model$params$nOcomp + 1)
     KteTrdeflate[1,1][[1]] <- KteTrpreproc
 
     # Initialize variables

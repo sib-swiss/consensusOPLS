@@ -63,7 +63,7 @@ RVConsensusOPLSPerm <- function(data,
             Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), , drop=F]
         
         # Redo the Consensus OPLS-DA with RV coefficients weighting
-        modelCV <- RVConsensusOPLS(data = data, Y = Ys, A = maxPcomp, 
+        modelCV <- RVConsensusOPLS(data = data, Y = Ys, maxPcomp = maxPcomp, 
                                    maxOcomp = maxOcomp, nfold = nfold,
                                    cvType = cvType, modelType = modelType, 
                                    mc.cores = 1,
@@ -73,7 +73,7 @@ RVConsensusOPLSPerm <- function(data,
         return (list(Ys=Ys,
                      modelCV=modelCV,
                      VIP=VIP)
-                )
+        )
     })
     PermRes$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + maxPcomp

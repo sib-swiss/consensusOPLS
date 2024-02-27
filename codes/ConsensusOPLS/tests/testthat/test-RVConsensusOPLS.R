@@ -47,7 +47,7 @@ test_that("RVConsensusOPLS", {
                 c(-0.707106781186547, 0.707106781186547), tolerance=1e-6)
     
     ## params
-    expect_equal(rvcopls$Model$params$ncomp_o, c(1))
+    expect_equal(rvcopls$Model$params$nOcomp, c(1))
     
     ## Tp
     expect_equal(rvcopls$Model$Tp[[1]][1:3],

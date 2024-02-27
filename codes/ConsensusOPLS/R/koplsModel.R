@@ -222,8 +222,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     }
     
     # Group parameters in data.frame
-    params <- data.frame("ncomp_p"  = A,
-                         "ncomp_o"  = nox, 
+    params <- data.frame("nPcomp"  = A,
+                         "nOcomp"   = nox, 
                          "sstot_K"  = sstot_K,
                          "sstot_Y"  = sstot_Y,
                          "preProcK" = preProcK, 
@@ -231,8 +231,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                          "class"    = "kopls")
     
     return (list("params"   = params,
-                 "scores_p" = Tp[[nox+1]],
-                 "scores_o" = To,
+                 "scoresP"  = Tp[[nox+1]],
+                 "scoresO"  = To,
                  "Cp"       = Cp,
                  "Sp"       = Sp,
                  "Sps"      = Sps,

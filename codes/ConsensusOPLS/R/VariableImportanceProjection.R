@@ -1,11 +1,12 @@
 #' @title MBVIP
 #' @description Calculate the VIP (Variable Importance in Projection) for each variable of a 
-#' Consensus-OPLS model.
+#' ConsensusOPLS model.
 #' 
 #' @param data The collection list containing each block of data.
 #' @param Y matrix. The response matrix to predict.
-#' @param model A consensusOPLS model. Default, NULL, the model will be built.
+#' @param model An RVconsensusOPLS model. Default, NULL, the model will be built.
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
+#' @param ... arguments to pass to \code{RVConsensusOPLS}
 #'
 #' @return A table with the results:
 #' \code{VIP} = sqrt(p*q/s), with:
@@ -14,42 +15,42 @@
 #' \code{s} is the total Y variance explained by the model
 #'
 #' @examples
-#' MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'       Y=demo_3_Omics$Y)
+#' mbvip <- MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#'                Y=demo_3_Omics$Y)
 #' @export
 #' 
-MBVIP <- function(data, Y, model = NULL, mc.cores = 1) {
+MBVIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
-  
+    
     # Build a model from given data if model is NULL
     if (is.null(model)) {
-        model <- RVConsensusOPLS(data=data, Y=Y, modelType="da", A=1)
+        model <- RVConsensusOPLS(data=data, Y=Y, ...)
     }
     if (!is.list(model)) stop("model is not a list.")
-
+    
     VIP <- mclapply(1:length(data), mc.cores=mc.cores, function(itable) {
         # Dimensions of the data in the data
         nvariable <- ncol(data[[itable]])
-        nsample   <- nrow(model$Model$scores_p)
-        ncomp     <- ncol(model$Model$scores_p)
-
-        Qs <- crossprod(Y, model$Model$scores_p) %*% diag(1/diag(crossprod(model$Model$scores_p)), 
-                                                   ncol=ncomp) #nclass x ncomp
+        nsample   <- nrow(model$Model$scoresP)
+        ncomp     <- ncol(model$Model$scoresP)
+        
+        Qs <- crossprod(Y, model$Model$scoresP) %*% diag(1/diag(crossprod(model$Model$scoresP)), 
+                                                          ncol=ncomp) #nclass x ncomp
         Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)), 
                                            ncol=ncomp) #nsample x ncomp
         Ws <- crossprod(data[[itable]], Us) %*% diag(1/diag(crossprod(Us)), 
                                                      ncol=ncomp) #nvariable x ncomp
         Ws <- apply(Ws, 2, function(x) x/norm(x, type='2'))
-        s <- diag(crossprod(model$Model$scores_p) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
-    
+        s <- diag(crossprod(model$Model$scoresP) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
+        
         VIP.itable <- apply(Ws, 1, function(x) {
             q <- crossprod(s, x^2)
             return (sqrt(nvariable * q / sum(s)))
         })
         return (VIP.itable)
     })
-
+    
     return (VIP)
 }

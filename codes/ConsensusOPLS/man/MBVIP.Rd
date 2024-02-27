@@ -4,16 +4,18 @@
 \alias{MBVIP}
 \title{MBVIP}
 \usage{
-MBVIP(data, Y, model = NULL, mc.cores = 1)
+MBVIP(data, Y, model = NULL, mc.cores = 1, ...)
 }
 \arguments{
 \item{data}{The collection list containing each block of data.}
 
 \item{Y}{matrix. The response matrix to predict.}
 
-\item{model}{A consensusOPLS model. Default, NULL, the model will be built.}
+\item{model}{An RVconsensusOPLS model. Default, NULL, the model will be built.}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
+
+\item{...}{arguments to pass to \code{RVConsensusOPLS}}
 }
 \value{
 A table with the results:
@@ -27,6 +29,6 @@ Calculate the VIP (Variable Importance in Projection) for each variable of a
 Consensus-OPLS model.
 }
 \examples{
-MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-      Y=demo_3_Omics$Y)
+mbvip <- MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+               Y=demo_3_Omics$Y)
 }

@@ -7,7 +7,7 @@
 ConsensusOPLSCV(
   K,
   Y,
-  A,
+  maxPcomp,
   maxOcomp,
   nfold,
   cvType,
@@ -26,9 +26,9 @@ details.}
 \item{Y}{matrix. The response matrix (un-centered/scaled). Could be binary 
 (for discriminant analysis) or real-valued (for classical OPLS analysis).}
 
-\item{A}{numeric. The number of Y-predictive components (integer).}
+\item{maxPcomp}{numeric. The number of Y-predictive components.}
 
-\item{maxOcomp}{numeric. The number of Y-orthogonal components (integer).}
+\item{maxOcomp}{numeric. The number of Y-orthogonal components.}
 
 \item{nfold}{numeric. Number of cross-validation rounds (integer).}
 
@@ -128,7 +128,7 @@ analysis:}
      \code{fixed}.}
      \item{args}{ list. Arguments to the function:}
            \item{maxOcomp}{ integer. Number of Y-orthogonal components.}
-           \item{A}{ integer. Number of Y-predictive components.}
+           \item{maxPcomp}{ integer. Number of Y-predictive components.}
 \item{class}{ character. Model class is \code{koplscv}.}
 }
 \description{
