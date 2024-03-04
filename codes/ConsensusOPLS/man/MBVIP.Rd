@@ -26,7 +26,7 @@ A table with the results:
 }
 \description{
 Calculate the VIP (Variable Importance in Projection) for each variable of a 
-Consensus-OPLS model.
+ConsensusOPLS model.
 }
 \examples{
 mbvip <- MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 

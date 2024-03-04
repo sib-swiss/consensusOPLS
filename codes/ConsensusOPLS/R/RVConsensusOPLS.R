@@ -27,7 +27,8 @@
 #' ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
 #'                                 Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
 #' @importFrom parallel mclapply
-#' @keywords internal
+# #' @keywords internal
+#' @export
 #' 
 RVConsensusOPLS <- function(data,
                             Y,
