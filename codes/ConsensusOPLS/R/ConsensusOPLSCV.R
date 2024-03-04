@@ -323,7 +323,7 @@ ConsensusOPLSCV <- function(K, Y,
         for (i in 1:(maxOcomp + 1)) {
             # Predicted class on all samples
             predClass <- koplsMaxClassify(X = YhatDaSave[[i]][[1]])
-            print(YhatDaSave[[i]][[1]])
+            #print(YhatDaSave[[i]][[1]])
             # Calculate sensitivity and specificity
             daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex[[1]]],
                                        predClass = predClass,
