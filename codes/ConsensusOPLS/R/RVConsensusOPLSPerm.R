@@ -16,9 +16,8 @@
 #' @param verbose Logical which indicates whether the user wants to see the 
 #' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
-#' @return 
-#' A list with the two results plots: \code{plot_R2val} for RV vs R2val, 
-#' \code{plot_Q2val} for RV vs Q2val.
+#' @return A list of \code{perms} - optimal consensus OPLS model and permuted models, 
+#' \code{permStats} - permutation statistics and \code{plots} - plots
 #'
 #' @examples
 #' data(demo_3_Omics)
@@ -165,8 +164,8 @@ RVConsensusOPLSPerm <- function(data,
         theme_graphs
     
     return (list("perms" = perms,
-                 "PermRes" = PermRes,
-                 "Plots" = list("R2val" = p1, 
+                 "permStats" = PermRes,
+                 "plots" = list("R2val" = p1, 
                                 "Q2val" = p2,
                                 "R2_and_Q2" = p3,
                                 "R2val_hist" = p4, 

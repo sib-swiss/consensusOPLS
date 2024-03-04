@@ -42,8 +42,8 @@ for regression or \code{da} for discriminant analysis. Default value is
 progress bar printed in the \code{ConsensusOLPSCV} function.}
 }
 \value{
-A list with the two results plots: \code{plot_R2val} for RV vs R2val, 
-\code{plot_Q2val} for RV vs Q2val.
+A list of \code{perms} - optimal consensus OPLS model and permuted models, 
+\code{permStats} - permutation statistics and \code{plots} - plots
 }
 \description{
 Y random permutations for model validity estimation, with leave-on-out CV.
