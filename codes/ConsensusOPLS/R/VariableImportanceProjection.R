@@ -1,49 +1,51 @@
-#' @title MBVIP
-#' @description Calculate the VIP (Variable Importance in Projection) for each variable of a 
-#' ConsensusOPLS model.
+#' @title Variable Importance in Projection
+#' @description Calculate the VIP (Variable Importance in Projection) for each variable 
+#' in a ConsensusOPLS model.
 #' 
-#' @param data The collection list containing each block of data.
-#' @param Y matrix. The response matrix to predict.
-#' @param model An RVconsensusOPLS model. Default, NULL, the model will be built.
+#' @param data A list of data blocks.
+#' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
+#' @param model A ConsensusOPLS model Default, NULL, a model will be constructed.
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
 #' @param ... arguments to pass to \code{RVConsensusOPLS}
 #'
 #' @return A table with the results:
-#' \code{VIP} = sqrt(p*q/s), with:
-#' \code{p} is the number of variables in each block
-#' \code{q} is the explained variance of Y associated to each variable
-#' \code{s} is the total Y variance explained by the model
+#' \code{VIP = sqrt(p*q/s)}, where
+#' \code{p} is the number of variables in each block,
+#' \code{q} the explained variance of Y associated to each variable, and 
+#' \code{s} the total Y variance explained by the model.
 #'
 #' @examples
-#' mbvip <- MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'                Y=demo_3_Omics$Y)
+#' vip <- VIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#'            Y=demo_3_Omics$Y)
+#' str(vip)
 #' @export
 #' 
-MBVIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
+VIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
     
     # Build a model from given data if model is NULL
     if (is.null(model)) {
-        model <- RVConsensusOPLS(data=data, Y=Y, ...)
+        rvcopls <- RVConsensusOPLS(data=data, Y=Y, ...)
+        model <- rvcopls$Model
     }
     if (!is.list(model)) stop("model is not a list.")
     
     VIP <- mclapply(1:length(data), mc.cores=mc.cores, function(itable) {
         # Dimensions of the data in the data
         nvariable <- ncol(data[[itable]])
-        nsample   <- nrow(model$Model$scoresP)
-        ncomp     <- ncol(model$Model$scoresP)
+        nsample   <- nrow(model$scoresP)
+        ncomp     <- ncol(model$scoresP)
         
-        Qs <- crossprod(Y, model$Model$scoresP) %*% diag(1/diag(crossprod(model$Model$scoresP)), 
+        Qs <- crossprod(Y, model$scoresP) %*% diag(1/diag(crossprod(model$scoresP)), 
                                                           ncol=ncomp) #nclass x ncomp
         Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)), 
                                            ncol=ncomp) #nsample x ncomp
         Ws <- crossprod(data[[itable]], Us) %*% diag(1/diag(crossprod(Us)), 
                                                      ncol=ncomp) #nvariable x ncomp
         Ws <- apply(Ws, 2, function(x) x/norm(x, type='2'))
-        s <- diag(crossprod(model$Model$scoresP) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
+        s <- diag(crossprod(model$scoresP) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
         
         VIP.itable <- apply(Ws, 1, function(x) {
             q <- crossprod(s, x^2)

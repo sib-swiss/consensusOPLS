@@ -1,6 +1,6 @@
-test_that("koplsKernel", {
-    VIP <- MBVIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
-                 Y=demo_3_Omics$Y)
+test_that("VIP", {
+    VIP <- VIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+               Y=demo_3_Omics$Y)
     
     ## MetaboData
     expect_equal(VIP[[1]][11:13], 

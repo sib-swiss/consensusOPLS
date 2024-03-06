@@ -10,14 +10,14 @@ test_that("RVConsensusOPLS", {
                                    Y=c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01)),
                                    modelType="reg",
                                    nfold=3)
-    rvcopls.perm <- RVConsensusOPLSPerm(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
-                                        Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
-                                        maxPcomp=1,
-                                        maxOcomp=3,
-                                        nperm=10,
-                                        modelType="reg",
-                                        mc.cores=1,
-                                        nfold=3)
+    rvcopls.perm <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+                                  Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
+                                  maxPcomp=1,
+                                  maxOcomp=3,
+                                  nperm=10,
+                                  modelType="reg",
+                                  mc.cores=1,
+                                  nfold=3)
     
     ## RV
     expect_equal(rvcopls$RV, c(MetaboData=0.770310488895171,

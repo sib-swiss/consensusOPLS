@@ -20,24 +20,24 @@
 #' @param verbose Logical which indicates whether the user wants to see the 
 #' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
-#' @return A consensus OPLS model
+#' @return A consensus OPLS model.
 #'
 #' @examples
 #' data(demo_3_Omics)
-#' ConsensusOPLS::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#' ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
 #'                                 Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
 #' @importFrom parallel mclapply
-# #' @keywords internal
-#' @export
+#' @keywords internal
 #' 
 RVConsensusOPLS <- function(data,
                             Y,
-                            maxPcomp = 1, 
-                            maxOcomp = 5, 
-                            nfold = 3,
-                            cvType = "nfold",
-                            cvFrac = 2/3,
-                            modelType = "da",
+                            maxPcomp = 1,
+                            maxOcomp = 5,
+                            modelType = 'da',
+                            cvType = 'nfold',
+                            nfold = 5,
+                            nMC = 100,
+                            cvFrac = 4/5,
                             mc.cores = 1,
                             verbose = FALSE) {
     # Variable format control
@@ -110,10 +110,19 @@ RVConsensusOPLS <- function(data,
     maxOcomp <- min(c(maxOcomp, nsample, nvar))
     
     # Performs a Kernel-OPLS cross-validation for W_mat
-    modelCV <- ConsensusOPLSCV(K = W_mat, Y = Y, maxPcomp = maxPcomp, maxOcomp = maxOcomp, 
-                               nfold = nfold, cvType = cvType, preProcK = preProcK, 
-                               preProcY = preProcY, cvFrac = cvFrac, 
-                               modelType = modelType, verbose = verbose)
+    modelCV <- ConsensusOPLSCV(K = W_mat,
+                               Y = Y,
+                               maxPcomp = maxPcomp,
+                               maxOcomp = maxOcomp,
+                               modelType = modelType,
+                               cvType = cvType,
+                               nfold = nfold,
+                               nMC = nMC,
+                               cvFrac = cvFrac,
+                               preProcK = preProcK,
+                               preProcY = preProcY,
+                               mc.cores = mc.cores,
+                               verbose = verbose)
     
     Ylarg <- ncol(Y)
     

@@ -3,10 +3,26 @@ Title: To_be_completed
 Version: 0.1
 Authors@R:
   c(person(given = "Celine",
-          family = "Bougel",
-          role = c("aut", "cre"),
-          email = "celine.bougel@laposte.net",
-          comment = c(ORCID = "0000-0002-1598-7827")))
+           family = "Bougel",
+           role = c("aut"),
+           email = "celine.bougel@laposte.net",
+           comment = c(ORCID = "0000-0002-1598-7827")),
+    person(given = "Julien",
+           family = "Boccard",
+           role = c("aut"),
+           email = "julien.boccard@unige.ch",
+           comment = c(ORCID = "0000-0001-5913-9566")),
+    person(given = "Florence",
+           family = "Mehl",
+           role = c("aut"),
+           email = "florence.mehl@sib.swiss",
+           comment = c(ORCID = "0000-0002-9619-1707")),
+    person(given = "Van Du T.",
+           family = "Tran",
+           role = c("aut", "cre"),
+           email = "thuong.tran@sib.swiss",
+           comment = c(ORCID = "0000-0003-2074-5029"))
+          )
 Depends: R (>= 4.0.0)
 Imports: stats, ggplot2, parallel
 Description: To_be_completed.

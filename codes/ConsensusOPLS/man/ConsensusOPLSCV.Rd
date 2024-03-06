@@ -9,14 +9,15 @@ ConsensusOPLSCV(
   Y,
   maxPcomp,
   maxOcomp,
-  nfold,
-  cvType,
+  modelType = "da",
+  cvType = "nfold",
+  nfold = 5,
+  nMC = 100,
+  cvFrac = 4/5,
   preProcK = "no",
   preProcY = "no",
-  cvFrac,
-  modelType = "da",
   mc.cores = 1,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -30,12 +31,19 @@ details.}
 
 \item{maxOcomp}{numeric. The number of Y-orthogonal components.}
 
-\item{nfold}{numeric. Number of cross-validation rounds (integer).}
+\item{modelType}{character. Type of model used for the ConsensusOPLS method. 
+It could be \code{da} for discriminant analysis or \code{reg} for regression. 
+If \code{da} (default), sensitivity and specificity will be calculated.}
 
 \item{cvType}{character. Type of cross-validation used. Either \code{nfold} 
 for n-fold cross-validation, \code{mccv} for Monte Carlo cross-validation or 
 \code{mccvb} for Monte Carlo class-balanced cross-validation. See also 
 \code{koplsCrossValSet} for details.}
+
+\item{nfold}{numeric. Number of cross-validation rounds (integer).}
+
+\item{cvFrac}{numeric. Fraction of observations in the training set during 
+cross-validation.}
 
 \item{preProcK}{character. Pre-processing settings for the kernel matrix. 
 Either \code{mc} for mean-centering or \code{no} for no pre-processing.}
@@ -44,13 +52,6 @@ Either \code{mc} for mean-centering or \code{no} for no pre-processing.}
 for mean-centering, \code{uv} for mean-centering and scaling to unit-variance, 
 \code{pareto} for mean-centering and Pareto-scaling or \code{no} for no 
 mean-centering and no scaling.}
-
-\item{cvFrac}{numeric. Fraction of observations in the training set during 
-cross-validation.}
-
-\item{modelType}{character. Type of model used for the ConsensusOPLS method. 
-It could be \code{da} for discriminant analysis or \code{reg} for regression. 
-If \code{da} (default), sensitivity and specificity will be calculated.}
 
 \item{verbose}{logical. Indicates whether the user wants to see the 
 progress bar printed. If \code{FALSE}, no output will be printed. If 

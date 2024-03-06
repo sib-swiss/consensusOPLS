@@ -108,17 +108,22 @@
 #' @importFrom utils flush.console
 #' @keywords internal 
 #'  
-ConsensusOPLSCV <- function(K, Y, 
-                            maxPcomp, maxOcomp, nfold, 
-                            cvType,
-                            preProcK = "no", preProcY = "no", 
-                            cvFrac, 
-                            modelType = "da", mc.cores = 1, verbose = TRUE){
+ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp, 
+                            modelType = "da", 
+                            cvType = 'nfold',
+                            nfold = 5,
+                            nMC = 100,
+                            cvFrac = 4/5,
+                            preProcK = "no",
+                            preProcY = "no",
+                            mc.cores = 1, 
+                            verbose = FALSE) {
     # ----- Variable format control (part 1)
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.numeric(maxPcomp)) stop("maxPcomp is not numeric.")
     if (!is.numeric(maxOcomp)) stop("maxOcomp is not numeric.")
     if (!is.numeric(nfold)) stop("nfold is not numeric.")
+    if (!is.numeric(nMC)) stop("nfold is not numeric.")
     if (!is.character(cvType)) stop("cvType is not a character.")
     else if(!(cvType %in% c("nfold", "mccv", "mccvb")))
         stop("cvType must be `nfold`, `mccv` or `mccvb`.")
@@ -175,18 +180,20 @@ ConsensusOPLSCV <- function(K, Y,
     
     AllYhat <- c()
 
-    for (icv in 0:nfold) {
+    nrun <- if (cvType=='nfold') nfold else nMC
+        
+    for (icv in 0:nrun) {
         # Update progression bar
         if (verbose) {
             cat("\r", "                                           ", "\r")
-            progress <- round(icv * 100 / nfold, 0)
+            progress <- round(icv * 100 / nrun, 0)
             cat(sprintf("Progression : %.2f%% \r", progress))
             flush.console()
         }
         
         # Set up Cross-Validation
-        cvSet <- koplsCrossValSet(K = K, Y = Y, cvFrac = cvFrac, type = cvType, 
-                                  nfold = nfold, nfoldRound = icv, random.seed = 10403+icv)
+        cvSet <- koplsCrossValSet(K = K, Y = Y, cvFrac = cvFrac, cvType = cvType, 
+                                  nfold = nrun, nfoldRound = icv, random.seed = 10403+icv)
         #TODO: check when nfold > 1, i.e. repeated test samples
         cvTestIndex[[length(cvTestIndex)+1]] <- cvSet$testIndex #rbind(cvTestIndex, cvSet$testIndex)
         cvTrainingIndex[[length(cvTrainingIndex)+1]] <- cvSet$trainingIndex #rbind(cvTrainingIndex, cvSet$trainingIndex)

@@ -13,7 +13,6 @@
 #' @name ConsensusOPLS
 #' @aliases ConsensusOPLS-package ConsensusOPLS
 #' @docType package
-#' @keywords internal
 "_PACKAGE"
 
 ## usethis namespace: start

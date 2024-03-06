@@ -9,10 +9,11 @@ RVConsensusOPLS(
   Y,
   maxPcomp = 1,
   maxOcomp = 5,
-  nfold = 3,
-  cvType = "nfold",
-  cvFrac = 2/3,
   modelType = "da",
+  cvType = "nfold",
+  nfold = 5,
+  nMC = 100,
+  cvFrac = 4/5,
   mc.cores = 1,
   verbose = FALSE
 )
@@ -26,18 +27,18 @@ RVConsensusOPLS(
 
 \item{maxOcomp}{Maximum number of Y-orthogonal components.}
 
-\item{nfold}{Number of cross-validation rounds (integer).}
+\item{modelType}{type of OPLS regression model. Can be defined as \code{reg} 
+for regression or \code{da} for discriminant analysis. Default \code{da}.}
 
 \item{cvType}{Type of cross-validation used. Either \code{nfold} for n-fold
 cross-validation, \code{mccv} for Monte Carlo CV or \code{mccvb} for Monte 
 Carlo class-balanced CV.}
 
+\item{nfold}{Number of cross-validation rounds (integer).}
+
 \item{cvFrac}{numeric. Fraction of observations used in the training set. 
 Default, 2/3. Fraction of data to be used for \code{mccv} and \code{mccvb}
 cross-validation}
-
-\item{modelType}{type of OPLS regression model. Can be defined as \code{reg} 
-for regression or \code{da} for discriminant analysis. Default \code{da}.}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 
@@ -45,7 +46,7 @@ for regression or \code{da} for discriminant analysis. Default \code{da}.}
 progress bar printed in the \code{ConsensusOLPSCV} function.}
 }
 \value{
-A consensus OPLS model
+A consensus OPLS model.
 }
 \description{
 Consensus OPLS-DA with RV coefficients weighting and 
@@ -53,6 +54,7 @@ DQ2 computation for discriminant analysis.
 }
 \examples{
 data(demo_3_Omics)
-ConsensusOPLS::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
                                 Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
 }
+\keyword{internal}

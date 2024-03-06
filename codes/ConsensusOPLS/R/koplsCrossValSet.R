@@ -5,16 +5,16 @@
 #' @param K matrix. Kernel matrix. 
 #' @param Y matrix. Response matrix.
 #' @param cvFrac numeric. Fraction (in percent) of observations used in the 
-#' training set. By default is 2/3.
-#' @param type character. Type of cross-validation wanted. It can be \code{nfold} 
+#' training set. Default, 4/5.
+#' @param cvType character. Type of cross-validation wanted. It can be \code{nfold} 
 #' for n-fold, \code{mccv} for Monte Carlo CV, \code{mccvb} for Monte Carlo 
 #' class-balanced CV. Default is \code{nfold}.
-#' @param nfold numeric. Number of total nfold rounds (if type = \code{nfold}).
-#' @param nfoldRound numeric. Current nfold rounds (if type = \code{nfold}).
+#' @param nfold numeric. Number of total nfold rounds (if cvType = \code{nfold}).
+#' @param nfoldRound numeric. Current nfold rounds (if cvType = \code{nfold}).
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
 #'
 #' @return A list with the following entries:
-#' \item{CV_param}{ data frame. It contains \code{type} a character for the 
+#' \item{CV_param}{ data frame. It contains \code{cvType} a character for the 
 #' Cross-validation type, \code{nfold} the total number of nfold, 
 #' \code{nfoldRound} the current nfold round and \code{class} the object class
 #' wich is \code{crossValSet}.}
@@ -29,44 +29,44 @@
 #' @examples
 #' Y <- matrix(stats::rnorm(n = 28), nrow = 14)
 #' K <- matrix(stats::rnorm(n = 140), nrow = 14)
-#' type <- "nfold"  
+#' cvType <- "nfold"  
 #' cvFrac <- 0.75 
 #' nfold <- 5  
 #' nfoldRound <- 1 
 #' cvs <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
 #'                                          cvFrac = cvFrac,
-#'                                          type = type, nfold = nfold, 
+#'                                          cvType = cvType, nfold = nfold, 
 #'                                          nfoldRound = nfoldRound)
 #' cvs 
 #' 
 #' @keywords internal                         
 #' @importFrom parallel mclapply
 #' 
-koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold", 
+koplsCrossValSet <- function(K, Y, cvFrac = 4/5, cvType = "nfold", 
                              nfold = NA, nfoldRound = NA, mc.cores = 1, 
                              random.seed = 10403) {
     # Variable format control
     if (!is.matrix(K)) stop("K is not a matrix.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
     if (!is.numeric(cvFrac)) stop("cvFrac is not numeric.")
-    if (!is.character(type)) stop("type is not a character.")
-    else if (!(type %in% c("nfold", "mccv", "mccvb")))
-        stop("type must be `nfold`, `mccv` or `mccvb`.")
+    if (!is.character(cvType)) stop("cvType is not a character.")
+    else if (!(cvType %in% c("nfold", "mccv", "mccvb")))
+        stop("cvType must be `nfold`, `mccv` or `mccvb`.")
     if (!is.na(nfold)) {
         if (!is.numeric(nfold)) stop("nfold is not a number.")
-    } else if (type != "nfold")
-        warning("type is not nfold, nfold is not defined (missing argument).")
+    } else if (cvType != "nfold")
+        warning("cvType is not nfold, nfold is not defined (missing argument).")
     
     if (!is.na(nfoldRound)) {
         if (!is.numeric(nfoldRound)) stop("nfoldRound is not a number.")
-    } else if (type != "nfold")
-        warning("type is not nfold, nfoldRound is not defined (missing argument).")
+    } else if (cvType != "nfold")
+        warning("cvType is not nfold, nfoldRound is not defined (missing argument).")
     
     # Set random seed
     set.seed(random.seed)
     
     # Define Monte-Carlos Cross Validation - class Balanced
-    if (type == "mccvb") {
+    if (cvType == "mccvb") {
         # check if Y is dummy or labels
         if (all(unique(x = Y) %in% c(0, 1))) {
             classVect <- koplsReDummy(Y = Y)
@@ -96,7 +96,7 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     }
     
     # Define Monte-Carlos Cross Validation
-    if (type == "mccv") {
+    if (cvType == "mccv") {
         # Divides the sample randomly into train and test
         if (nfoldRound > 0) {
             trainInd <- sample.int(nrow(Y), floor(x = nrow(Y)*cvFrac))
@@ -107,7 +107,7 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     }
 
     # Define N-fold Cross Validation
-    if (type == "nfold") {
+    if (cvType == "nfold") {
         if (nfoldRound > 0) {
             predInd <- seq.int(from=nfoldRound, to=nrow(Y), by=nfold)
             trainInd <- setdiff(1:nrow(Y), predInd)
@@ -128,7 +128,7 @@ koplsCrossValSet <- function(K, Y, cvFrac = 2/3, type = "nfold",
     }
     
     # Group parameters in data.frame
-    CV_param <- data.frame("type" = type,
+    CV_param <- data.frame("cvType" = cvType,
                            "nfold" = nfold,
                            "nfoldRound" = nfoldRound,
                            "class" = "crossValSet")

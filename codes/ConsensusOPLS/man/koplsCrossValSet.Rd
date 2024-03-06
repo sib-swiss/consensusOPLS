@@ -7,8 +7,8 @@
 koplsCrossValSet(
   K,
   Y,
-  cvFrac = 2/3,
-  type = "nfold",
+  cvFrac = 4/5,
+  cvType = "nfold",
   nfold = NA,
   nfoldRound = NA,
   mc.cores = 1,
@@ -21,21 +21,21 @@ koplsCrossValSet(
 \item{Y}{matrix. Response matrix.}
 
 \item{cvFrac}{numeric. Fraction (in percent) of observations used in the 
-training set. By default is 2/3.}
+training set. Default, 4/5.}
 
-\item{type}{character. Type of cross-validation wanted. It can be \code{nfold} 
+\item{cvType}{character. Type of cross-validation wanted. It can be \code{nfold} 
 for n-fold, \code{mccv} for Monte Carlo CV, \code{mccvb} for Monte Carlo 
 class-balanced CV. Default is \code{nfold}.}
 
-\item{nfold}{numeric. Number of total nfold rounds (if type = \code{nfold}).}
+\item{nfold}{numeric. Number of total nfold rounds (if cvType = \code{nfold}).}
 
-\item{nfoldRound}{numeric. Current nfold rounds (if type = \code{nfold}).}
+\item{nfoldRound}{numeric. Current nfold rounds (if cvType = \code{nfold}).}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 }
 \value{
 A list with the following entries:
-\item{CV_param}{ data frame. It contains \code{type} a character for the 
+\item{CV_param}{ data frame. It contains \code{cvType} a character for the 
 Cross-validation type, \code{nfold} the total number of nfold, 
 \code{nfoldRound} the current nfold round and \code{class} the object class
 wich is \code{crossValSet}.}
@@ -54,13 +54,13 @@ Cross-Validation.
 \examples{
 Y <- matrix(stats::rnorm(n = 28), nrow = 14)
 K <- matrix(stats::rnorm(n = 140), nrow = 14)
-type <- "nfold"  
+cvType <- "nfold"  
 cvFrac <- 0.75 
 nfold <- 5  
 nfoldRound <- 1 
 cvs <- ConsensusOPLS:::koplsCrossValSet(K = K, Y = Y, 
                                          cvFrac = cvFrac,
-                                         type = type, nfold = nfold, 
+                                         cvType = cvType, nfold = nfold, 
                                          nfoldRound = nfoldRound)
 cvs 
 
