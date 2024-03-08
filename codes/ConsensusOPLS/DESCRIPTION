@@ -24,7 +24,7 @@ Authors@R:
            comment = c(ORCID = "0000-0003-2074-5029"))
           )
 Depends: R (>= 4.0.0)
-Imports: stats, ggplot2, parallel
+Imports: stats, ggplot2, parallel, reshape2
 Description: To_be_completed.
 License: file LICENSE
 Encoding: UTF-8

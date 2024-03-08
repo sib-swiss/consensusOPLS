@@ -22,9 +22,9 @@ test_that("RVConsensusOPLS", {
                               Y=demo_3_Omics$Y,
                               maxPcomp=1,
                               maxOcomp=3,
-                              nperm=10,
+                              nperm=100,
                               modelType="da",
-                              mc.cores=1,
+                              mc.cores=1, plots=T,
                               nfold=3)
     ## RV
     expect_equal(rvcopls$RV, c(MetaboData=0.770310488895171,

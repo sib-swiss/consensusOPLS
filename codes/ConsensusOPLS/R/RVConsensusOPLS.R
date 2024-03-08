@@ -138,7 +138,7 @@ RVConsensusOPLS <- function(data,
         results <- mclapply(X = 0:maxOcomp, mc.cores = mci, FUN = function(i) {
             mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
                 # For each Y column, perform the DQ2
-                result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j], #TODO: AllYhat is different from that of Matlab from 3rd column.
+                result <- DQ2(Ypred = matrix(data = modelCV$cv$AllYhat[, Ylarg*i+j],
                                              ncol = 1), 
                               Y = Y[unlist(modelCV$cv$cvTestIndex), j, drop=F])
                 return (result)
@@ -245,7 +245,7 @@ RVConsensusOPLS <- function(data,
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
     # Add the scores in the model objects
-    modelCV$Model$scores <- cbind(modelCV$Model$scoresP, modelCV$Model$scoresO)
+    modelCV$Model$scores <- cbind.data.frame(modelCV$Model$scoresP, modelCV$Model$scoresO)
     
     # Return the final model
     return (modelCV)

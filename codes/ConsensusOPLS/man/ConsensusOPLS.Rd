@@ -20,6 +20,7 @@ ConsensusOPLS(
   cvFrac = 4/5,
   kernelParams = list(type = "p", params = c(order = 1)),
   mc.cores = 1,
+  plots = FALSE,
   verbose = FALSE
 )
 }
@@ -54,12 +55,14 @@ used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 
+\item{plots}{A logical indicating if plots are generated. Default: 1.}
+
 \item{verbose}{A logical indicating if the computation progress will be shown. Default, FALSE.}
 }
 \value{
 \code{ConsensusOPLS} returns a list of 
-\item{\code{optModel}}{ optimal consensus OPLS model}
-\item{\code{permModels}}{ models with permuted responses}
+\item{\code{optimal}}{ optimal consensus OPLS model}
+\item{\code{permuted}}{ models with permuted responses}
 \item{\code{permStats}}{ permutation statistics}
 \item{\code{plots}}{ plots}
 }
