@@ -53,6 +53,7 @@ VIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
         })
         return (VIP.itable)
     })
-    
+    names(VIP) <- names(data)
+
     return (VIP)
 }
