@@ -99,18 +99,18 @@ ConsensusOPLS <- function(data,
     permStats$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$nOcompOpt + maxPcomp
     }))
-    permStats$R2val  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$R2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         utils::tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
     }))
-    permStats$DQ2val <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$DQ2Yhat <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[permStats$lvnum[i]]
     }))
-    permStats$Q2val  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$Q2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$modelCV$cv$Q2Yhat[permStats$lvnum[i]]
     }))
-    permStats$PredAc <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
-        perms[[i]]$modelCV$da$tot_sens[2]
-    }))
+    # permStats$PredAc <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #     perms[[i]]$modelCV$da$tot_sens[2]
+    # }))
     permStats$Y      <- mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         perms[[i]]$Ys
     })
@@ -122,10 +122,10 @@ ConsensusOPLS <- function(data,
     permStats_df <- data.frame(
         "RV" = c(permStats$RV, 
                  permStats$RV),
-        "Values" = c(permStats$R2val, 
-                     permStats$Q2val),
-        "Type" = c(rep("RV", times = length(permStats$R2val)),
-                   rep("Q2", times = length(permStats$Q2val)))
+        "Values" = c(permStats$R2Yhat, 
+                     permStats$Q2Yhat),
+        "Type" = c(rep("R2", times = length(permStats$R2Yhat)),
+                   rep("Q2", times = length(permStats$Q2Yhat)))
     )
     
     theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
@@ -160,7 +160,7 @@ ConsensusOPLS <- function(data,
         theme_graphs
     
     # Histograms
-    p4 <- ggplot2::ggplot(data = permStats_df[which(permStats_df$Type == "RV"), ],
+    p4 <- ggplot2::ggplot(data = permStats_df[which(permStats_df$Type == "R2"), ],
                           aes(x = Values)) +
         ggplot2::geom_histogram(color="black", fill="white") +
         ggplot2::geom_density(alpha=.2) +
@@ -189,10 +189,10 @@ ConsensusOPLS <- function(data,
         optimal = perms[[1]],
         permuted = perms[-1],
         permStats = permStats,
-        plots = list("R2val" = p1, 
-                     "Q2val" = p2,
+        plots = list("R2Yhat" = p1, 
+                     "Q2Yhat" = p2,
                      "R2_and_Q2" = p3,
-                     "R2val_hist" = p4, 
-                     "Q2val_hist" = p5,
+                     "R2Yhat_hist" = p4, 
+                     "Q2Yhat_hist" = p5,
                      "R2_and_Q2_hist" = p6)))
 }
