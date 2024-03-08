@@ -18,6 +18,7 @@ ConsensusOPLS(
   nfold = 5,
   nMC = 100,
   cvFrac = 4/5,
+  kernelParams = list(type = "p", params = c(order = 1)),
   mc.cores = 1,
   verbose = FALSE
 )
@@ -48,6 +49,8 @@ Default, 100.}
 
 \item{cvFrac}{A numeric value indicating the fraction of observations from \code{data} 
 used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.}
+
+\item{kernelParams}{List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 

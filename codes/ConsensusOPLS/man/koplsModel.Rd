@@ -67,7 +67,7 @@ by the parameter 'nox').
 }
 \examples{
 K <- ConsensusOPLS:::koplsKernel(X1 = demo_3_Omics[["MetaboData"]], 
-                                 X2 = NULL, Ktype='p', params=c(order=1.0))
+                                 X2 = NULL, type='p', params=c(order=1.0))
 Y <- demo_3_Omics$Y
 A <- 2
 nox <- 4

@@ -17,6 +17,7 @@
 #' @param modelType type of OPLS regression model. Can be defined as \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default \code{da}.
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
+#' @param kernelParams List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).
 #' @param verbose Logical which indicates whether the user wants to see the 
 #' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
@@ -38,6 +39,7 @@ RVConsensusOPLS <- function(data,
                             nfold = 5,
                             nMC = 100,
                             cvFrac = 4/5,
+                            kernelParams = list(type='p', params = c(order=1.0)),
                             mc.cores = 1,
                             verbose = FALSE) {
     # Variable format control
@@ -86,7 +88,8 @@ RVConsensusOPLS <- function(data,
     # For each data block
     RA <- mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
         # Produce the kernel of the data block
-        tmp <- koplsKernel(X1 = data[[i]], X2 = NULL, Ktype = 'p', params = c(order=1))
+        tmp <- koplsKernel(X1 = data[[i]], X2 = NULL, 
+                           type = kernelParams$type, params = kernelParams$params)
         # Frobenius norm of the kernel
         xnorm <- norm(x=tmp, type='F')
         # Normalize the Kernel
@@ -165,7 +168,7 @@ RVConsensusOPLS <- function(data,
         # Add DQ2 in the model objects
         modelCV$cv$DQ2Yhat <- dq2 
         # Add optimal number of orthogonal components in the model objects
-        modelCV$cv$OrthoLVsOptimalNum <- index - maxPcomp
+        modelCV$cv$nOcompOpt <- index - maxPcomp
         
     } else { # if modelType == "reg"
         index <- maxPcomp + 1
@@ -176,19 +179,18 @@ RVConsensusOPLS <- function(data,
             index <- index + 1
         }
         # Add optimal number of orthogonal components in the model objects
-        modelCV$cv$OrthoLVsOptimalNum <- index - maxPcomp
+        modelCV$cv$nOcompOpt <- index - maxPcomp
     }
     
     # Simplifies the name to be used afterwards
-    OrthoLVsNum <- modelCV$cv$OrthoLVsOptimalNum
-    # print("debug************************")
-    # print(OrthoLVsNum)
-    # Recompute the optimal model using OrthoLVsNum parameters
-    modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = maxPcomp, nox = OrthoLVsNum, 
+    nOcompOpt <- modelCV$cv$nOcompOpt
+
+    # Recompute the optimal model using nOcompOpt parameters
+    modelCV$Model <- koplsModel(K = W_mat, Y = Y, A = maxPcomp, nox = nOcompOpt, 
                                 preProcK = preProcK, preProcY = preProcY)
     
     # Adjust Yhat to the selected model size
-    #modelCV$cv$Yhat <- modelCV$cv$AllYhat[, Ylarg*OrthoLVsNum + 1:Ylarg, drop=F]
+    #modelCV$cv$Yhat <- modelCV$cv$AllYhat[, Ylarg*nOcompOpt + 1:Ylarg, drop=F]
 
     # Compute the blocks contributions for the selected model
     lambda <- cbind(do.call(rbind,
@@ -200,21 +202,18 @@ RVConsensusOPLS <- function(data,
                                      })),
                     do.call(rbind,
                             mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(j) {
-                                diag(crossprod(x = modelCV$Model$scoresO[, 1:OrthoLVsNum], 
+                                diag(crossprod(x = modelCV$Model$scoresO[, 1:nOcompOpt], 
                                                y = crossprod(x = t(AMat[[j]]), 
-                                                             y = modelCV$Model$scoresO[, 1:OrthoLVsNum])))
+                                                             y = modelCV$Model$scoresO[, 1:nOcompOpt])))
                             })))
     rownames(lambda) <- names(data)
-    colnames(lambda) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:OrthoLVsNum))
+    colnames(lambda) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:nOcompOpt))
     
     # Stores raw lambda coefficient values in the model object
-    modelCV$Model$lambda_raw <- lambda 
+    modelCV$Model$lambda <- lambda
     
-    # Normalize the lambda coefficients
-    lambda <- sweep(x = lambda, MARGIN = 2, STATS = colSums(lambda), FUN = '/')
-    
-    # Stores normalized lambda values in the model object
-    modelCV$Model$lambda <- lambda 
+    # Contribution of each block as normalized lambda values
+    modelCV$Model$blockContribution <- sweep(x = lambda, MARGIN = 2, STATS = colSums(lambda), FUN = '/') 
     
     # Compute the loadings for the selected model size
     loadings.list <- list( 
@@ -227,14 +226,14 @@ RVConsensusOPLS <- function(data,
         }),
         mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             loi <- tcrossprod(crossprod(x = data[[i]],
-                                        y = modelCV$Model$scoresO[, 1:OrthoLVsNum, drop=F]),
-                              diag(diag(crossprod(modelCV$Model$scoresO[, 1:OrthoLVsNum, drop=F]))^(-1), ncol=OrthoLVsNum))
-            colnames(loi) <- paste0("o", 1:OrthoLVsNum)
+                                        y = modelCV$Model$scoresO[, 1:nOcompOpt, drop=F]),
+                              diag(diag(crossprod(modelCV$Model$scoresO[, 1:nOcompOpt, drop=F]))^(-1), ncol=nOcompOpt))
+            colnames(loi) <- paste0("o", 1:nOcompOpt)
             return (loi)
         }))
     loadings <- mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) { 
         li <- cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
-        colnames(li) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:OrthoLVsNum))
+        colnames(li) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:nOcompOpt))
         return (li)
     })
     names(loadings) <- names(data)
@@ -242,7 +241,7 @@ RVConsensusOPLS <- function(data,
     # Add RV coefficients in the model objects
     modelCV$RV <- unlist(RV)
     # Add normalized kernels in the model objects
-    modelCV$AMat <- AMat  
+    modelCV$normKernels <- AMat  
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
     # Add the scores in the model objects

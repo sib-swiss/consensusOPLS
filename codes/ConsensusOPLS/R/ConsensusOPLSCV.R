@@ -285,6 +285,7 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         flush.console()
     }
     
+    if (F){
     if (modelType == "da") {
         ## CV DA metrics
         daMetrics_list <- list()
@@ -380,7 +381,7 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         }
         modelMain$reg <- Metrics_list
     }
-   
+    }
     modelMain$Model <- koplsModel(K = K, Y = Y, A = maxPcomp, nox = maxOcomp, 
                                   preProcK = preProcK, preProcY = preProcY)
 
@@ -390,10 +391,11 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
     #modelMain$cv$Tcv     <- modelMain$cv$Yhat %*% modelMain$Model$Cp %*% modelMain$Model$Bt[[maxOcomp + 1]] #TODO: why Bt[[maxOcomp + 1]]?
     modelMain$cv$Q2Yhat     <- 1 - pressyTot/ssyTot
     #modelMain$cv$Q2YhatVars <- 1 - pressyVarsTot/ssyVarsTot
-    modelMain$cv$cvTestIndex     <- cvTestIndex[-1]
-    modelMain$cv$cvTrainingIndex <- cvTrainingIndex[-1]
     
-    modelMain$class <- "koplscv"
+    modelMain$cv$cvTestIndex     <- cvTestIndex[-1]
+    #modelMain$cv$cvTrainingIndex <- cvTrainingIndex[-1]
+    
+    #modelMain$class <- "koplscv"
     
     return (modelMain)
 }

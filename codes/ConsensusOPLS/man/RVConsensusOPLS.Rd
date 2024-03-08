@@ -14,6 +14,7 @@ RVConsensusOPLS(
   nfold = 5,
   nMC = 100,
   cvFrac = 4/5,
+  kernelParams = list(type = "p", params = c(order = 1)),
   mc.cores = 1,
   verbose = FALSE
 )
@@ -39,6 +40,8 @@ Carlo class-balanced CV.}
 \item{cvFrac}{numeric. Fraction of observations used in the training set. 
 Default, 2/3. Fraction of data to be used for \code{mccv} and \code{mccvb}
 cross-validation}
+
+\item{kernelParams}{List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 

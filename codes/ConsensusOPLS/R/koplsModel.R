@@ -52,7 +52,7 @@
 #'
 #' @examples
 #' K <- ConsensusOPLS:::koplsKernel(X1 = demo_3_Omics[["MetaboData"]], 
-#'                                  X2 = NULL, Ktype='p', params=c(order=1.0))
+#'                                  X2 = NULL, type='p', params=c(order=1.0))
 #' Y <- demo_3_Omics$Y
 #' A <- 2
 #' nox <- 4
@@ -222,13 +222,13 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     }
     
     # Group parameters in data.frame
-    params <- data.frame("nPcomp"  = A,
-                         "nOcomp"   = nox, 
-                         "sstot_K"  = sstot_K,
-                         "sstot_Y"  = sstot_Y,
-                         "preProcK" = preProcK, 
-                         "preProcY" = preProcY, 
-                         "class"    = "kopls")
+    params <- list("nPcomp"  = A,
+                   "nOcomp"   = nox, 
+                   "sstot_K"  = sstot_K,
+                   "sstot_Y"  = sstot_Y,
+                   "preProcK" = preProcK, 
+                   "preProcY" = preProcY, 
+                   "class"    = "kopls")
     
     return (list("params"   = params,
                  "scoresP"  = Tp[[nox+1]],

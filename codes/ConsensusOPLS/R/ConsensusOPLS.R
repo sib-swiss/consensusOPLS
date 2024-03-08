@@ -21,6 +21,7 @@
 #' @param cvFrac A numeric value indicating the fraction of observations from \code{data} 
 #' used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
+#' @param kernelParams List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).
 #' @param verbose A logical indicating if the computation progress will be shown. Default, FALSE.
 #'
 #' @return \code{ConsensusOPLS} returns a list of 
@@ -51,6 +52,7 @@ ConsensusOPLS <- function(data,
                           nfold = 5,
                           nMC = 100,
                           cvFrac = 4/5,
+                          kernelParams = list(type='p', params = c(order=1.0)),
                           mc.cores = 1,
                           verbose = FALSE) {
     # Variable format control
@@ -85,6 +87,7 @@ ConsensusOPLS <- function(data,
                                    nMC = nMC,
                                    cvFrac = cvFrac,
                                    mc.cores = 1,
+                                   kernelParams = kernelParams,
                                    verbose = verbose)
         VIP <- VIP(data = data, Y = Ys, model=modelCV$Model)
         
@@ -94,7 +97,7 @@ ConsensusOPLS <- function(data,
         )
     })
     permStats$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
-        perms[[i]]$modelCV$cv$OrthoLVsOptimalNum + maxPcomp
+        perms[[i]]$modelCV$cv$nOcompOpt + maxPcomp
     }))
     permStats$R2val  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
         utils::tail(perms[[i]]$modelCV$Model$R2Yhat, 1)

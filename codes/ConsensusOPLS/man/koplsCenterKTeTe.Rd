@@ -29,11 +29,11 @@ values.
 Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
 Xtr <- matrix(data = stats::rnorm(n = 25), ncol=5)
 KteTe <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xte, 
-                                     Ktype='p', params=c(order=1.0))
+                                     type='p', params=c(order=1.0))
 KteTr <- ConsensusOPLS:::koplsKernel(X1 = Xte, X2 = Xtr, 
-                                     Ktype='p', params=c(order=1.0))
+                                     type='p', params=c(order=1.0))
 KtrTr <- ConsensusOPLS:::koplsKernel(X1 = Xtr, X2 = Xtr, 
-                                     Ktype='p', params=c(order=1.0))
+                                     type='p', params=c(order=1.0))
 ConsensusOPLS:::koplsCenterKTeTe(KteTe = KteTe, 
                                  KteTr = KteTr, 
                                  KtrTr = KtrTr)

@@ -10,24 +10,31 @@ test_that("RVConsensusOPLS", {
                                    Y=c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01)),
                                    modelType="reg",
                                    nfold=3)
-    rvcopls.perm <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
-                                  Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
-                                  maxPcomp=1,
-                                  maxOcomp=3,
-                                  nperm=10,
-                                  modelType="reg",
-                                  mc.cores=1,
-                                  nfold=3)
-    
+    copls.reg <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+                               Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
+                               maxPcomp=1,
+                               maxOcomp=3,
+                               nperm=10,
+                               modelType="reg",
+                               mc.cores=1,
+                               nfold=3)
+    copls.da <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
+                              Y=demo_3_Omics$Y,
+                              maxPcomp=1,
+                              maxOcomp=3,
+                              nperm=10,
+                              modelType="da",
+                              mc.cores=1,
+                              nfold=3)
     ## RV
     expect_equal(rvcopls$RV, c(MetaboData=0.770310488895171,
                                MicroData=0.835375809822633,
                                ProteoData=0.74971449858494), tolerance=1e-6)
     
-    ## Amat
-    expect_equal(rvcopls$AMat[[1]][1,2],  c(0.0328819715926973), tolerance=1e-6)
-    expect_equal(rvcopls$AMat[[2]][7,7],  c(0.104945253831102),  tolerance=1e-6)
-    expect_equal(rvcopls$AMat[[3]][9,11], c(0.121529241109287),  tolerance=1e-6)
+    ## normKernels
+    expect_equal(rvcopls$normKernels[[1]][1,2],  c(0.0328819715926973), tolerance=1e-6)
+    expect_equal(rvcopls$normKernels[[2]][7,7],  c(0.104945253831102),  tolerance=1e-6)
+    expect_equal(rvcopls$normKernels[[3]][9,11], c(0.121529241109287),  tolerance=1e-6)
     
     #### Optimal model
     ## Kpreproc

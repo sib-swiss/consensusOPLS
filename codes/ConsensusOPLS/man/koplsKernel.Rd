@@ -4,7 +4,7 @@
 \alias{koplsKernel}
 \title{koplsKernel}
 \usage{
-koplsKernel(X1, X2 = NULL, Ktype = "p", params = c(order = 1))
+koplsKernel(X1, X2 = NULL, type = "p", params = c(order = 1))
 }
 \arguments{
 \item{X1}{matrix. The first X matrix (non-centered). This is the left side in 
@@ -16,7 +16,7 @@ be used for the calculations. This way, only (n^2 - n)/2 instead of n^2
 calculations have to be performed, which is typically much faster. Only 
 applicable for pure training or testing kernels.}
 
-\item{Ktype}{character. Indicates the type of kernel used. Supported entries 
+\item{type}{character. Indicates the type of kernel used. Supported entries 
 are \code{g} for Gaussian kernel, and \code{p} for Polynomial kernel.}
 
 \item{params}{vector. It contains parameter for the kernel function. 
@@ -25,13 +25,13 @@ property of the parameters is for future compatibility.}
 }
 \value{
 The kernel matrix transformed by the kernel function specified by 
-\code{Ktype}.
+\code{type}.
 }
 \description{
 This function constructs a kernel matrix \code{K = <phi(X1), phi(X2)>}.
 The kernel function \code{phi} determines how the data is transformed and
-is passed as the separate parameter \code{Ktype} to the function.
-Currently \code{Ktype} can be either \code{g} for Gaussian or \code{p} for
+is passed as the separate parameter \code{type} to the function.
+Currently \code{type} can be either \code{g} for Gaussian or \code{p} for
 polynomial.
 }
 \examples{
@@ -41,7 +41,7 @@ X2 <- base::matrix(stats::rnorm(n = 24), nrow = 6)
 # Polynomial example
 params_polynomial <- c(order=2)  # Polynomial kernel order
 kernel_polynomial <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
-                                                 Ktype = 'p', params=params_polynomial)
+                                                 type = 'p', params=params_polynomial)
 kernel_polynomial
 
 }
