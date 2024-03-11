@@ -15,14 +15,15 @@
 #' where \code{nfold} is look up, or `mccv` for Monte Carlo CV, or `mccvb` 
 #' for Monte Carlo class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
 #' Default, `nfold`.
-#' @param nfold Number of folds performed in n-fold cross-validation. Default, 5.
+#' @param nfold Number of folds performed in n-fold cross-validation. This can be set to the number
+#' of samples to perform Leave-One-Out cross validation. Default, 5.
 #' @param nMC An integer indicating the number of rounds performed when cvType is `mccv` or `mccvb`.
 #' Default, 100.
 #' @param cvFrac A numeric value indicating the fraction of observations from \code{data} 
 #' used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.
 #' @param kernelParams List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
-#' @param plots A logical indicating if plots are generated. Default: 1.
+#' @param plots A logical indicating if plots are generated. Default: FALSE.
 #' @param verbose A logical indicating if the computation progress will be shown. Default, FALSE.
 #'
 #' @return \code{ConsensusOPLS} returns a list of 
@@ -288,6 +289,7 @@ ConsensusOPLS <- function(data,
         plots = if (!plots) NULL else list(contribution = p_contribution,
                                            scores       = p_scores,
                                            loadings     = p_loadings,
+                                           VIP          = p_vip,
                                            Q2           = p_q2,
                                            DQ2          = if (modelType=='da') p_dq2 else NULL,
                                            R2           = p_r2)))

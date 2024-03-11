@@ -31,6 +31,26 @@ test_that("RVConsensusOPLS", {
                                MicroData=0.835375809822633,
                                ProteoData=0.74971449858494), tolerance=1e-6)
     
+    ## lambda
+    expect_equal(rvcopls$Model$lambda[,1], 
+                 c(MetaboData=0.0455910270422634,
+                   MicroData=0.00474677906005336,
+                   ProteoData=0.00357785429350788), tolerance=1e-6)
+    expect_equal(rvcopls$Model$lambda[,2], 
+                 c(MetaboData=0.236514988519443,
+                   MicroData=0.0231772225562188,
+                   ProteoData=0.153126721989076), tolerance=1e-6)
+    
+    ## blockContribution
+    expect_equal(rvcopls$Model$blockContribution[,1], 
+                 c(MetaboData=0.84559897268353,
+                   MicroData=0.0880408220024505,
+                   ProteoData=0.0663602053140197), tolerance=1e-6)
+    expect_equal(rvcopls$Model$blockContribution[,2], 
+                 c(MetaboData=0.572926698791582,
+                   MicroData=0.0561437974371785,
+                   ProteoData=0.37092950377124), tolerance=1e-6)
+    
     ## normKernels
     expect_equal(rvcopls$normKernels[[1]][1,2],  c(0.0328819715926973), tolerance=1e-6)
     expect_equal(rvcopls$normKernels[[2]][7,7],  c(0.104945253831102),  tolerance=1e-6)
