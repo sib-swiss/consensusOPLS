@@ -35,20 +35,22 @@ The `ConsensusOPLS` R package implements the translated `Matlab` version of the
 **Consensus OPLS(-DA)** approach [@BOCCARD2013] (available at [Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)), with the 
 kernel-based reformulations of the **NIPALS** algorithm [@LINDGREN1993]. The 
 kernel reformulation of the OPLS algorithm was proposed to extend its 
-applicability to non-linear relationships. The ConsensusOPLS R package includes 
+applicability to non-linear relationships. The `ConsensusOPLS` R package includes 
 updated codes from the `KOPLS` R package: codes translated from the 
 `Matlab` version  were then compared and corrected, if necessary, according to 
 the package source codes [@BYLESJO2008] (available at [Github repository](https://github.com/sdechaumet/ramopls/tree/master/inst/package)).
 
 The original method was improved during translation. Among other things, 
 parallelization have been implemented, mathematical formulas have been 
-generalized for application to different practical cases, and p-values have 
-been added. This vignette highlights these changes as the code is executed.
+generalized for application to different practical cases, and a single function 
+has been created so that the user can execute the entire method (with an option 
+if he doesn't want to use permutation). This vignette highlights these changes 
+as the code is executed.
 
 The current package includes some quality metrics for the optimal model, as 
 **R2**, **Q2**, **DQ2** [@WESTERHUIS2008], the permutation **diagnostics** 
 [@SZYMANSKA2012], the computation of the **VIP values** [@WOLD2001], as 
-well as many graphics (scores plot, block contributions, loadings, permutations, 
+well as many graphics (scores plot, block contributions, loading, permutations, 
 etc.).
 
 
@@ -149,7 +151,7 @@ To execute the `ConsensusOPLS` method, the user must load the `ConsensusOPLS` R
 package using:
 
 ```{r load_ConsensusOPLS_package}
-# Import le 04/03/2024 at 20h45
+# Import le 11/03/2024 at 20h04
 #devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
 library(ConsensusOPLS)
 ```
@@ -203,7 +205,7 @@ proposed below, so as not to encounter any errors when using the method:
 # Number of data blocks
 nbrBlocs <- length(demo_data$BlockNames)
 
-
+# Construction collection of data
 demo_3_Omics <- 
   lapply(X = 1:nbrBlocs, # For all data blocks
          FUN = function(X){
@@ -259,6 +261,7 @@ dims <- lapply(X = 1:length(demo_3_Omics),
 names(dims) <- demo_data$BlockNames
 dims
 
+# Remove unuseful object for the next steps
 rm(dims)
 ```
 
@@ -390,6 +393,10 @@ According to previous results, the scales of the variables in the data blocks
 are highly variable. So, the data needs to be standardized.
 
 ```{r scale_data, class.source='fold-hide'}
+# Save not scaled data
+demo_3_Omics_not_scaled <- demo_3_Omics
+
+# Scaling data
 demo_3_Omics[1:nbrBlocs] <- 
   lapply(X = 1:nbrBlocs, 
          FUN = function(X){base::scale(demo_3_Omics[X][[1]], 
@@ -399,7 +406,12 @@ demo_3_Omics[1:nbrBlocs] <-
 
 ## Heatmap and density plots
 
-```{r heatmap, message = FALSE, class.source='fold-hide'}
+Heat maps can be used to compare results before and after scaling. Here, the 
+interest factor is categorical, so it was interesting to create a heat map for 
+each of these groups. The function used to create the heat map is based on the 
+following code (code hidden).
+ 
+```{r heatmap_function, message = FALSE, class.source='fold-hide'}
 heatmap_data <- function(data, bloc_name, factor = NULL){
   if(!is.null(factor)){
     ht <- ComplexHeatmap::Heatmap(
@@ -421,8 +433,24 @@ heatmap_data <- function(data, bloc_name, factor = NULL){
   }
   return(ht)
 }
+```
 
-# Heatmap for each data bloc
+Let's apply this function to the demo data:
+
+```{r heatmap_no_scale, message = FALSE, class.source='fold-hide'}
+# Heat map for each data block
+lapply(X = 1:nbrBlocs,
+       FUN = function(X){
+         bloc <- demo_data$BlockNames[X]
+         heatmap_data(data = demo_3_Omics_not_scaled[[bloc]],
+                      bloc_name = bloc,
+                      factor = demo_3_Omics_not_scaled$Y[,1])})
+```
+
+And on the scaled data:
+
+```{r heatmap_scale, message = FALSE, class.source='fold-hide'}
+# Heat map for each data block
 lapply(X = 1:nbrBlocs,
        FUN = function(X){
          bloc <- demo_data$BlockNames[X]
@@ -431,9 +459,15 @@ lapply(X = 1:nbrBlocs,
                       factor = demo_3_Omics$Y[,1])})
 ```
 
-The profiles seem to differ according to the Y response variable.
+By comparing these graphs, several observations can be made. To begin with, the 
+unscaled data had a weak signal for the proteomics and transcriptomics blocks. 
+The metabolomics block seemed to contain a relatively usable signal as it stood. 
+These graphs therefore confirm that it was wise to perform this transformation 
+prior to the analyses. And secondly, the profiles seem to differ according to 
+the Y response variable.
 
-In the same way, the user can visualize density distribution using a heat map:
+In the same way, the user can visualize density distribution using a heat map
+(here on scaled data):
 
 ```{r heatmap_density, class.source='fold-hide'}
 # Heatmap with density for each data bloc
@@ -450,6 +484,11 @@ lapply(X = 1:nbrBlocs,
 In the light of these graphs, it would appear that the Y = 0 data is denser 
 than the Y = 1 data. This means that the discriminant model (DA) should be able 
 to detect the signal contained in this data.
+
+```{r rm_unscale_data, class.source='fold-hide'}
+# Remove unscaled data
+rm(demo_3_Omics_not_scaled)
+```
 
 
 
@@ -492,15 +531,19 @@ partitions for n-fold cross-validation, and the model type to indicate
 discriminant analysis. The result is the optimal model, without permutation.
 
 ```{r run_consensusOPLSmodel}
-RVConsensusOPLSModelCV <- ConsensusOPLS:::RVConsensusOPLS(data = demo_3_Omics[1:nbrBlocs],
-                                                          Y = demo_3_Omics$Y,
-                                                          maxPcomp = LVsPred,
-                                                          maxOcomp  = LVsOrtho,
-                                                          nfold = CVfolds,
-                                                          cvType = "nfold",
-                                                          modelType = "da",
-                                                          mc.cores = 1,
-                                                          verbose = FALSE)
+Res_Consensus <- ConsensusOPLS:::ConsensusOPLS(data = demo_3_Omics[1:nbrBlocs],
+                                               Y = demo_3_Omics$Y,
+                                               maxPcomp = LVsPred,
+                                               maxOcomp  = LVsOrtho,
+                                               modelType = "da",
+                                               nperm = 1000,
+                                               cvType = "nfold",
+                                               nfold = CVfolds,
+                                               kernelParams = list(type = "p", 
+                                                                   params = c(order = 1)),
+                                               mc.cores = 1,
+                                               plots = TRUE,
+                                               verbose = FALSE)
 ```
 
 
@@ -519,13 +562,14 @@ whereas the highest R-squared is 1 and means that all the points are explained
 by the regression line.
 
 ```{r print_main_results_R2, class.source='fold-hide'}
-position <- RVConsensusOPLSModelCV$cv$OrthoLVsOptimalNum+1
+Optimal_model_no_perm <- Res_Consensus$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
 
-paste0('R2: ', round(RVConsensusOPLSModelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
 ```
 
 Here, that means the model explain 
-`r round(RVConsensusOPLSModelCV$Model$R2Yhat[position], 4)*100`$\%$ of the 
+`r round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4)*100`$\%$ of the 
 variation in the y response variable.
 
 - The Stone-Geisser Q² coefficient, also known as the redundancy index in 
@@ -538,7 +582,7 @@ prediction error sum of squares, and `TSS` is the total sum of squares of the
 response vector Y [@WESTERHUIS2008].
 
 ```{r print_main_results_Q2, class.source='fold-hide'}
-paste0('Q2: ', round(RVConsensusOPLSModelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
 ```
 
 Here, this means that the model has a predictive validity.
@@ -552,7 +596,7 @@ the response vector Y. This value is a measure for class prediction ability
 [@WESTERHUIS2008].
 
 ```{r print_main_results_DQ2, class.source='fold-hide'}
-paste0('DQ2: ', round(RVConsensusOPLSModelCV$cv$DQ2Yhat[position], 4))
+paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
 ```
 
 Here, this means that the model can predict classes.
@@ -560,66 +604,86 @@ Here, this means that the model can predict classes.
 - the variable Importance in projection (VIP) for each block of data. Within 
 each block, the relevance of the variables in explaining variation in the Y 
 response was assessed using the VIP parameter, which reflects the importance of 
-the variables in relation to both response and projection quality. The 20 most 
-relevant features were selected, using `VIP* sign(loadings)` value.
+the variables in relation to both response and projection quality. Using the 
+`VIP* sign(loadings)` value, the relevant features can be represented as:
 
-```{r print_VIP, class.source='fold-hide'}
+```{r extract_VIP, class.source='fold-hide'}
 # Compute the VIP
-VIP <- ConsensusOPLS:::MBVIP(data = demo_3_Omics[1:nbrBlocs], 
-                             Y = demo_3_Omics$Y, 
-                             model = RVConsensusOPLSModelCV,
-                             mc.cores = 1)
-names(VIP) <- demo_data$BlockNames
+VIP <- Optimal_model_no_perm$VIP
 
 # Multiply VIP * sign(loadings for predictive component)
 VIP_plot <- lapply(X = 1:nbrBlocs,
                          FUN = function(X){
-                           signe_loadings <- sign(RVConsensusOPLSModelCV$Model$loadings[[X]][, "p_1"])
-                           VIP[[X]]*signe_loadings})
+                           signe_loadings <- sign(Optimal_model_no_perm$modelCV$Model$loadings[[X]][, "p_1"])
+                           result <- VIP[[X]]*signe_loadings
+                           return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- demo_data$BlockNames
+```
 
+```{r plot_VIP, class.source='fold-hide'}
 # Metabo data
-ggplot2::ggplot(data = data.frame("variables" = names(sort(VIP_plot[[1]], decreasing = TRUE))[1:20], 
-                                  "valeur" = sort(VIP_plot[[1]], decreasing = TRUE)[1:20]), 
-                aes(x = variables, y = valeur)) +
-  ggplot2::geom_bar(stat = "identity") +
-  ggplot2::labs(title = paste0("Barplot of ",demo_data$BlockNames[1])) +
-  ggplot2::xlab("Top 20 of predictive variables") +
-  ggplot2::ylab("VIP x loading sign") +
-  theme_graphs +
-  ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+VIP_metabo <- ggplot2::ggplot(data = data.frame(
+    "variables" = factor(names(VIP_plot[[1]]),
+                         levels=names(VIP_plot[[1]])[order(abs(VIP_plot[[1]]), 
+                                                           decreasing=T)]), 
+    "valeur" = VIP_plot[[1]]), 
+    aes(x = variables, y = valeur)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::labs(title = paste0("Barplot of ", names(VIP_plot)[1])) +
+    ggplot2::xlab("Predictive variables") +
+    ggplot2::ylab("VIP x loading sign") +
+    theme_graphs +
+    ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+plotly::ggplotly(VIP_metabo)
+rm(VIP_metabo)
 
 # Microarray data
-ggplot2::ggplot(data = data.frame("variables" = names(sort(VIP_plot[[2]], decreasing = TRUE))[1:20], 
-                                  "valeur" = sort(VIP_plot[[2]], decreasing = TRUE)[1:20]), 
-                aes(x = variables, y = valeur)) +
-  ggplot2::geom_bar(stat = "identity") +
-  ggplot2::labs(title = paste0("Barplot of ",demo_data$BlockNames[2])) +
-  ggplot2::xlab("Top 20 of predictive variables") +
-  ggplot2::ylab("VIP x loading sign") +
-  theme_graphs +
-  ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+VIP_micro <-  ggplot2::ggplot(data = data.frame(
+    "variables" = factor(names(VIP_plot[[2]]),
+                         levels=names(VIP_plot[[2]])[order(abs(VIP_plot[[2]]), 
+                                                           decreasing=T)]), 
+    "valeur" = VIP_plot[[2]]), 
+    aes(x = variables, y = valeur)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::labs(title = paste0("Barplot of ", names(VIP_plot)[2])) +
+    ggplot2::xlab("Predictive variables") +
+    ggplot2::ylab("VIP x loading sign") +
+    theme_graphs +
+    ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+plotly::ggplotly(VIP_micro)
+rm(VIP_micro)
 
 # Proteo data
-ggplot2::ggplot(data = data.frame("variables" = names(sort(VIP_plot[[3]], decreasing = TRUE))[1:20], 
-                                  "valeur" = sort(VIP_plot[[3]], decreasing = TRUE)[1:20]), 
-                aes(x = variables, y = valeur)) +
-  ggplot2::geom_bar(stat = "identity") +
-  ggplot2::labs(title = paste0("Barplot of ",demo_data$BlockNames[3])) +
-  ggplot2::xlab("Top 20 of predictive variables") +
-  ggplot2::ylab("VIP x loading sign") +
-  theme_graphs +
-  ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+VIP_proteo <-  ggplot2::ggplot(data = data.frame(
+    "variables" = factor(names(VIP_plot[[3]]),
+                         levels=names(VIP_plot[[3]])[order(abs(VIP_plot[[3]]), 
+                                                           decreasing=T)]), 
+    "valeur" = VIP_plot[[3]]), 
+    aes(x = variables, y = valeur)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::labs(title = paste0("Barplot of ", names(VIP_plot)[3])) +
+    ggplot2::xlab("Predictive variables") +
+    ggplot2::ylab("VIP x loading sign") +
+    theme_graphs +
+    ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+plotly::ggplotly(VIP_proteo)
+rm(VIP_proteo)
 ```
+
+One possibility might be to select only the 20 most important components (the 
+first 10 and the last 10). The user is free to do this.
 
 
 # Plot the main results
 
 ## Consensus Score plot
 
+The scores plot shows the representation of the samples in the two new 
+components calculated by the optimal model. A horizontal separation is expected.
+
 ```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
-ggplot2::ggplot(data = data.frame("p_1" = RVConsensusOPLSModelCV$Model$scoresP,
-                                  "o_1" = RVConsensusOPLSModelCV$Model$scoresO,
+ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
+                                  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
                                   "Labs" = as.matrix(base::unlist(demo_data$ObsNames[, 1]))),
                 aes(x = p_1, y = o_1, label = Labs, 
                     shape = Labs, colour = Labs)) +
@@ -643,7 +707,7 @@ partition of the classes was obtained.
 
 ```{r ggplot_data_pred_compo, class.source='fold-hide'}
 plot_bloc_pred <- ggplot2::ggplot(data = 
-                                    data.frame("Values" = RVConsensusOPLSModelCV$Model$lambda[,1],
+                                    data.frame("Values" = Optimal_model_no_perm$modelCV$Model$lambda[,1],
                                                "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
                                   aes(x = Blocks, y = Values,
                                       fill = Blocks, labels = Values)) +
@@ -655,6 +719,7 @@ plot_bloc_pred <- ggplot2::ggplot(data =
   ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
 plotly::ggplotly(plot_bloc_pred)
+rm(plot_bloc_pred)
 ```
 
 The block contributions of the predictive latent variable indicated the specific 
@@ -665,7 +730,7 @@ and the metabolomic block (26.8$\%$).
 
 ```{r ggplot_data_1st_ortho_compo, class.source='fold-hide'}
 plot_bloc_1stOcomp <- ggplot2::ggplot(data = 
-                                        data.frame("Values" = RVConsensusOPLSModelCV$Model$lambda[,2],
+                                        data.frame("Values" = Optimal_model_no_perm$modelCV$Model$lambda[,2],
                                                    "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
                                       aes(x = Blocks, y = Values,
                                           fill = Blocks, labels = Values)) +
@@ -677,6 +742,7 @@ plot_bloc_1stOcomp <- ggplot2::ggplot(data =
   ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
 plotly::ggplotly(plot_bloc_1stOcomp)
+rm(plot_bloc_1stOcomp)
 ```
 
 The block contributions of first orthogonal component indicated the specific 
@@ -686,13 +752,13 @@ and the proteomic block (26.9$\%$).
 ## Block contributions: the two previous plots into one
 
 ```{r ggplot_data_pred_ortho, message = FALSE, class.source='fold-hide'}
-data_two_plots <- data.frame("Values" = RVConsensusOPLSModelCV$Model$lambda[,1],
+data_two_plots <- data.frame("Values" = Optimal_model_no_perm$modelCV$Model$lambda[,1],
                              "Type" = "Pred",
                              "Blocks" = labels(demo_3_Omics[1:nbrBlocs]))
 data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
-                                          RVConsensusOPLSModelCV$Model$lambda[,2]),
+                                          Optimal_model_no_perm$modelCV$Model$lambda[,2]),
                              "Type" = c(data_two_plots$Type,
-                                        rep("Ortho", times = length(RVConsensusOPLSModelCV$Model$lambda[,2]))),
+                                        rep("Ortho", times = length(Optimal_model_no_perm$modelCV$Model$lambda[,2]))),
                              "Blocks" = c(data_two_plots$Blocks,
                                           labels(demo_3_Omics[1:nbrBlocs])))
 
@@ -710,6 +776,7 @@ plot_bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
   ggplot2::scale_fill_manual(values = c("#7F3C8D", "#11A579"))
 
 plotly::ggplotly(plot_bloc_PredVSOrtho)
+rm(plot_bloc_PredVSOrtho)
 ```
 
 In the same way, the previous graph can be represented as:
@@ -720,7 +787,7 @@ bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
                                              y = Values, 
                                              fill = Blocks)) +
   ggplot2::geom_bar(stat = 'identity') + 
-  ggplot2::xlab("Data blocks") +
+  ggplot2::xlab("Components") +
   ggplot2::ylab("Weight") +
   ggplot2::ggtitle("Block contributions to each component")+
   facet_wrap(. ~ factor(Type))+
@@ -730,6 +797,7 @@ bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
   ggplot2::scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
 plotly::ggplotly(bloc_PredVSOrtho)
+rm(bloc_PredVSOrtho)
 ```
 
 
@@ -737,8 +805,8 @@ plotly::ggplotly(bloc_PredVSOrtho)
 ## Block contributions predictive vs. orthogonal
 
 ```{r ggplot_data_pred_vs_ortho, message = FALSE, warning = FALSE, class.source='fold-hide'}
-data_PredVSOrtho <- ggplot2::ggplot(data = data.frame("Pred" = RVConsensusOPLSModelCV$Model$lambda[,1],
-                                                      "Ortho" = RVConsensusOPLSModelCV$Model$lambda[,2],
+data_PredVSOrtho <- ggplot2::ggplot(data = data.frame("Pred" = Optimal_model_no_perm$modelCV$Model$lambda[,1],
+                                                      "Ortho" = Optimal_model_no_perm$modelCV$Model$lambda[,2],
                                                       "Labels" = labels(demo_3_Omics[1:nbrBlocs])),
                                     aes(x = Pred, y = Ortho, label = Labels, 
                                         shape = Labels, colour = Labels)) +
@@ -751,16 +819,17 @@ data_PredVSOrtho <- ggplot2::ggplot(data = data.frame("Pred" = RVConsensusOPLSMo
   ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
 plotly::ggplotly(data_PredVSOrtho)
+rm(data_PredVSOrtho)
 ```
 
 ## Loading plots (one for each data set)
 
-Individual loadings of each block were calculated for the predictive latent 
+Individual loading of each block were calculated for the predictive latent 
 variable of the optimal model, to detect metabolite, protein and transcript 
 level differences between the two groups of tissues cell lines.
 
 ```{r create_data_loadings}
-loadings <- RVConsensusOPLSModelCV$Model$loadings
+loadings <- Optimal_model_no_perm$modelCV$Model$loadings
 data_loads <- sapply(X = 1:nbrBlocs,
                      FUN = function(X){
                        data.frame("Pred" = 
@@ -776,6 +845,9 @@ data_loads <- sapply(X = 1:nbrBlocs,
 data_loads <- as.data.frame(data_loads)
 ```
 
+The loading plot shows the representation of variables in the two new components 
+calculated by the optimal model.
+
 ```{r ggplot_data_loadings, class.source='fold-hide'}
 loadings_plot <- ggplot2::ggplot(data = data_loads) +
   ggplot2::geom_point(data = as.data.frame(data_loads$V1),
@@ -789,11 +861,44 @@ loadings_plot <- ggplot2::ggplot(data = data_loads) +
                       size = 2.5, alpha = 0.5) +
   ggplot2::xlab("Predictive component") +
   ggplot2::ylab("Orthogonal component") +
-  ggplot2::ggtitle("ConsensusOPLS Loading plot")+
+  ggplot2::ggtitle("Loadings plot on first orthogonal and predictive component")+
   theme_graphs+
   ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
 plotly::ggplotly(loadings_plot)
+rm(loadings_plot)
+```
+
+## Loading and VIP of the optimal model
+
+```{r create_data_loadings_VIP}
+loadings <- do.call(rbind.data.frame, Optimal_model_no_perm$modelCV$Model$loadings)
+loadings$block <- do.call(c, lapply(names(Optimal_model_no_perm$modelCV$Model$loadings), function(x) 
+    rep(x, nrow(Optimal_model_no_perm$modelCV$Model$loadings[[x]]))))
+loadings$variable <- gsub(paste(paste0(names(Optimal_model_no_perm$modelCV$Model$loadings), '.'), 
+                                collapse='|'), '', 
+                          rownames(loadings))
+        
+loadings_VIP <- merge(x = loadings, 
+                      y = data.frame("VIP" = unlist(Optimal_model_no_perm$VIP), 
+                                     "variable" = unlist(lapply(Optimal_model_no_perm$VIP, 
+                                                                names))), 
+                      by = "variable")
+loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
+```
+
+```{r ggplot_data_loadings_VIP, class.source='fold-hide'}
+p_loadings_VIP <- ggplot2::ggplot(data = loadings_VIP,
+                                  aes(x=p_1, y=VIP, col=block, label = label)) +
+    ggplot2::geom_point(size = 2.5, alpha = 0.5) + 
+    ggplot2::xlab("Predictive component") +
+    ggplot2::ylab("Variable Importance in Projection") +
+    ggplot2::ggtitle("VIP versus loadings on predictive components")+
+    theme_graphs+
+    ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+
+plotly::ggplotly(p_loadings_VIP)
+rm(p_loadings_VIP)
 ```
 
 
@@ -805,46 +910,56 @@ plotly::ggplotly(loadings_plot)
 Permutation tests were done with `10^3` replicates to test model validity.
 
 ```{r run_permutations, warning=FALSE}
-PermRes <- ConsensusOPLS:::RVConsensusOPLSPerm(data = demo_3_Omics[1:nbrBlocs],
-                                               Y = demo_3_Omics$Y,
-                                               maxPcomp = LVsPred,
-                                               maxOcomp  = LVsOrtho,
-                                               nfold = CVfolds,
-                                               nperm = 1000,
-                                               cvType = "nfold",
-                                               modelType = "da",
-                                               mc.cores = 1,
-                                               verbose = FALSE)
+PermRes <- Res_Consensus$permStats
 ```
 
-```{r plot1_perm, message = FALSE, class.source='fold-hide'}
-PermRes$plots$R2val
+```{r plot_R2_perm, message = FALSE, class.source='fold-hide'}
+R2Yperm <- ggplot2::ggplot(data = data.frame("R2Yperm" = PermRes$R2Yhat),
+                           aes(x = R2Yperm)) +
+    ggplot2::geom_histogram(color="grey", fill="grey") +
+    ggplot2::geom_density() +
+    ggplot2::geom_vline(aes(xintercept=PermRes$R2Yhat[1]), 
+               color="blue", linetype="dashed", size=1) +
+    ggplot2::xlab("R2 values") +
+    ggplot2::ylab("Frequency") +
+    ggplot2::ggtitle("R2 Permutation test")+
+    theme_graphs
+
+plotly::ggplotly(R2Yperm)
+rm(R2Yperm)
 ```
 
-```{r plot2_perm, message = FALSE, class.source='fold-hide'}
-PermRes$plots$Q2val
+```{r plot_Q2_perm, message = FALSE, class.source='fold-hide'}
+Q2Yperm <- ggplot2::ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Yhat),
+                           aes(x = Q2Yperm)) +
+    ggplot2::geom_histogram(color="grey", fill="grey") +
+    ggplot2::geom_density() +
+    ggplot2::geom_vline(aes(xintercept=PermRes$Q2Yhat[1]), 
+                        color="blue", linetype="dashed", size=1) +
+    ggplot2::xlab("Q2 values") +
+    ggplot2::ylab("Frequency") +
+    ggplot2::ggtitle("Q2 Permutation test")+
+    theme_graphs
+
+plotly::ggplotly(Q2Yperm)
+rm(Q2Yperm)
 ```
 
-```{r plot3_perm, message = FALSE, class.source='fold-hide'}
-PermRes$plots$R2_and_Q2
+```{r plot_DQ2_perm, message = FALSE, class.source='fold-hide'}
+DQ2Yperm <- ggplot2::ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Yhat),
+                            aes(x = DQ2Yperm)) +
+    ggplot2::geom_histogram(color="grey", fill="grey") +
+    ggplot2::geom_density() +
+    ggplot2::geom_vline(aes(xintercept=PermRes$DQ2Yhat[1]), 
+                        color="blue", linetype="dashed", size=1) +
+    ggplot2::xlab("DQ2 values") +
+    ggplot2::ylab("Frequency") +
+    ggplot2::ggtitle("DQ2 Permutation test")+
+    theme_graphs
+
+plotly::ggplotly(DQ2Yperm)
+rm(DQ2Yperm)
 ```
-
-```{r plot4_perm, message = FALSE, class.source='fold-hide'}
-PermRes$plots$R2val_hist
-```
-
-```{r plot5_perm, message = FALSE, class.source='fold-hide'}
-PermRes$plots$Q2val_hist
-```
-
-```{r plot6_perm, message = FALSE, class.source='fold-hide'}
-PermRes$plots$R2_and_Q2_hist
-```
-
-
-
-
-
 
 
 
