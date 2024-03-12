@@ -43,7 +43,8 @@ where \code{nfold} is look up, or `mccv` for Monte Carlo CV, or `mccvb`
 for Monte Carlo class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
 Default, `nfold`.}
 
-\item{nfold}{Number of folds performed in n-fold cross-validation. Default, 5.}
+\item{nfold}{Number of folds performed in n-fold cross-validation. This can be set to the number
+of samples to perform Leave-One-Out cross validation. Default, 5.}
 
 \item{nMC}{An integer indicating the number of rounds performed when cvType is `mccv` or `mccvb`.
 Default, 100.}
@@ -55,7 +56,7 @@ used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.}
 
 \item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 
-\item{plots}{A logical indicating if plots are generated. Default: 1.}
+\item{plots}{A logical indicating if plots are generated. Default: FALSE.}
 
 \item{verbose}{A logical indicating if the computation progress will be shown. Default, FALSE.}
 }
