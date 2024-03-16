@@ -901,6 +901,10 @@ plotly::ggplotly(p_loadings_VIP)
 rm(p_loadings_VIP)
 ```
 
+This V-shaped graph shows a good correlation between VIPs and predictive 
+loadings. It is expected that these two branches diverge slightly, which is the 
+case here.
+
 
 
 
