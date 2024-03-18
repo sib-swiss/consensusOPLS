@@ -3,8 +3,8 @@
 #' Consensus OPLS-DA with RV coefficients weighting and 
 #' DQ2 computation for discriminant analysis.
 #' 
-#' @param data the collection list containing each block of data.
-#' @param Y The response.
+#' @param data A list of numeric matrices.
+#' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
 #' @param maxPcomp Maximum number of Y-predictive components. 
 #' @param maxOcomp Maximum number of Y-orthogonal components.
 #' @param nfold Number of cross-validation rounds (integer).

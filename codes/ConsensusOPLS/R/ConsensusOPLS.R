@@ -4,7 +4,7 @@
 #' for given data blocks and response, and evaluate the model quality w.r.t other models 
 #' built with randomly permuted responses.
 #' 
-#' @param data A list of data blocks.
+#' @param data A list of numeric matrices.
 #' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
 #' @param maxPcomp Maximum number of Y-predictive components. Default, 1.
 #' @param maxOcomp Maximum number of Y-orthogonal components. Default, 5.
@@ -61,12 +61,26 @@ ConsensusOPLS <- function(data,
                           verbose = FALSE) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
+    if (!all(sapply(data, is.matrix))) stop("Numeric matrices are required.")
+    if (!all(sapply(data, is.numeric))) stop("Numeric matrices are required.")
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
     if (nperm != as.integer(nperm)) stop("nperm is not an integer.")
     if (maxPcomp != as.integer(maxPcomp)) stop("maxPcomp is not an integer")
     if (maxOcomp != as.integer(maxOcomp)) stop("maxOcomp is not an integer")
     
-    if (is.matrix(Y) && is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
+    if (modelType == "reg") {
+        Y <- as.matrix(Y)
+        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is not appropriate to Y.")
+        if (all(Y %in% c(0,1))) stop("modelType is preferably `da`.") #TODO: is it possible to do logistic regression?
+    } else {
+        if (nlevels(as.factor(Y)) > length(Y)/2) { # TODO: something better than this check: if at least 2 samples belong to every class
+            stop("modelType is preferably `reg`")
+        }
+        if (is.vector(Y) || is.factor(Y) || ncol(Y) == 1) {
+            Y <- koplsDummy(as.vector(Y))
+        }
+    }
+    if (is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
     
     # Init parameters
     permStats <- list()
