@@ -60,20 +60,19 @@ etc.).
 # Context
 
 Once the functions have been implemented on R, the aim was to perform a 
-discriminant analysis on the `demo_data` set proposed by Julien Boccard in his 
-method. This analysis concerned a selection of data from a publicly available 
-repository of the National Cancer Institute, i.e. the NCI-60 data set. This data 
-set provides experimental data obtained from 60 human cancer cell lines derived 
-from 9 tissue origins [@SHOEMAKER2006]. Two tissue were selected in this 
-study (colon versus ovary), and three data sources were chosen: transcriptomics,
-proteomics and metabolomics data (3 blocks of data, evaluated on the same 
-observations):
+discriminant analysis on the `demo_data` set proposed in [@BOCCARD2013]. This 
+analysis concerned a selection of data from a publicly available repository of 
+the National Cancer Institute, i.e. the NCI-60 data set. This data set provides 
+experimental data obtained from 60 human cancer cell lines derived from 9 tissue 
+origins [@SHOEMAKER2006]. Two tissue were selected in this study (colon versus 
+ovary), and three data sources were chosen: transcriptomics,proteomics and 
+metabolomics data (3 blocks of data, evaluated on the same observations):
 
 - Metabolomics: 14x 150 variables
 - Microarray: 14x 200 variables
 - Proteomics: 14x 100 variables
 
-The combination of these data sources was excepted to provide a global profiling 
+The combination of these data sources was expected to provide a global profiling 
 of the cell lines in an integrative systems biology perspective. The Consensus 
 OPLS-DA strategy was applied for the differential analysis of the two selected 
 tumor origins and the simultaneous analysis of the three blocks of data.
@@ -163,8 +162,7 @@ library(ConsensusOPLS)
 
 # Data preprocessing on `Demo_data` file
 
-As mentioned earlier, we use the demonstration dataset proposed by Julien 
-Boccard:
+As mentioned earlier, we use the demonstration dataset proposed by [@BOCCARD2013]:
 
 ```{r import_demo_data.mat}
 demo_data <- R.matlab::readMat(con = file.path(path_data_brut, "demo_data.mat"))
@@ -555,7 +553,7 @@ Res_Consensus <- ConsensusOPLS:::ConsensusOPLS(data = demo_3_Omics[1:nbrBlocs],
 As indicated at the beginning of the file, the R package `ConsensusOPLS` 
 calculates:
 
-- the R-squared (R²) coefficient, gives a measure of how predictive the 
+- the R-squared (`R2Y`) coefficient, gives a measure of how predictive the 
 model is and how much variation is explained by the model. The lowest 
 R-squared is 0 and means that the points are not explained by the regression 
 whereas the highest R-squared is 1 and means that all the points are explained 
@@ -565,7 +563,7 @@ by the regression line.
 Optimal_model_no_perm <- Res_Consensus$optimal
 position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2Y: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
 ```
 
 Here, that means the model explain 
@@ -679,7 +677,8 @@ first 10 and the last 10). The user is free to do this.
 ## Consensus Score plot
 
 The scores plot shows the representation of the samples in the two new 
-components calculated by the optimal model. A horizontal separation is expected.
+latent variables calculated by the optimal model. A horizontal separation is 
+expected.
 
 ```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
 ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
@@ -751,37 +750,7 @@ and the proteomic block (26.9$\%$).
 
 ## Block contributions: the two previous plots into one
 
-```{r ggplot_data_pred_ortho, message = FALSE, class.source='fold-hide'}
-data_two_plots <- data.frame("Values" = Optimal_model_no_perm$modelCV$Model$lambda[,1],
-                             "Type" = "Pred",
-                             "Blocks" = labels(demo_3_Omics[1:nbrBlocs]))
-data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
-                                          Optimal_model_no_perm$modelCV$Model$lambda[,2]),
-                             "Type" = c(data_two_plots$Type,
-                                        rep("Ortho", times = length(Optimal_model_no_perm$modelCV$Model$lambda[,2]))),
-                             "Blocks" = c(data_two_plots$Blocks,
-                                          labels(demo_3_Omics[1:nbrBlocs])))
-
-plot_bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
-                                         aes(x = factor(Type), 
-                                             y = Values, 
-                                             fill = factor(Type))) +
-  ggplot2::geom_bar(stat = 'identity') + 
-  ggplot2::xlab("Data blocks") +
-  ggplot2::ylab("Weight") +
-  ggplot2::ggtitle("Block contributions to each component")+
-  facet_wrap(. ~ Blocks)+
-  theme_graphs+
-  ggplot2::scale_fill_discrete(name = "Component")+
-  ggplot2::scale_fill_manual(values = c("#7F3C8D", "#11A579"))
-
-plotly::ggplotly(plot_bloc_PredVSOrtho)
-rm(plot_bloc_PredVSOrtho)
-```
-
-In the same way, the previous graph can be represented as:
-
-```{r plot_bloc_PredVSOrtho_bis, message = FALSE, class.source='fold-hide'}
+```{r plot_bloc_PredVSOrtho, message = FALSE, class.source='fold-hide'}
 bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
                                          aes(x = Blocks, 
                                              y = Values, 
@@ -822,7 +791,7 @@ plotly::ggplotly(data_PredVSOrtho)
 rm(data_PredVSOrtho)
 ```
 
-## Loading plots (one for each data set)
+## Loading plots
 
 Individual loading of each block were calculated for the predictive latent 
 variable of the optimal model, to detect metabolite, protein and transcript 
@@ -845,8 +814,8 @@ data_loads <- sapply(X = 1:nbrBlocs,
 data_loads <- as.data.frame(data_loads)
 ```
 
-The loading plot shows the representation of variables in the two new components 
-calculated by the optimal model.
+The loading plot shows the projection of variables in the the space of the two 
+latent variables calculated by the optimal model.
 
 ```{r ggplot_data_loadings, class.source='fold-hide'}
 loadings_plot <- ggplot2::ggplot(data = data_loads) +
@@ -871,6 +840,9 @@ rm(loadings_plot)
 
 ## Loading and VIP of the optimal model
 
+Finally, for the optimal model selected before permutations, it is possible to 
+observe the VIPs and loadings for the first predictive component.
+
 ```{r create_data_loadings_VIP}
 loadings <- do.call(rbind.data.frame, Optimal_model_no_perm$modelCV$Model$loadings)
 loadings$block <- do.call(c, lapply(names(Optimal_model_no_perm$modelCV$Model$loadings), function(x) 
@@ -887,10 +859,17 @@ loadings_VIP <- merge(x = loadings,
 loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
 ```
 
+Note that VIP = 1 corresponds to the average VIP, meaning that VIPs > 1 are 
+considered the most important for the model. In fact, we can use 1 as a 
+threshold on VIPs to restrict the study to the most predictive variables. A blue 
+vertical line has been added to view this threshold.
+
 ```{r ggplot_data_loadings_VIP, class.source='fold-hide'}
 p_loadings_VIP <- ggplot2::ggplot(data = loadings_VIP,
                                   aes(x=p_1, y=VIP, col=block, label = label)) +
-    ggplot2::geom_point(size = 2.5, alpha = 0.5) + 
+    ggplot2::geom_point(size = 2.5, alpha = 0.5) +
+    ggplot2::geom_vline(aes(xintercept=1), 
+                        color="blue", linetype="dashed", size=1) +
     ggplot2::xlab("Predictive component") +
     ggplot2::ylab("Variable Importance in Projection") +
     ggplot2::ggtitle("VIP versus loadings on predictive components")+
@@ -900,10 +879,6 @@ p_loadings_VIP <- ggplot2::ggplot(data = loadings_VIP,
 plotly::ggplotly(p_loadings_VIP)
 rm(p_loadings_VIP)
 ```
-
-This V-shaped graph shows a good correlation between VIPs and predictive 
-loadings. It is expected that these two branches diverge slightly, which is the 
-case here.
 
 
 
@@ -917,11 +892,15 @@ Permutation tests were done with `10^3` replicates to test model validity.
 PermRes <- Res_Consensus$permStats
 ```
 
+On all the graphs below, a blue vertical line has been added to represent the 
+optimal model. Since it lies far from the distribution of permuted models, it 
+implies that the signal is indeed linked to the data and not to chance.
+
 ```{r plot_R2_perm, message = FALSE, class.source='fold-hide'}
 R2Yperm <- ggplot2::ggplot(data = data.frame("R2Yperm" = PermRes$R2Yhat),
                            aes(x = R2Yperm)) +
     ggplot2::geom_histogram(color="grey", fill="grey") +
-    ggplot2::geom_density() +
+    #ggplot2::geom_density() +
     ggplot2::geom_vline(aes(xintercept=PermRes$R2Yhat[1]), 
                color="blue", linetype="dashed", size=1) +
     ggplot2::xlab("R2 values") +
@@ -937,7 +916,7 @@ rm(R2Yperm)
 Q2Yperm <- ggplot2::ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Yhat),
                            aes(x = Q2Yperm)) +
     ggplot2::geom_histogram(color="grey", fill="grey") +
-    ggplot2::geom_density() +
+    #ggplot2::geom_density() +
     ggplot2::geom_vline(aes(xintercept=PermRes$Q2Yhat[1]), 
                         color="blue", linetype="dashed", size=1) +
     ggplot2::xlab("Q2 values") +
@@ -953,7 +932,7 @@ rm(Q2Yperm)
 DQ2Yperm <- ggplot2::ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Yhat),
                             aes(x = DQ2Yperm)) +
     ggplot2::geom_histogram(color="grey", fill="grey") +
-    ggplot2::geom_density() +
+    #ggplot2::geom_density() +
     ggplot2::geom_vline(aes(xintercept=PermRes$DQ2Yhat[1]), 
                         color="blue", linetype="dashed", size=1) +
     ggplot2::xlab("DQ2 values") +
