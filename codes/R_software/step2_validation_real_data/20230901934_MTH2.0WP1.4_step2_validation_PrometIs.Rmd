@@ -1,0 +1,518 @@
+---
+title: 'Application of ConsensusOPLS package on ProMetIS data.'
+author: "Celine Bougel"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+bibliography: 20230901934_MTH2.0WP1.4_step1_2_validation.bib
+biblio-style: apalike
+link-citations: yes
+nocite: '@*'
+output:
+  html_document:
+    code_folding: show
+    df_print: kable
+    highlight: pygments
+    number_sections: yes
+    self_contained: yes
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  editor_options:
+    chunk_output_type: console
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+
+# The Consensus OPLS method
+
+The `ConsensusOPLS` R package implements the translated `Matlab` version of the 
+**Consensus OPLS(-DA)** approach [@BOCCARD2013] (available at [Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)), with the 
+kernel-based reformulations of the **NIPALS** algorithm [@LINDGREN1993]. The 
+kernel reformulation of the OPLS algorithm was proposed to extend its 
+applicability to non-linear relationships. The `ConsensusOPLS` R package includes 
+updated codes from the `KOPLS` R package: codes translated from the 
+`Matlab` version  were then compared and corrected, if necessary, according to 
+the package source codes [@BYLESJO2008] (available at [Github repository](https://github.com/sdechaumet/ramopls/tree/master/inst/package)).
+
+The original method was improved during translation. Among other things, 
+parallelization have been implemented, mathematical formulas have been 
+generalized for application to different practical cases, and a single function 
+has been created so that the user can execute the entire method (with an option 
+if he doesn't want to use permutation). This vignette highlights these changes 
+as the code is executed.
+
+The current package includes some quality metrics for the optimal model, as 
+**R2**, **Q2**, **DQ2** [@WESTERHUIS2008], the permutation **diagnostics** 
+[@SZYMANSKA2012], the computation of the **VIP values** [@WOLD2001], as 
+well as many graphics (scores plot, block contributions, loading, permutations, 
+etc.).
+
+
+
+
+
+# Context 
+
+Once the functions have been implemented on R, the package was used to perform a 
+discriminant analysis on the `demo_data` set proposed by Julien Boccard in his 
+method. 
+
+The aim now is to use the package on real public data and check that the matlab 
+and R results remain consistent. This completes the validation of the method on 
+real data. For this purpose, we have chosen the public and accessible data of 
+ProMetIs [@IMBERT2021] (available at [Gitlab repository](https://github.com/IFB-ElixirFr/ProMetIS/tree/master)).
+
+# DESCRIPTIF DONNEES
+
+
+
+
+
+# R environment preparation
+
+```{r setup, class.source='fold-hide'}
+#install.packages("knitr")
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+
+# To ensure repeatability
+set.seed(12)
+```
+
+Before any action, it is necessary to verify that the needed packages are 
+installed (the code chunks are not shown) and to define define the localisation
+of the codes and the files.
+
+```{r access}
+path_data_brut <- "../../../data/data_brut/Imbert2021_ProMetIS_postProcessed" 
+path_data_produced <- "../../../data/data_produced/R_software" 
+path_results <- "../../../results" 
+```
+
+The code below has been designed to have as few dependencies as possible on R 
+packages, except for the stable packages.
+
+```{r packages_installation, class.source='fold-hide', warning=FALSE, include=FALSE, message=FALSE}
+# install.packages(c("R.matlab", "ggplot2", "ggrepel", "stats", "utils",
+#                    "devtools", "parallel", "SNFtool", "dplyr", "uwot",
+#                    "readr"))
+# update.packages(ask = FALSE)
+```
+
+```{r packages_load, warning=FALSE, message=FALSE, class.source='fold-hide'}
+library(R.matlab) # to read MATLAB data
+library(ggplot2) # to make beautiful graphs
+library(ggrepel) # to annotate ggplot2 graph
+library(stats) # to use R statistical functions
+library(utils) # to use R utility functions
+library(devtools) # to import the ConsensusOPLS package
+library(parallel) # to make some tasks in parallel
+library(dplyr) # to use grammar of data manipulation
+library(readr) # to import tsv files
+```
+
+We now install and load the `ConsensusOPLS` R package using:
+
+```{r ConsensusOPLS_load, warning=FALSE, message=FALSE}
+# Detaching and uninstalling a package
+# detach("package:ConsensusOPLS", unload=T)
+# remove.packages("ConsensusOPLS")
+
+# Import check 07/04/2024
+# devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
+library(ConsensusOPLS)
+```
+
+Finally, we create a uniform theme that will be used for all graphic output.
+
+```{r theme_ggplot2, class.source='fold-hide'}
+theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
+                                   axis.title = element_text(size=16),
+                                   axis.text = element_text(size=14),
+                                   plot.title = element_text(size = 16),
+                                   legend.title = element_text(size = 14))
+```
+
+
+
+
+
+# Import ProMetIS data sets
+
+
+
+```{r data_blocs_names, class.source='fold-hide'}
+# List of files and folders
+data_files <- list.files(path_data_brut)
+data_files
+
+# Select only folders
+block_names <- data_files[grep("Metabo|preclinical", data_files)]
+```
+
+```{r}
+omics_ProMetIS <- lapply(block_names, function(block) {
+  omics.files <- list.files(paste0(path_data_brut, "/", block), full.names = T)
+  omics <- mclapply(omics.files, mc.cores=1, function(x) {
+    print(block)
+    if (grepl("dataMatrix.tsv", x)) {
+      tab <- utils::read.delim(file = x, sep = "\t")
+      tmp <- as.data.frame(tab)
+      row.names(tmp) <- tmp$dataMatrix
+      tmp <- t(tmp[,which(!(colnames(tmp) %in% c("dataMatrix")))])
+    } 
+    if (grepl("sampleMetadata.tsv", x)) {
+      tab <- utils::read.delim(file = x, sep = "\t")
+      tmp<- as.data.frame(tab)
+      row.names(tmp) <- tmp$sampleMetadata
+      tmp <- tmp[,which(!(colnames(tmp) %in% c("sampleMetadata")))]
+    }
+    if (grepl("variableMetadata.tsv", x)) {
+      tab <- utils::read.delim(file = x, sep = "\t")
+      tmp <- as.data.frame(tab)
+      row.names(tmp) <- tmp$variableMetadata
+      tmp <- tmp[,which(!(colnames(tmp) %in% c("variableMetadata")))]
+    }
+    return (tmp)
+  })
+  names(omics) <- gsub(pattern = paste0(toupper(block),"_|.tsv|_Expression"),
+                       replacement = "", 
+                       x = basename(omics.files))
+  return(omics)
+})
+names(omics_ProMetIS) <- gsub(pattern = "Metabo_plasma_", 
+                              replacement = "",
+                              x = block_names)
+```
+
+```{r Y_and_sampleNames}
+Y <- omics_ProMetIS$preclinical$sampleMetadata$gene
+Y_bis <- ifelse(test = (Y == "MX2" | Y == "LAT"),
+                yes = "Mutant",
+                no = "Control")
+Y_bis <- matrix(factor(Y_bis))
+
+corresp_vector <- c('Mutant' = 2, 'Control' = 1)
+num_vector <- corresp_vector[Y_bis]
+Y_ter <- as.numeric(num_vector)
+
+Sample_names <- rownames(omics_ProMetIS$c18acquity_neg$dataMatrix)
+```
+
+
+
+
+
+# ConsensusOPLS
+
+## Preprecessing
+
+```{r define_cv_parameters}
+# Number of data blocks
+nbrBlocs <- length(block_names)-1
+nbrBlocs
+
+# Number of predictive component(s)
+LVsPred <- 1
+
+# Maximum number of orthogonal components
+LVsOrtho <- 1
+
+# Number of cross-validation folds
+CVfolds <- length(Y_ter)
+CVfolds
+```
+
+```{r pre_processing}
+block_names <- gsub(pattern = "Metabo_plasma_|preclinical", 
+                    replacement = "",
+                    x = block_names)
+block_names <- block_names[block_names != ""]
+
+data_PrometeIS <- lapply(
+  X = block_names,
+  FUN = function(nameBlock){
+    # Extract only dataMatrix table
+    data <- omics_ProMetIS[[nameBlock]][["dataMatrix"]]
+    
+    # Extract columns with infinite values
+    col_infinite <- base::apply(X = data, MARGIN = 2, 
+                                FUN = function(col) any(is.infinite(col)))
+    if(any(col_infinite)){
+      print(paste0("TODO infinite values", col_infinite))
+    } else{
+      col_identic_val <- base::apply(X = data, MARGIN = 2,
+                                     FUN = function(X){
+                                       base::length(base::unique(X)) < 2})
+      #Check identical values for all subjects
+      if(any(col_identic_val)){
+        print("TODO identical values")
+      } else{
+        col_na <- base::apply(X = is.na(data), MARGIN = 2,
+                              FUN = function(X){any(X)})
+        if(any(col_na)){
+          print(paste0("The columns ", paste(which(col_na),
+                                             sep = " ", 
+                                             collapse = ", "), 
+                       " of the ", nameBlock, 
+                       " data contained columns with missing values."))
+          
+          # Delete missing values
+          data <- data[, -which(col_na)]
+        }
+      }
+    }
+    return(data)
+  })
+```
+
+```{r rename_blocks, class.source='fold-hide'}
+# Rename data blocks
+names(data_PrometeIS) <- block_names
+
+# Check dimension
+dims <- lapply(X = 1:length(data_PrometeIS),
+               FUN = function(X){dim(data_PrometeIS[[X]])})
+names(dims) <- block_names
+dims
+
+# Remove unuseful object for the next steps
+rm(dims)
+```
+
+## Export for Matlab
+
+```{r save_results, class.source='fold-hide'}
+# Save the inputs for matlab
+common_pattern <- "20230901934_step2_validation"
+
+# R.matlab::writeMat(data_ProMetIS = data_PrometeIS,
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern, 
+#                                           "_data_ProMetIS_collection.mat")))
+# 
+# T1<-Sys.time()
+# R.matlab::writeMat(data_ProMetIS_VarNames = lapply(X = data_PrometeIS,
+#                                                    FUN = function(X) colnames(X)),
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern, 
+#                                           "_data_ProMetIS_VarNames.mat")))
+# T2<-Sys.time()
+# Tdiff <- T2 - T1
+# Tdiff #Time difference of 21.86611 mins
+# 
+# R.matlab::writeMat(Y = Y_ter,
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern, "_Y_factor.mat")))
+# R.matlab::writeMat(SampleNames = Sample_names,
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern, "_SampleNames.mat")))
+```
+
+## Model
+
+```{r run_consensusOPLSmodel}
+# data = data_PrometeIS;
+# Y = Y_ter;
+# maxPcomp = LVsPred;
+# maxOcomp  = LVsOrtho;
+# modelType = "da";
+# nperm = 0;
+# cvType = "nfold";
+# nfold = CVfolds;
+# kernelParams = list(type = "p", 
+#                     params = c(order = 1));
+# mc.cores = 1;
+# plots = FALSE;
+# verbose = FALSE
+
+T2<-Sys.time()
+Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
+                                              Y = Y_ter,
+                                              maxPcomp = LVsPred,
+                                              maxOcomp  = LVsOrtho,
+                                              modelType = "da",
+                                              nperm = 0,
+                                              cvType = "nfold",
+                                              nfold = CVfolds,
+                                              kernelParams = list(type = "p", 
+                                                                  params = c(order = 1)),
+                                              mc.cores = 1,
+                                              plots = FALSE,
+                                              verbose = FALSE)
+T3<-Sys.time()
+Tdiff2 <- T3 - T2
+Tdiff2
+```
+
+## Checks
+
+```{r PrometIs_define_path}
+path_data_test <- "Matlab_results/"
+common_name <- "20230901934_"
+common_RV <- "RVConsensusOPLS_"
+common_CV <- "ConsensusOPLSCV_"
+```
+
+```{r PrometIs_RVConsensusOPLS_outputs}
+# ----- RVConsensusOPLS
+## normKernels = Amat in matlab
+for(i in 1:length(nbrBlocs)){
+  testthat::expect_equal(as.matrix(read.table(
+    file = paste0(path_data_test, common_name, 
+                  common_RV, "02_Amat_", i, ".txt"), 
+    header = TRUE, sep = "\t", dec = ".", row.names = 1)), 
+    Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-3)
+}
+
+## RV
+testthat::expect_equal(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"), 
+  header = TRUE, sep = "\t", dec = "."))[1,],
+  Res_Consensus$optimal$modelCV$RV, tolerance=1e-3)
+
+## lambda = lambda_raw in matlab
+testthat::expect_equal(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
+  header = TRUE, sep = "\t", dec = ".", row.names = 1)),
+  Res_Consensus$optimal$modelCV$Model$lambda, tolerance=1e-3)
+
+## blockContribution = lambda in matlab
+testthat::expect_equal(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"), 
+  header = TRUE, sep = "\t", dec = ".", row.names = 1)),
+  Res_Consensus$optimal$modelCV$Model$blockContribution, tolerance=1e-3)
+
+## loadings
+for(i in 1:length(nbrBlocs)){
+  loading_R <- Res_Consensus$optimal$modelCV$Model$loadings[[1]]
+  rownames(loading_R) <- NULL
+  testthat::expect_equal(as.matrix(read.table(
+    file = paste0(path_data_test, common_name, 
+                  common_RV, "06_loadings_", i, ".txt"), 
+    header = TRUE, sep = "\t", dec = ".")), 
+    loading_R, tolerance=1e-3)
+}
+```
+
+```{r PrometIs_optimal_model_ConsensusOPLSCV_outputs}
+# ----- RVConsensusOPLS => ConsensusOPLSCV: optimal model
+## Cp
+Cp_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
+                                                common_CV, "01_Cp.txt"),
+                                  header = FALSE, sep = ",", dec = "."))
+colnames(Cp_matlab) <- NULL
+rownames(Cp_matlab) <- c("1", "2")
+testthat::expect_equal(Cp_matlab,
+                       Res_Consensus$optimal$modelCV$Model$Cp,
+                       tolerance=1e-3)
+
+## Sp
+testthat::expect_equal(as.numeric(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
+  header = FALSE, sep = ",", dec = ".")),
+  Res_Consensus$optimal$modelCV$Model$Sp[1,1], tolerance=1e-3)
+
+## Up
+Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
+                                                common_CV, "03_Up.txt"),
+                                  header = FALSE, sep = ",", dec = "."))
+dimnames(Up_matlab) <- NULL
+testthat::expect_equal(Up_matlab,
+                       Res_Consensus$optimal$modelCV$Model$Up,
+                       tolerance=1e-3)
+
+## AllYhat
+AllYhat_matlab <- as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "04_AllYhat.txt"),
+  header = TRUE, sep = "\t", dec = ".", row.names = 1))
+colnames(AllYhat_matlab) <- gsub(pattern = "X", replacement = "", 
+                                 x = colnames(AllYhat_matlab), fixed = TRUE)
+testthat::expect_equal(AllYhat_matlab,
+                       Res_Consensus$optimal$modelCV$cv$AllYhat, tolerance=1e-3)
+
+## Q2Yhat
+testthat::expect_equal(as.numeric(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
+  header = FALSE, sep = ",", dec = "."))),
+  Res_Consensus$optimal$modelCV$cv$Q2Yhat, tolerance=1e-3)
+
+## DQ2Yhat
+testthat::expect_equal(as.numeric(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
+  header = FALSE, sep = ",", dec = "."))),
+  Res_Consensus$optimal$modelCV$cv$DQ2Yhat, tolerance=1e-3)
+
+## Tp
+for(i in 1:2){
+  Tp_matlab <- read.table(file = paste0(path_data_test, common_name, 
+                                        common_CV, "07_Tp_", i, ".txt"), 
+                          header = TRUE, sep = "\t", dec = ".", row.names = 1)
+  if (i == 1){colnames(Tp_matlab) <- NULL
+  } else{colnames(Tp_matlab) <- "p_1"}
+  testthat::expect_equal(as.matrix(Tp_matlab), 
+                         Res_Consensus$optimal$modelCV$Model$Tp[[i]], 
+                         tolerance=1e-3)
+}
+
+## scores = [T To] in matlab
+testthat::expect_equal(read.table(file = 
+                                    paste0(path_data_test, common_name, 
+                                           common_CV, "08_scores.txt"), 
+                                  header = TRUE, sep = "\t", dec = ".", 
+                                  row.names = 1),
+                       Res_Consensus$optimal$modelCV$Model$scores, 
+                       tolerance=1e-3)
+``` 
+
+## Main results
+
+```{r print_main1_results_n0comp, class.source='fold-hide'}
+paste0('Optimal number of orthogonal composent: ',
+       Res_Consensus$optimal$modelCV$Model$params$nOcomp)
+```
+
+```{r print_main1_results_R2, class.source='fold-hide'}
+Optimal_model_no_perm <- Res_Consensus$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt
+
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+```
+
+```{r print_main1_results_Q2, class.source='fold-hide'}
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+```
+
+```{r print_main1_results_DQ2, class.source='fold-hide'}
+paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+```
+
+
+
+
+
+
+
+
+
+
+# Reproducibility
+
+Here is the output of `sessionInfo()` on the system on which this document was 
+compiled:
+
+```{r reproducibility}
+sessionInfo()
+```
+
+# References
