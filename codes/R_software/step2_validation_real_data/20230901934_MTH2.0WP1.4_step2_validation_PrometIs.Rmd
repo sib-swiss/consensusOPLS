@@ -2,7 +2,7 @@
 title: 'Application of ConsensusOPLS package on ProMetIS data.'
 author: "Celine Bougel"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-bibliography: 20230901934_MTH2.0WP1.4_step1_2_validation.bib
+bibliography: 20230901934_MTH2.0WP1.4_step2_validation.bib
 biblio-style: apalike
 link-citations: yes
 nocite: '@*'
@@ -48,8 +48,7 @@ The original method was improved during translation. Among other things,
 parallelization have been implemented, mathematical formulas have been 
 generalized for application to different practical cases, and a single function 
 has been created so that the user can execute the entire method (with an option 
-if he doesn't want to use permutation). This vignette highlights these changes 
-as the code is executed.
+if he doesn't want to use permutation). 
 
 The current package includes some quality metrics for the optimal model, as 
 **R2**, **Q2**, **DQ2** [@WESTERHUIS2008], the permutation **diagnostics** 
@@ -72,7 +71,19 @@ and R results remain consistent. This completes the validation of the method on
 real data. For this purpose, we have chosen the public and accessible data of 
 ProMetIs [@IMBERT2021] (available at [Gitlab repository](https://github.com/IFB-ElixirFr/ProMetIS/tree/master)).
 
-# DESCRIPTIF DONNEES
+The authors have generated multi-level data combining phenomic, proteomic and 
+metabolomic acquisitions from plasma and liver tissues of two C57BL/6 N mouse 
+models lacking the `LAT` (linker for activation of T cells) and the `Mx2` (MX 
+dynamin-like GTPase 2) genes, respectively. Their dataset consists of 9 assays 
+(1 preclinical, 2 proteomics and 6 metabolomics) generated with a fully 
+non-targeted and standardized approach.
+
+This analysis is not intended to be a comprehensive study of these data. We 
+simply want to make sure, on real data, that the matlab and R results are 
+identical. We have therefore selected the post-processed data for plasma and 
+metabolomic data only.
+
+
 
 
 
@@ -149,7 +160,9 @@ theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
 
 # Import ProMetIS data sets
 
-
+Data can be imported from a clone of the git repository, or directly by 
+downloading the data of interest. However, an architecture similar to the Github 
+repository is required to run the following code.
 
 ```{r data_blocs_names, class.source='fold-hide'}
 # List of files and folders
@@ -160,7 +173,9 @@ data_files
 block_names <- data_files[grep("Metabo|preclinical", data_files)]
 ```
 
-```{r}
+Now that we have a clear view of all the data blocks and files needed to build the model, we can import them.
+
+```{r import_datasets}
 omics_ProMetIS <- lapply(block_names, function(block) {
   omics.files <- list.files(paste0(path_data_brut, "/", block), full.names = T)
   omics <- mclapply(omics.files, mc.cores=1, function(x) {
@@ -195,6 +210,10 @@ names(omics_ProMetIS) <- gsub(pattern = "Metabo_plasma_",
                               x = block_names)
 ```
 
+We also import the response variable Y, which we modify as follows: we divide 
+the subjects into two groups only, mutants versus controls. Then we import the 
+sample names.
+
 ```{r Y_and_sampleNames}
 Y <- omics_ProMetIS$preclinical$sampleMetadata$gene
 Y_bis <- ifelse(test = (Y == "MX2" | Y == "LAT"),
@@ -202,6 +221,7 @@ Y_bis <- ifelse(test = (Y == "MX2" | Y == "LAT"),
                 no = "Control")
 Y_bis <- matrix(factor(Y_bis))
 
+# Recoding response variable into numerical factor
 corresp_vector <- c('Mutant' = 2, 'Control' = 1)
 num_vector <- corresp_vector[Y_bis]
 Y_ter <- as.numeric(num_vector)
@@ -216,6 +236,9 @@ Sample_names <- rownames(omics_ProMetIS$c18acquity_neg$dataMatrix)
 # ConsensusOPLS
 
 ## Preprecessing
+
+To prepare the data for the Consensus model, certain method parameters must be 
+defined.
 
 ```{r define_cv_parameters}
 # Number of data blocks
@@ -232,6 +255,12 @@ LVsOrtho <- 1
 CVfolds <- length(Y_ter)
 CVfolds
 ```
+
+Next, we build a data list, with, for each block, an array whose rows correspond 
+to sample names and columns to variables. We take advantage of this construction 
+to check that there are no identical values for all subjects (otherwise delete 
+the relevant column), infinite values (same treatment) or missing data (same 
+treatment).
 
 ```{r pre_processing}
 block_names <- gsub(pattern = "Metabo_plasma_|preclinical", 
@@ -276,6 +305,8 @@ data_PrometeIS <- lapply(
   })
 ```
 
+To be on the safe side, we are carrying out a few additional checks:
+
 ```{r rename_blocks, class.source='fold-hide'}
 # Rename data blocks
 names(data_PrometeIS) <- block_names
@@ -292,15 +323,17 @@ rm(dims)
 
 ## Export for Matlab
 
-```{r save_results, class.source='fold-hide'}
-# Save the inputs for matlab
-common_pattern <- "20230901934_step2_validation"
+Now we export the results in a format that can be recognized and used by Matlab.
 
+```{r save_results, class.source='fold-hide'}
+## Save the inputs for matlab
+# common_pattern <- "20230901934_step2_validation"
+#
 # R.matlab::writeMat(data_ProMetIS = data_PrometeIS,
 #                    con = file.path(path_data_produced,
 #                                    paste0(common_pattern, 
 #                                           "_data_ProMetIS_collection.mat")))
-# 
+#
 # T1<-Sys.time()
 # R.matlab::writeMat(data_ProMetIS_VarNames = lapply(X = data_PrometeIS,
 #                                                    FUN = function(X) colnames(X)),
@@ -321,21 +354,9 @@ common_pattern <- "20230901934_step2_validation"
 
 ## Model
 
-```{r run_consensusOPLSmodel}
-# data = data_PrometeIS;
-# Y = Y_ter;
-# maxPcomp = LVsPred;
-# maxOcomp  = LVsOrtho;
-# modelType = "da";
-# nperm = 0;
-# cvType = "nfold";
-# nfold = CVfolds;
-# kernelParams = list(type = "p", 
-#                     params = c(order = 1));
-# mc.cores = 1;
-# plots = FALSE;
-# verbose = FALSE
+Now we run the single command to generate the model results:
 
+```{r run_consensusOPLSmodel}
 T2<-Sys.time()
 Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
                                               Y = Y_ter,
@@ -356,6 +377,8 @@ Tdiff2
 ```
 
 ## Checks
+
+We import all the matlab results generated to compare them automatically.
 
 ```{r PrometIs_define_path}
 path_data_test <- "Matlab_results/"
@@ -475,7 +498,19 @@ testthat::expect_equal(read.table(file =
                        tolerance=1e-3)
 ``` 
 
-## Main results
+
+## Conclusion
+
+We find that the results obtained between matlab and R are identical, with an 
+error tolerance of 1e-3.
+
+The package had already been validated on a demonstration set. It had also been 
+validated on 2 internal project datasets (data not accessible or published at 
+the time of testing). The present test validates the results provided, on a real 
+data set. The user can reproduce the results with the codes provided.
+
+
+## Main results of the model
 
 ```{r print_main1_results_n0comp, class.source='fold-hide'}
 paste0('Optimal number of orthogonal composent: ',
@@ -496,6 +531,29 @@ paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
 ```{r print_main1_results_DQ2, class.source='fold-hide'}
 paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
 ```
+
+As the aim of this document is not to go into the detailed interpretation of 
+this model, the results will not be investigated further. Graphs are not 
+displayed.
+
+
+
+
+
+# Disclaimer
+
+Please note that, as mentioned several times in the document, this file is not 
+intended to provide a detailed analysis of the present data. The sole aim is to 
+compare, for a chosen situation and real data, the results between Matlab and R. 
+This test is satisfied here.
+
+As far as data analysis is concerned, we now need to see whether any 
+pre-processing, such as scaling, might be necessary. And since the results are 
+reliable, it would be interesting to investigate further whether a single 
+orthogonal component is sufficient (functionality not available on matlab) to 
+build the optimal mmodel.
+
+In short, the results presented above should be taken with these precautions.
 
 
 
