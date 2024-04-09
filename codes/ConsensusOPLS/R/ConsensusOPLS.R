@@ -1,36 +1,61 @@
 #' @title ConsensusOPLS
 #' @description
 #' Constructs the consensus OPLS model with an optimal number of orthogonal components
-#' for given data blocks and response, and evaluate the model quality w.r.t other models 
+#' for given data blocks and Y response, and evaluate the model quality w.r.t other models 
 #' built with randomly permuted responses.
 #' 
-#' @param data A list of numeric matrices.
-#' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
+#' @param data A list of data blocks. Each element of the list must be of matrix 
+#' type. Rows and columns can have a name, in which case it will be retained 
+#' during analysis. Any pre-processing of the data (e.g. scaling) must be 
+#' carried out before building the list.
+#' @param Y A vector, factor, dummy matrix or numerical matrix for the response. 
+#' The type of answer given will condition the model to be used: a numerical 
+#' vector for linear regression, a factor or dummy matrix for logistic 
+#' regression or a discriminant model.
 #' @param maxPcomp Maximum number of Y-predictive components. Default, 1.
 #' @param maxOcomp Maximum number of Y-orthogonal components. Default, 5.
-#' @param modelType Type of OPLS regression model, either `reg` for regression or 
-#' `da` for discriminant analysis. Default, `da`.
-#' @param nperm Number of random permutations. Default, 100.
-#' @param cvType Type of cross-validation used. Either `nfold` for n-fold cross-validation, 
-#' where \code{nfold} is look up, or `mccv` for Monte Carlo CV, or `mccvb` 
-#' for Monte Carlo class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
-#' Default, `nfold`.
-#' @param nfold Number of folds performed in n-fold cross-validation. This can be set to the number
-#' of samples to perform Leave-One-Out cross validation. Default, 5.
-#' @param nMC An integer indicating the number of rounds performed when cvType is `mccv` or `mccvb`.
-#' Default, 100.
-#' @param cvFrac A numeric value indicating the fraction of observations from \code{data} 
-#' used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.
-#' @param kernelParams List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).
-#' @param mc.cores Number of cores for parallel computing. Default: 1.
-#' @param plots A logical indicating if plots are generated. Default: FALSE.
-#' @param verbose A logical indicating if the computation progress will be shown. Default, FALSE.
+#' @param modelType String for type of OPLS regression model, either \code{reg} 
+#' for regression or \code{da} for discriminant analysis. Default, \code{da}.
+#' @param nperm Number of random permutations desired in response Y. Default, 100.
+#' @param cvType String for type of cross-validation used. Either \code{nfold} 
+#' for n-fold cross-validation, where \code{nfold} is look up, or \code{mccv} 
+#' for Monte Carlo cross-validation, or \code{mccvb} for Monte Carlo 
+#' class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
+#' Default, \code{nfold}.
+#' @param nfold Number of folds performed in n-fold cross-validation. This can 
+#' be set to the number of samples to perform Leave-One-Out cross validation. 
+#' Default, 5.
+#' @param nMC An integer indicating the number of rounds performed when 
+#' \code{cvType} is \code{mccv} or \code{mccvb}. Default, 100.
+#' @param cvFrac A numeric value indicating the fraction of observations from 
+#' \code{data} used in the training set for \code{mccv} or \code{mccvb} 
+#' cross-validation. Default, 4/5 = 0.8.
+#' @param kernelParams List of parameters for the kernel. Default, 
+#' list(type='p', params = c(order=1.0)).
+#' @param mc.cores Number of cores for parallel computing. Default, 1.
+#' @param plots A logical indicating if plots are generated. For more aesthetic 
+#' graphics, please refer to the package thumbnail. Interpretation help is also 
+#' provided. Default, FALSE.
+#' @param verbose A logical indicating if the computation progress will be shown. 
+#' Default, FALSE.
 #'
 #' @return \code{ConsensusOPLS} returns a list of 
-#' \item{\code{optimal}}{ optimal consensus OPLS model}
-#' \item{\code{permuted}}{ models with permuted responses}
-#' \item{\code{permStats}}{ permutation statistics}
-#' \item{\code{plots}}{ plots}
+#' \item{\code{optimal}}{ results for optimal consensus OPLS model:}
+#' \itemize{
+#'      \item Ys. Response variable converted to dummy format.
+#'      \item modelCV.
+#'      \itemize{
+#'          \item xx
+#'      }
+#'      \item VIP. The variable Importance in projection (VIP) for each block of 
+#'  data. Within each block, the relevance of the variables in explaining 
+#'  variation in the Y response was assessed using the VIP parameter, which 
+#'  reflects the importance of the variables in relation to both response and 
+#'  projection quality.
+#' }
+#' \item{\code{permuted}}{ models with permuted responses.}
+#' \item{\code{permStats}}{ permutation statistics.}
+#' \item{\code{plots}}{ plots.}
 #'
 #' @examples
 #' data(demo_3_Omics)
@@ -61,26 +86,12 @@ ConsensusOPLS <- function(data,
                           verbose = FALSE) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
-    if (!all(sapply(data, is.matrix))) stop("Numeric matrices are required.")
-    if (!all(sapply(data, is.numeric))) stop("Numeric matrices are required.")
     if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
     if (nperm != as.integer(nperm)) stop("nperm is not an integer.")
     if (maxPcomp != as.integer(maxPcomp)) stop("maxPcomp is not an integer")
     if (maxOcomp != as.integer(maxOcomp)) stop("maxOcomp is not an integer")
     
-    if (modelType == "reg") {
-        Y <- as.matrix(Y)
-        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is not appropriate to Y.")
-        if (all(Y %in% c(0,1))) stop("modelType is preferably `da`.") #TODO: is it possible to do logistic regression?
-    } else {
-        if (nlevels(as.factor(Y)) > length(Y)/2) { # TODO: something better than this check: if at least 2 samples belong to every class
-            stop("modelType is preferably `reg`")
-        }
-        if (is.vector(Y) || is.factor(Y) || ncol(Y) == 1) {
-            Y <- koplsDummy(as.vector(Y))
-        }
-    }
-    if (is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
+    if (is.matrix(Y) && is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
     
     # Init parameters
     permStats <- list()
@@ -91,11 +102,12 @@ ConsensusOPLS <- function(data,
         set.seed(i)
         
         # Random permutation of Y rows
-        if (i==1) 
+        if (i==1) {
             Ys <- Y
-        else 
+        } else {
             Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), , drop=F]
-        
+        }
+            
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data,
                                    Y = Ys,

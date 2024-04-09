@@ -17,7 +17,7 @@ Authors@R:
            role = c("aut"),
            email = "florence.mehl@sib.swiss",
            comment = c(ORCID = "0000-0002-9619-1707")),
-	person(given = "Marie",
+    person(given = "Marie",
            family = "Tremblay-Franco",
            role = c("aut"),
            email = "marie.tremblay-franco@inrae.fr",
