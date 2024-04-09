@@ -1,8 +1,8 @@
 #' @title ConsensusOPLS
 #' @description
-#' Constructs the consensus OPLS model with an optimal number of orthogonal components
-#' for given data blocks and Y response, and evaluate the model quality w.r.t other models 
-#' built with randomly permuted responses.
+#' Constructs the consensus OPLS model with an optimal number of orthogonal 
+#' components for given data blocks and Y response, and evaluate the model 
+#' quality w.r.t other models built with randomly permuted responses.
 #' 
 #' @param data A list of data blocks. Each element of the list must be of matrix 
 #' type. Rows and columns can have a name, in which case it will be retained 
@@ -42,19 +42,77 @@
 #' @return \code{ConsensusOPLS} returns a list of 
 #' \item{\code{optimal}}{ results for optimal consensus OPLS model:}
 #' \itemize{
-#'      \item Ys. Response variable converted to dummy format.
-#'      \item modelCV.
+#'      \item{Ys.}{ Response variable converted to dummy format.}
+#'      \item{modelCV.}{ x.}
 #'      \itemize{
-#'          \item xx
+#'          \item{Model.}{ x.}
+#'          \itemize{
+#'              \item{params.}{ Contains all model parameters such as number of 
+#'              predictive components, number of orthogonal components, 
+#'              sstot_K (numeric. Total sums of squares in \code{K}.), 
+#'              sstot_Y ( numeric. Total sums of squares in Y.), 
+#'              preProcK (character. Pre-processing setting for K.), 
+#'              preProcY (character. Pre-processing setting for Y.), class.}
+#'              \item{scoresP}{ x.}
+#'              \item{scoresO}{ x.}
+#'              \item{Cp}{ matrix. Y loading matrix.}
+#'              \item{Sp}{ matrix. Sigma matrix, containing singular values from 
+#'              \code{t(Y)* K *Y} used for scaling.}
+#'              \item{Sps}{ matrix. Scaled Sigma matrix, containing scaled 
+#'              singular values.}
+#'              \item{Up}{ matrix. Y score matrix.}
+#'              \item{Tp}{ list. Predictive score matrix for all Y-orthogonal 
+#'              components.}
+#'              \item{co}{ list. Y-orthogonal loading vectors.}
+#'              \item{so}{ list. Eigenvalues from estimation of Y-orthogonal 
+#'              loading vectors.}
+#'              \item{to}{ list. Weight vector for the i-th latent component of 
+#'              the KOPLS model.}
+#'              \item{toNorm}{ list. Norm of the Y-orthogonal score matrix prior 
+#'              to scaling.}
+#'              \item{Bt}{ list. T-U regression coefficients for predictions.}
+#'              \item{K}{ matrix. The kernel matrix.}
+#'              \item{EEprime}{ matrix. The deflated kernel matrix for residual 
+#'              statistics.}
+#'              \item{R2X}{ numeric. Cumulative explained variation for all 
+#'              model components.}
+#'              \item{R2XO}{ numeric. Cumulative explained variation for 
+#'              Y-orthogonal model components.}
+#'              \item{R2Yhat}{ numeric. Variance explained by the i-th latent 
+#'              component of the model.}
+#'              \item{lambda}{ x.}
+#'              \item{blockContribution}{ x.}
+#'              \item{loadings}{ x.}
+#'              \item{scores}{ x.}
+#'          }
+#'          \item{cv}{ x.}
+#'          \itemize{
+#'              \item{AllYhat.}{ x.}
+#'              \item{Q2Yhat.}{ x.}
+#'              \item{cvTestIndex.}{ x.}
+#'              \item{DQ2Yhat.}{ x.}
+#'              \item{nOcompOpt.}{ Number of orthogonal components used to build 
+#'              the optimal model.}
+#'          }
+#'          \item{RV.}{ Value of the modified RV coefficient for each data block.}
+#'          \item{normKernels.}{ Normalized kernel for each data block}
 #'      }
-#'      \item VIP. The variable Importance in projection (VIP) for each block of 
+#'      \item{VIP.}{ The variable Importance in projection (VIP) for each block of 
 #'  data. Within each block, the relevance of the variables in explaining 
 #'  variation in the Y response was assessed using the VIP parameter, which 
 #'  reflects the importance of the variables in relation to both response and 
-#'  projection quality.
+#'  projection quality.}
 #' }
 #' \item{\code{permuted}}{ models with permuted responses.}
 #' \item{\code{permStats}}{ permutation statistics.}
+#' \itemize{
+#'      \item{lvnum}{ x.}
+#'      \item{R2Yhat}{ x.}
+#'      \item{DQ2Yhat}{ x.}
+#'      \item{Q2Yhat}{ x.}
+#'      \item{Y}{ response variable in its dummy form.}
+#'      \item{RV}{ x.}
+#' }
 #' \item{\code{plots}}{ plots.}
 #'
 #' @examples
