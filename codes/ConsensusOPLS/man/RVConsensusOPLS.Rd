@@ -20,9 +20,9 @@ RVConsensusOPLS(
 )
 }
 \arguments{
-\item{data}{the collection list containing each block of data.}
+\item{data}{A list of numeric matrices.}
 
-\item{Y}{The response.}
+\item{Y}{A vector, factor, dummy matrix or numerical matrix for the response.}
 
 \item{maxPcomp}{Maximum number of Y-predictive components.}
 

@@ -25,47 +25,130 @@ ConsensusOPLS(
 )
 }
 \arguments{
-\item{data}{A list of data blocks.}
+\item{data}{A list of data blocks. Each element of the list must be of matrix 
+type. Rows and columns can have a name, in which case it will be retained 
+during analysis. Any pre-processing of the data (e.g. scaling) must be 
+carried out before building the list.}
 
-\item{Y}{A vector, factor, dummy matrix or numerical matrix for the response.}
+\item{Y}{A vector, factor, dummy matrix or numerical matrix for the response. 
+The type of answer given will condition the model to be used: a numerical 
+vector for linear regression, a factor or dummy matrix for logistic 
+regression or a discriminant model.}
 
 \item{maxPcomp}{Maximum number of Y-predictive components. Default, 1.}
 
 \item{maxOcomp}{Maximum number of Y-orthogonal components. Default, 5.}
 
-\item{modelType}{Type of OPLS regression model, either `reg` for regression or 
-`da` for discriminant analysis. Default, `da`.}
+\item{modelType}{String for type of OPLS regression model, either \code{reg} 
+for regression or \code{da} for discriminant analysis. Default, \code{da}.}
 
-\item{nperm}{Number of random permutations. Default, 100.}
+\item{nperm}{Number of random permutations desired in response Y. Default, 100.}
 
-\item{cvType}{Type of cross-validation used. Either `nfold` for n-fold cross-validation, 
-where \code{nfold} is look up, or `mccv` for Monte Carlo CV, or `mccvb` 
-for Monte Carlo class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
-Default, `nfold`.}
+\item{cvType}{String for type of cross-validation used. Either \code{nfold} 
+for n-fold cross-validation, where \code{nfold} is look up, or \code{mccv} 
+for Monte Carlo cross-validation, or \code{mccvb} for Monte Carlo 
+class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
+Default, \code{nfold}.}
 
-\item{nfold}{Number of folds performed in n-fold cross-validation. This can be set to the number
-of samples to perform Leave-One-Out cross validation. Default, 5.}
+\item{nfold}{Number of folds performed in n-fold cross-validation. This can 
+be set to the number of samples to perform Leave-One-Out cross validation. 
+Default, 5.}
 
-\item{nMC}{An integer indicating the number of rounds performed when cvType is `mccv` or `mccvb`.
-Default, 100.}
+\item{nMC}{An integer indicating the number of rounds performed when 
+\code{cvType} is \code{mccv} or \code{mccvb}. Default, 100.}
 
-\item{cvFrac}{A numeric value indicating the fraction of observations from \code{data} 
-used in the training set for `mccv` or `mccvb` cross-validation. Default, 4/5.}
+\item{cvFrac}{A numeric value indicating the fraction of observations from 
+\code{data} used in the training set for \code{mccv} or \code{mccvb} 
+cross-validation. Default, 4/5 = 0.8.}
 
-\item{kernelParams}{List of parameters for the kernel. Default: list(type='p', params = c(order=1.0)).}
+\item{kernelParams}{List of parameters for the kernel. Default, 
+list(type='p', params = c(order=1.0)).}
 
-\item{mc.cores}{Number of cores for parallel computing. Default: 1.}
+\item{mc.cores}{Number of cores for parallel computing. Default, 1.}
 
-\item{plots}{A logical indicating if plots are generated. Default: FALSE.}
+\item{plots}{A logical indicating if plots are generated. For more aesthetic 
+graphics, please refer to the package thumbnail. Interpretation help is also 
+provided. Default, FALSE.}
 
-\item{verbose}{A logical indicating if the computation progress will be shown. Default, FALSE.}
+\item{verbose}{A logical indicating if the computation progress will be shown. 
+Default, FALSE.}
 }
 \value{
 \code{ConsensusOPLS} returns a list of 
-\item{\code{optimal}}{ optimal consensus OPLS model}
-\item{\code{permuted}}{ models with permuted responses}
-\item{\code{permStats}}{ permutation statistics}
-\item{\code{plots}}{ plots}
+\item{\code{optimal}}{ results for optimal consensus OPLS model:}
+\itemize{
+     \item{Ys.}{ Response variable converted to dummy format.}
+     \item{modelCV.}{ x.}
+     \itemize{
+         \item{Model.}{ x.}
+         \itemize{
+             \item{params.}{ Contains all model parameters such as number of 
+             predictive components, number of orthogonal components, 
+             sstot_K (numeric. Total sums of squares in \code{K}.), 
+             sstot_Y ( numeric. Total sums of squares in Y.), 
+             preProcK (character. Pre-processing setting for K.), 
+             preProcY (character. Pre-processing setting for Y.), class.}
+             \item{scoresP}{ x.}
+             \item{scoresO}{ x.}
+             \item{Cp}{ matrix. Y loading matrix.}
+             \item{Sp}{ matrix. Sigma matrix, containing singular values from 
+             \code{t(Y)* K *Y} used for scaling.}
+             \item{Sps}{ matrix. Scaled Sigma matrix, containing scaled 
+             singular values.}
+             \item{Up}{ matrix. Y score matrix.}
+             \item{Tp}{ list. Predictive score matrix for all Y-orthogonal 
+             components.}
+             \item{co}{ list. Y-orthogonal loading vectors.}
+             \item{so}{ list. Eigenvalues from estimation of Y-orthogonal 
+             loading vectors.}
+             \item{to}{ list. Weight vector for the i-th latent component of 
+             the KOPLS model.}
+             \item{toNorm}{ list. Norm of the Y-orthogonal score matrix prior 
+             to scaling.}
+             \item{Bt}{ list. T-U regression coefficients for predictions.}
+             \item{K}{ matrix. The kernel matrix.}
+             \item{EEprime}{ matrix. The deflated kernel matrix for residual 
+             statistics.}
+             \item{R2X}{ numeric. Cumulative explained variation for all 
+             model components.}
+             \item{R2XO}{ numeric. Cumulative explained variation for 
+             Y-orthogonal model components.}
+             \item{R2Yhat}{ numeric. Variance explained by the i-th latent 
+             component of the model.}
+             \item{lambda}{ x.}
+             \item{blockContribution}{ x.}
+             \item{loadings}{ x.}
+             \item{scores}{ x.}
+         }
+         \item{cv}{ x.}
+         \itemize{
+             \item{AllYhat.}{ x.}
+             \item{Q2Yhat.}{ x.}
+             \item{cvTestIndex.}{ x.}
+             \item{DQ2Yhat.}{ x.}
+             \item{nOcompOpt.}{ Number of orthogonal components used to build 
+             the optimal model.}
+         }
+         \item{RV.}{ Value of the modified RV coefficient for each data block.}
+         \item{normKernels.}{ Normalized kernel for each data block}
+     }
+     \item{VIP.}{ The variable Importance in projection (VIP) for each block of 
+ data. Within each block, the relevance of the variables in explaining 
+ variation in the Y response was assessed using the VIP parameter, which 
+ reflects the importance of the variables in relation to both response and 
+ projection quality.}
+}
+\item{\code{permuted}}{ models with permuted responses.}
+\item{\code{permStats}}{ permutation statistics.}
+\itemize{
+     \item{lvnum}{ x.}
+     \item{R2Yhat}{ x.}
+     \item{DQ2Yhat}{ x.}
+     \item{Q2Yhat}{ x.}
+     \item{Y}{ response variable in its dummy form.}
+     \item{RV}{ x.}
+}
+\item{\code{plots}}{ plots.}
 }
 \description{
 A short description...
@@ -78,9 +161,9 @@ Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen
 This code has been extended and adapted under the terms of the GNU General 
 Public License version 2 as published by the Free Software Foundation.
 
-Constructs the consensus OPLS model with an optimal number of orthogonal components
-for given data blocks and response, and evaluate the model quality w.r.t other models 
-built with randomly permuted responses.
+Constructs the consensus OPLS model with an optimal number of orthogonal 
+components for given data blocks and Y response, and evaluate the model 
+quality w.r.t other models built with randomly permuted responses.
 }
 \examples{
 data(demo_3_Omics)
@@ -99,6 +182,7 @@ Authors:
   \item Celine Bougel \email{celine.bougel@laposte.net} (\href{https://orcid.org/0000-0002-1598-7827}{ORCID})
   \item Julien Boccard \email{julien.boccard@unige.ch} (\href{https://orcid.org/0000-0001-5913-9566}{ORCID})
   \item Florence Mehl \email{florence.mehl@sib.swiss} (\href{https://orcid.org/0000-0002-9619-1707}{ORCID})
+  \item Marie Tremblay-Franco \email{marie.tremblay-franco@inrae.fr} (\href{https://orcid.org/0000-0003-4678-4456}{ORCID})
 }
 
 }
