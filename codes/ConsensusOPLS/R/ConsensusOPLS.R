@@ -162,6 +162,24 @@ ConsensusOPLS <- function(data,
     if (maxPcomp != as.integer(maxPcomp)) stop("maxPcomp is not an integer")
     if (maxOcomp != as.integer(maxOcomp)) stop("maxOcomp is not an integer")
     
+    if (modelType == "reg") {
+        if (is.factor(Y)) {
+            warning("Logistic regression is performed.")
+            if (nlevels(Y) > 2) stop("Y should have two levels.")
+            Y <- koplsDummy(as.vector(Y))[, 1, drop=F]
+        } else {
+            Y <- as.matrix(Y)
+        }
+        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is preferably `da`.")
+    } else {
+        if (nlevels(as.factor(Y)) > length(Y)/2) { # TODO: something better than this check: if at least 2 samples belong to every class
+            stop("modelType is preferably `reg`.")
+        }
+        if (is.vector(Y) || is.factor(Y) || ncol(Y) == 1) {
+            Y <- koplsDummy(as.vector(Y))
+        }
+    }
+    
     if (is.matrix(Y) && is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
     
     # Init parameters

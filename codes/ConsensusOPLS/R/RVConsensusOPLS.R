@@ -70,8 +70,8 @@ RVConsensusOPLS <- function(data,
     
     if (modelType == "reg") {
         Y <- as.matrix(Y)
-        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is not appropriate to Y.")
-        if (all(Y %in% c(0,1))) stop("modelType is preferably `da`.") #TODO: is it possible to do logistic regression?
+        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is preferably `da`.")
+        #if (all(Y %in% c(0,1))) stop("modelType is preferably `da`.") #TODO: is it possible to do logistic regression?
         koplsScale <- koplsScale(X = Y, centerType = preProcY, scaleType = "no")
         Yc <- koplsScale$X
     } else {

@@ -14,7 +14,7 @@ test_that("RVConsensusOPLS", {
                                Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
                                maxPcomp=1,
                                maxOcomp=3,
-                               nperm=10,
+                               nperm=100,
                                modelType="reg",
                                mc.cores=1,
                                nfold=3)
