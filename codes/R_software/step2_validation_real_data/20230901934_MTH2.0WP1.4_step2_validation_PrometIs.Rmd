@@ -359,7 +359,7 @@ Now we run the single command to generate the model results:
 ```{r run_consensusOPLSmodel}
 T2<-Sys.time()
 Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
-                                              Y = Y_ter,
+                                              Y = as.matrix(Y_ter),
                                               maxPcomp = LVsPred,
                                               maxOcomp  = LVsOrtho,
                                               modelType = "da",
@@ -395,26 +395,26 @@ for(i in 1:length(nbrBlocs)){
     file = paste0(path_data_test, common_name, 
                   common_RV, "02_Amat_", i, ".txt"), 
     header = TRUE, sep = "\t", dec = ".", row.names = 1)), 
-    Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-3)
+    Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-6)
 }
 
 ## RV
 testthat::expect_equal(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"), 
   header = TRUE, sep = "\t", dec = "."))[1,],
-  Res_Consensus$optimal$modelCV$RV, tolerance=1e-3)
+  Res_Consensus$optimal$modelCV$RV, tolerance=1e-6)
 
 ## lambda = lambda_raw in matlab
 testthat::expect_equal(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1)),
-  Res_Consensus$optimal$modelCV$Model$lambda, tolerance=1e-3)
+  Res_Consensus$optimal$modelCV$Model$lambda, tolerance=1e-6)
 
 ## blockContribution = lambda in matlab
 testthat::expect_equal(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"), 
   header = TRUE, sep = "\t", dec = ".", row.names = 1)),
-  Res_Consensus$optimal$modelCV$Model$blockContribution, tolerance=1e-3)
+  Res_Consensus$optimal$modelCV$Model$blockContribution, tolerance=1e-6)
 
 ## loadings
 for(i in 1:length(nbrBlocs)){
@@ -424,7 +424,7 @@ for(i in 1:length(nbrBlocs)){
     file = paste0(path_data_test, common_name, 
                   common_RV, "06_loadings_", i, ".txt"), 
     header = TRUE, sep = "\t", dec = ".")), 
-    loading_R, tolerance=1e-3)
+    loading_R, tolerance=1e-6)
 }
 ```
 
@@ -438,13 +438,13 @@ colnames(Cp_matlab) <- NULL
 rownames(Cp_matlab) <- c("1", "2")
 testthat::expect_equal(Cp_matlab,
                        Res_Consensus$optimal$modelCV$Model$Cp,
-                       tolerance=1e-3)
+                       tolerance=1e-6)
 
 ## Sp
 testthat::expect_equal(as.numeric(read.table(
   file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
   header = FALSE, sep = ",", dec = ".")),
-  Res_Consensus$optimal$modelCV$Model$Sp[1,1], tolerance=1e-3)
+  Res_Consensus$optimal$modelCV$Model$Sp[1,1], tolerance=1e-6)
 
 ## Up
 Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
@@ -453,7 +453,7 @@ Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
 dimnames(Up_matlab) <- NULL
 testthat::expect_equal(Up_matlab,
                        Res_Consensus$optimal$modelCV$Model$Up,
-                       tolerance=1e-3)
+                       tolerance=1e-6)
 
 ## AllYhat
 AllYhat_matlab <- as.matrix(read.table(
@@ -462,19 +462,19 @@ AllYhat_matlab <- as.matrix(read.table(
 colnames(AllYhat_matlab) <- gsub(pattern = "X", replacement = "", 
                                  x = colnames(AllYhat_matlab), fixed = TRUE)
 testthat::expect_equal(AllYhat_matlab,
-                       Res_Consensus$optimal$modelCV$cv$AllYhat, tolerance=1e-3)
+                       Res_Consensus$optimal$modelCV$cv$AllYhat, tolerance=1e-6)
 
 ## Q2Yhat
 testthat::expect_equal(as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
   header = FALSE, sep = ",", dec = "."))),
-  Res_Consensus$optimal$modelCV$cv$Q2Yhat, tolerance=1e-3)
+  Res_Consensus$optimal$modelCV$cv$Q2Yhat, tolerance=1e-6)
 
 ## DQ2Yhat
 testthat::expect_equal(as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
   header = FALSE, sep = ",", dec = "."))),
-  Res_Consensus$optimal$modelCV$cv$DQ2Yhat, tolerance=1e-3)
+  Res_Consensus$optimal$modelCV$cv$DQ2Yhat, tolerance=1e-6)
 
 ## Tp
 for(i in 1:2){
@@ -485,7 +485,7 @@ for(i in 1:2){
   } else{colnames(Tp_matlab) <- "p_1"}
   testthat::expect_equal(as.matrix(Tp_matlab), 
                          Res_Consensus$optimal$modelCV$Model$Tp[[i]], 
-                         tolerance=1e-3)
+                         tolerance=1e-6)
 }
 
 ## scores = [T To] in matlab
@@ -495,17 +495,17 @@ testthat::expect_equal(read.table(file =
                                   header = TRUE, sep = "\t", dec = ".", 
                                   row.names = 1),
                        Res_Consensus$optimal$modelCV$Model$scores, 
-                       tolerance=1e-3)
+                       tolerance=1e-6)
 ``` 
 
 
 ## Conclusion
 
-We find that the results obtained between matlab and R are identical, with an 
-error tolerance of 1e-3.
+We find that the results obtained between Matlab and R are identical, with an 
+error tolerance of 1e-6.
 
 The package had already been validated on a demonstration set. It had also been 
-validated on 2 internal project datasets (data not accessible or published at 
+validated on 2 internal project data sets (data not accessible or published at 
 the time of testing). The present test validates the results provided, on a real 
 data set. The user can reproduce the results with the codes provided.
 
