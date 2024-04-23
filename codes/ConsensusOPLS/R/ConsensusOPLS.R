@@ -53,8 +53,10 @@
 #'              sstot_Y ( numeric. Total sums of squares in Y.), 
 #'              preProcK (character. Pre-processing setting for K.), 
 #'              preProcY (character. Pre-processing setting for Y.), class.}
-#'              \item{scoresP}{ x.}
-#'              \item{scoresO}{ x.}
+#'              \item{scoresP}{ Representation of the samples into the new 
+#'              predictive components calculated by the optimal model.}
+#'              \item{scoresO}{ Representation of the samples into the new 
+#'              orthoginal components calculated by the optimal model.}
 #'              \item{Cp}{ matrix. Y loading matrix.}
 #'              \item{Sp}{ matrix. Sigma matrix, containing singular values from 
 #'              \code{t(Y)* K *Y} used for scaling.}
@@ -81,16 +83,24 @@
 #'              \item{R2Yhat}{ numeric. Variance explained by the i-th latent 
 #'              component of the model.}
 #'              \item{lambda}{ x.}
-#'              \item{blockContribution}{ x.}
-#'              \item{loadings}{ x.}
-#'              \item{scores}{ x.}
+#'              \item{blockContribution}{ numeric. The specific importance of 
+#'              each block to the latent predictor variable }
+#'              \item{loadings}{ Individual loading of each block for the 
+#'              predictive latent variable of the optimal model. They allow to 
+#'              detect data level differences according to the Y response.}
+#'              \item{scores}{ Representation of the samples into the new 
+#'              components calculated by the optimal model.}
 #'          }
-#'          \item{cv}{ x.}
+#'          \item{cv}{ Cross-validation results.}
 #'          \itemize{
-#'              \item{AllYhat.}{ x.}
-#'              \item{Q2Yhat.}{ x.}
-#'              \item{cvTestIndex.}{ x.}
-#'              \item{DQ2Yhat.}{ x.}
+#'              \item{AllYhat.}{ matrix. All predicted Y values as a 
+#'              concatenated matrix for each block of data.}
+#'              \item{Q2Yhat.}{ matrix. Total Q-square result for all 
+#'              Y-orthogonal components.}
+#'              \item{cvTestIndex.}{ matrix. Indices for the test set 
+#'              observations during the cross-validation rounds.}
+#'              \item{DQ2Yhat.}{ numeric. Discriminant Q2 value for all 
+#'              Y-orthogonal components.}
 #'              \item{nOcompOpt.}{ Number of orthogonal components used to build 
 #'              the optimal model.}
 #'          }
@@ -107,11 +117,14 @@
 #' \item{\code{permStats}}{ permutation statistics.}
 #' \itemize{
 #'      \item{lvnum}{ x.}
-#'      \item{R2Yhat}{ x.}
-#'      \item{DQ2Yhat}{ x.}
-#'      \item{Q2Yhat}{ x.}
+#'      \item{R2Yhat}{ numeric. Variance explained by the i-th latent component 
+#'      of the model.}
+#'      \item{DQ2Yhat}{ numeric. Discriminant Q2 value for all Y-orthogonal 
+#'      components.}
+#'      \item{Q2Yhat}{ matrix. Total Q-square result for all Y-orthogonal 
+#'      components.}
 #'      \item{Y}{ response variable in its dummy form.}
-#'      \item{RV}{ x.}
+#'      \item{RV}{ Value of the modified RV coefficient for each data block.}
 #' }
 #' \item{\code{plots}}{ plots.}
 #'
