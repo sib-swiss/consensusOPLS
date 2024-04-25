@@ -1,0 +1,566 @@
+---
+title: 'A consensus orthogonal partial least squares discriminant analysis
+(OPLS-DA) strategy for multiblock Omics data fusion.'
+author: "Celine Bougel"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+bibliography: 20230901934_MTH2.0WP1.4_step2_validation_SNF.bib
+biblio-style: apalike
+link-citations: yes
+nocite: '@*'
+output:
+  html_document:
+    code_folding: show
+    df_print: kable
+    highlight: pygments
+    number_sections: yes
+    self_contained: yes
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  editor_options:
+    chunk_output_type: console
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+
+# The Consensus OPLS method
+
+The `ConsensusOPLS` R package implements the translated `Matlab` version of the 
+**Consensus OPLS(-DA)** approach [@BOCCARD2013] (available at [Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)), with the 
+kernel-based reformulations of the **NIPALS** algorithm [@LINDGREN1993]. The 
+kernel reformulation of the OPLS algorithm was proposed to extend its 
+applicability to non-linear relationships. The `ConsensusOPLS` R package includes 
+updated codes from the `KOPLS` R package: codes translated from the 
+`Matlab` version  were then compared and corrected, if necessary, according to 
+the package source codes [@BYLESJO2008] (available at [Github repository](https://github.com/sdechaumet/ramopls/tree/master/inst/package)).
+
+The original method was improved during translation. Among other things, 
+parallelization have been implemented, mathematical formulas have been 
+generalized for application to different practical cases, and a single function 
+has been created so that the user can execute the entire method (with an option 
+if he doesn't want to use permutation). 
+
+The current package includes some quality metrics for the optimal model, as 
+**R2**, **Q2**, **DQ2** [@WESTERHUIS2008], the permutation **diagnostics** 
+[@SZYMANSKA2012], the computation of the **VIP values** [@WOLD2001], as 
+well as many graphics (scores plot, block contributions, loading, permutations, 
+etc.).
+
+
+
+
+
+# Context
+
+Once the functions have been implemented on R, the package was used to perform a 
+discriminant analysis on the `demo_data` set proposed by Julien Boccard in his 
+method. 
+
+The aim now is to use the package on real public data and check that the matlab 
+and R results remain consistent. This completes the validation of the method on 
+real data. For this purpose, we have chosen the public and accessible data of 
+Similarity Network Fusion (SNF) [@WANG2014] (available at 
+[Website link](http://compbio.cs.toronto.edu/SNF/SNF/Software.html)).
+
+Similarity Network Fusion (SNF) is a new computational method for data 
+integration.  Briefly, SNF combines many different types of measurements (such 
+as mRNA expression data, DNA methylation, miRNA expression and more - clinical 
+data, questionnaires, image data, etc) for a given set of samples (e.g. 
+patients). SNF first constructs a sample similarity network for each of the data
+types and then iteratively integrates these networks using a novel network 
+fusion method. Working in the sample network space allows SNF to avoid dealing 
+with different scale, collection bias and noise in different data types. 
+Integrating data in a non-linear fashion allows SNF to take advantage of the 
+common as well as complementary information in different data types.
+
+The authors generated 5 blocks of data: GBM, breast, colon, kidney and lung. For 
+each one, gene expression, DNA methylation expression, miRNA expression, and 
+survival data are available.
+
+This analysis is not intended to be a comprehensive study of these data. We 
+simply want to make sure, on real data, the the options offered by the package 
+are functional. Since data with the SNF method has produced results, we hope 
+that the consensusOPLS method will also provide results.
+
+
+
+
+
+# R environment preparation
+
+```{r setup, class.source='fold-hide'}
+#install.packages("knitr")
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+
+# To ensure repeatability
+set.seed(12)
+```
+
+Before any action, it is necessary to verify that the needed packages are 
+installed (the code chunks are not shown) and to define define the localisation
+of the codes and the files.
+
+```{r access}
+path_data_brut <- "../../../data/data_brut/Wang2014_SNF" 
+path_data_produced <- "../../../data/data_produced/R_software" 
+path_results <- "../../../results" 
+```
+
+The code below has been designed to have as few dependencies as possible on R 
+packages, except for the stable packages.
+
+```{r packages_installation, class.source='fold-hide', warning=FALSE, include=FALSE, message=FALSE}
+# install.packages(c("R.matlab", "ggplot2", "ggrepel", "stats", "utils",
+#                    "devtools", "parallel", "SNFtool", "dplyr", "uwot",
+#                    "readr", "SNFtool"))
+# update.packages(ask = FALSE)
+```
+
+```{r packages_load, warning=FALSE, message=FALSE, class.source='fold-hide'}
+library(R.matlab) # to read MATLAB data
+library(ggplot2) # to make beautiful graphs
+library(ggrepel) # to annotate ggplot2 graph
+library(stats) # to use R statistical functions
+library(utils) # to use R utility functions
+library(devtools) # to import the ConsensusOPLS package
+library(parallel) # to make some tasks in parallel
+library(dplyr) # to use grammar of data manipulation
+library(readr) # to import tsv files
+library(SNFtool) # to use the standardNormalization function
+```
+
+We now install and load the `ConsensusOPLS` R package using:
+
+```{r ConsensusOPLS_load, warning=FALSE, message=FALSE}
+# Detaching and uninstalling a package
+# detach("package:ConsensusOPLS", unload=T)
+# remove.packages("ConsensusOPLS")
+
+# Import check 07/04/2024
+# devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
+library(ConsensusOPLS)
+```
+
+Finally, we create a uniform theme that will be used for all graphic output.
+
+```{r theme_ggplot2, class.source='fold-hide'}
+theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
+                                   axis.title = element_text(size=16),
+                                   axis.text = element_text(size=14),
+                                   plot.title = element_text(size = 16),
+                                   legend.title = element_text(size = 14))
+```
+
+
+
+
+
+# Import SNF data
+
+## Block names
+
+```{r data_blocs_names, class.source='fold-hide'}
+# List of files and folders
+cancer.types <- list.files(path_data_brut)
+cancer.types
+
+# Delete two blocks
+# repeated TCGA-06-0147-01A-01T-0213-07 in GBM
+# no cg* names in Methylation
+cancer.types <- setdiff(cancer.types, c("GBM", "Colon")) 
+cancer.types
+```
+
+## Number of blocks
+
+```{r data_blocs_number}
+nbrBlocs <- length(cancer.types)
+```
+
+## Collection structure
+
+```{r import_datasets}
+omics.cancer <- lapply(cancer.types, function(ct) {
+  omics.files <- list.files(paste0(path_data_brut, "/", ct), full.names = T)
+  omics <- mclapply(omics.files, mc.cores=1, function(x) {
+    #print(x)
+    if (grepl("Methy_Expression.txt$", x)) {
+      tab <- read.delim(x, header=T, check.names = F, row.names=NULL)
+      colnames(tab) <- colnames(tab)[-2]
+      tab <- tab[, -ncol(tab)]
+    } else {
+      tab <- read.table(x, header=T, check.names = F, row.names=NULL)
+    }
+
+    if (!grepl("Survival.txt$", x)) {
+      tab$row.names <- sub(" .+$|LLL[0-9]+$", "", tab$row.names)
+      dup.names <- duplicated(tab$row.names)
+      if (any(dup.names)) {
+        tab <- tab[!dup.names,]
+      }
+      tab <- tab[!is.na(tab$row.names),]
+      rownames(tab) <- tab$row.names
+      tab <- tab[, -1]
+      tab <- t(tab)
+      tab <- SNFtool::standardNormalization(tab)
+    } else {
+      #rownames(tab) <- gsub("-", ".", rownames(tab))
+      rownames(tab) <- tab$PatientID
+      tab <- tab[, -1]
+    }
+    rownames(tab) <- sub("-01[A-Z].+", "", rownames(tab))
+    return (tab)
+  })
+  
+  names(omics) <- gsub(pattern = paste0(toupper(ct),"_|.txt|_Expression"),
+                       replacement = "", 
+                       x = basename(omics.files))
+  print(ct)
+  print(all(sapply(omics, function(x) {
+    all(rownames(x) == rownames(omics[[4]]))
+  })))
+  return (omics)
+})
+names(omics.cancer) <- cancer.types
+```
+
+
+
+
+
+# Data preprocessing
+
+## Reduce data set
+
+```{r common_data, class.source='fold-hide'}
+common.genes <- Reduce(intersect, lapply(omics.cancer, function(x) colnames(x$Gene)))
+common.methy <- Reduce(intersect, lapply(omics.cancer, function(x) colnames(x$Methy)))
+common.mirna <- Reduce(intersect, lapply(omics.cancer, function(x) colnames(x$Mirna)))
+omics.common <- invisible(lapply(c(names(omics.cancer), 'all'), function(ct) {
+  if (ct != 'all') {
+    omics <- omics.cancer[[ct]]
+    omics <- lapply(omics, function(y) {
+      rownames(y) <- sub('TCGA', ct, rownames(y))
+      return (y)
+    })
+  } else {
+    omics <- list(
+      Gene=(do.call(rbind, lapply(names(omics.cancer), function(y) {
+        tmp <- omics.cancer[[y]]$Gene[, common.genes]
+        rownames(tmp) <- sub('TCGA', y, rownames(tmp))
+        return (tmp)
+      }))),
+      Methy=(do.call(rbind, lapply(names(omics.cancer), function(y) {
+        tmp <- omics.cancer[[y]]$Methy[, common.methy]
+        rownames(tmp) <- sub('TCGA', y, rownames(tmp))
+        return (tmp)
+      }))),
+      Mirna=(do.call(rbind, lapply(names(omics.cancer), function(y) {
+        tmp <- omics.cancer[[y]]$Mirna[, common.mirna]
+        rownames(tmp) <- sub('TCGA', y, rownames(tmp))
+        return (tmp)
+      }))),
+      Survival=(do.call(rbind, lapply(names(omics.cancer), function(y) {
+        tmp <- omics.cancer[[y]]$Survival
+        rownames(tmp) <- sub('TCGA', y, rownames(tmp))
+        return (tmp)
+      })))
+    )
+  }
+  return (omics)
+}))
+names(omics.common) <- c(names(omics.cancer), 'all')
+```
+
+```{r data2}
+id2 <- !grepl('Kidney', rownames(omics.common[['all']][["Survival"]]))
+omics.common.data2 <- lapply(omics.common[['all']][c('Gene', 'Methy', 'Mirna')], function(x) {x[id2,]})
+names(omics.common.data2) <- c('Gene', 'Methy', 'Mirna')
+# omics.common.data200 <- lapply(omics.common.data2, function(x) {
+#     sdx <- order(apply(x, 2, sd), decreasing = T)
+#     return (x[, head(sdx, 10)])
+# })
+```
+
+## Check dimension
+
+```{r check_dim, class.source='fold-hide'}
+# Check dimension
+dims <- lapply(X = 1:length(omics.common.data2),
+               FUN = function(X){
+                 dim(omics.common.data2[[X]])})
+names(dims) <- names(omics.common.data2)
+dims
+
+# Remove unuseful object for the next steps
+rm(dims)
+```
+
+## Add Y response
+
+```{r finishing_collection}
+# Add response matrix
+Y <- rownames(omics.common[['all']][["Survival"]][id2,]) %>% sub("-.+", "", .)
+```
+
+# Export data
+
+```{r save_RDS}
+base::save(omics.cancer, 
+           file = file.path(path_data_produced, "data_SNF.RData"))
+``` 
+
+
+# Linear kernel 
+## ConsensusOPLS-DA model
+
+```{r define_cv_parameters}
+# Number of predictive component(s)
+LVsPred <- 1
+
+# Maximum number of orthogonal components
+LVsOrtho <- 1
+
+# Number of cross-validation folds
+CVfolds <- 211
+CVfolds
+```
+
+```{r run_model_da}
+rvcopls <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
+                                         Y=factor(Y),
+                                         maxPcomp = LVsPred,
+                                         maxOcomp  = LVsOrtho,
+                                         modelType = "da",
+                                         nperm = 0,
+                                         cvType = "nfold",
+                                         nfold = CVfolds,
+                                         kernelParams = 
+                                           list(type = "p", 
+                                                params = c(order = 1)),
+                                         mc.cores = 1,
+                                         plots = TRUE,
+                                         verbose = FALSE)
+```
+
+```{r results_mod}
+# pca <- prcomp(omics.common.data2[[3]])
+# plot(pca$x[,c(1,2)], col=c(2:3)[factor(sub("-.+", "", rownames(omics.common[['all']][["Survival"]][id2,])))])
+# umapres <- uwot::umap(omics.common.data2[[2]])
+# plot(umapres, col=c(2:3)[factor(sub("-.+", "", rownames(omics.common[['all']][["Survival"]][id2,])))])
+```
+
+```{r print_main_results_R2, class.source='fold-hide'}
+Optimal_model_no_perm <- rvcopls$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+```
+
+```{r print_main_results_Q2, class.source='fold-hide'}
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+```
+
+```{r print_main_results_DQ2, class.source='fold-hide'}
+paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+```
+
+```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
+ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
+                                  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+                                  "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
+                                  "Factor" = gsub(pattern = "-.*",
+                                                  replacement = "",
+                                                  x = rownames(omics.common.data2$Gene))),
+                aes(x = p_1, y = o_1, label = Labs, 
+                    shape = Factor, colour = Factor)) +
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("ConsensusOPLS Score plot")+
+  ggplot2::geom_point(size = 2.5) + 
+  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
+```
+
+## ConsensusOPLS-reg log model
+
+```{r run_model_reg}
+rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
+                                             Y=factor(Y),
+                                             maxPcomp = LVsPred,
+                                             maxOcomp  = LVsOrtho,
+                                             modelType = "reg",
+                                             nperm = 0,
+                                             cvType = "nfold",
+                                             nfold = CVfolds,
+                                             kernelParams = 
+                                               list(type = "p", 
+                                                    params = c(order = 1)),
+                                             mc.cores = 1,
+                                             plots = TRUE,
+                                             verbose = FALSE)
+
+#Y=omics.common[['all']][["Survival"]][id2,'Survival'],
+```
+
+```{r print_main2_results_R2, class.source='fold-hide'}
+Optimal_model_no_perm <- rvcopls.reg$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+```
+
+```{r print_main2_results_Q2, class.source='fold-hide'}
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+```
+
+```{r ggplot2_score_data, class.source='fold-hide', warning=FALSE}
+ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
+                                  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+                                  "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
+                                  "Factor" = gsub(pattern = "-.*",
+                                                  replacement = "",
+                                                  x = rownames(omics.common.data2$Gene))),
+                aes(x = p_1, y = o_1, label = Labs, 
+                    shape = Factor, colour = Factor)) +
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("ConsensusOPLS Score plot")+
+  ggplot2::geom_point(size = 2.5) + 
+  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
+```
+
+
+# Non linear kernel
+## ConsensusOPLS-DA model
+
+```{r run_model_da_kernel2}
+rvcopls <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
+                                         Y=factor(Y),
+                                         maxPcomp = LVsPred,
+                                         maxOcomp  = LVsOrtho,
+                                         modelType = "da",
+                                         nperm = 0,
+                                         cvType = "nfold",
+                                         nfold = CVfolds,
+                                         kernelParams = 
+                                           list(type = "p", 
+                                                params = c(order = 2)),
+                                         mc.cores = 1,
+                                         plots = TRUE,
+                                         verbose = FALSE)
+```
+
+```{r print_main_results_R2_kernel2, class.source='fold-hide'}
+Optimal_model_no_perm <- rvcopls$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+```
+
+```{r print_main_results_Q2_kernel2, class.source='fold-hide'}
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+```
+
+```{r print_main_results_DQ2_kernel2, class.source='fold-hide'}
+paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+```
+
+```{r ggplot_score_data_kernel2, class.source='fold-hide', warning=FALSE}
+ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
+                                  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+                                  "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
+                                  "Factor" = gsub(pattern = "-.*",
+                                                  replacement = "",
+                                                  x = rownames(omics.common.data2$Gene))),
+                aes(x = p_1, y = o_1, label = Labs, 
+                    shape = Factor, colour = Factor)) +
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("ConsensusOPLS Score plot")+
+  ggplot2::geom_point(size = 2.5) + 
+  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
+```
+
+## ConsensusOPLS-reg log model
+
+```{r run_model_reg_kernel2}
+rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
+                                             Y=factor(Y),
+                                             maxPcomp = LVsPred,
+                                             maxOcomp  = LVsOrtho,
+                                             modelType = "reg",
+                                             nperm = 0,
+                                             cvType = "nfold",
+                                             nfold = CVfolds,
+                                             kernelParams = 
+                                               list(type = "p", 
+                                                    params = c(order = 2)),
+                                             mc.cores = 1,
+                                             plots = TRUE,
+                                             verbose = FALSE)
+
+#Y=omics.common[['all']][["Survival"]][id2,'Survival'],
+```
+
+
+```{r print_main2_results_R2_kernel2, class.source='fold-hide'}
+Optimal_model_no_perm <- rvcopls.reg$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+```
+
+```{r print_main2_results_Q2_kernel2, class.source='fold-hide'}
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+```
+
+```{r ggplot2_score_data_kernel2, class.source='fold-hide', warning=FALSE}
+ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
+                                  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+                                  "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
+                                  "Factor" = gsub(pattern = "-.*",
+                                                  replacement = "",
+                                                  x = rownames(omics.common.data2$Gene))),
+                aes(x = p_1, y = o_1, label = Labs, 
+                    shape = Factor, colour = Factor)) +
+  ggplot2::xlab("Predictive component") +
+  ggplot2::ylab("Orthogonal component") +
+  ggplot2::ggtitle("ConsensusOPLS Score plot")+
+  ggplot2::geom_point(size = 2.5) + 
+  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs+
+  ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
+```
+
+
+
+
+
+# Reproducibility
+
+Here is the output of `sessionInfo()` on the system on which this document was 
+compiled:
+
+```{r reproducibility}
+sessionInfo()
+```
+
+# References
