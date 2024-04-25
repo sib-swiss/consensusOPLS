@@ -352,7 +352,7 @@ Now we export the results in a format that can be recognized and used by Matlab.
 #                                    paste0(common_pattern, "_SampleNames.mat")))
 ```
 
-## Model
+## Model - DA
 
 Now we run the single command to generate the model results:
 
@@ -510,7 +510,7 @@ the time of testing). The present test validates the results provided, on a real
 data set. The user can reproduce the results with the codes provided.
 
 
-## Main results of the model
+## Main results of the model DA
 
 ```{r print_main1_results_n0comp, class.source='fold-hide'}
 paste0('Optimal number of orthogonal composent: ',
@@ -538,6 +538,66 @@ displayed.
 
 
 
+# Other analysis
+## Model - Reg log
+
+Just as we sought to discriminate between the two groups formed by the response 
+variable Y, we can also use this variable to construct a logistic regression 
+model.
+
+```{r run_consensusOPLSmodel_reg}
+T4<-Sys.time()
+Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
+                                              Y = as.matrix(Y_ter),
+                                              maxPcomp = LVsPred,
+                                              maxOcomp  = LVsOrtho,
+                                              modelType = "reg",
+                                              nperm = 0,
+                                              cvType = "nfold",
+                                              nfold = CVfolds,
+                                              kernelParams = list(type = "p", 
+                                                                  params = c(order = 1)),
+                                              mc.cores = 1,
+                                              plots = FALSE,
+                                              verbose = FALSE)
+T5<-Sys.time()
+Tdiff3 <- T5 - T4
+Tdiff3
+```
+
+## Main results of the model reg log
+
+```{r print_main2_results_n0comp, class.source='fold-hide'}
+paste0('Optimal number of orthogonal composent: ',
+       Res_Consensus$optimal$modelCV$Model$params$nOcomp)
+```
+
+```{r print_main2_results_R2, class.source='fold-hide'}
+Optimal_model_no_perm <- Res_Consensus$optimal
+position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt
+
+paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+```
+
+```{r print_main2_results_Q2, class.source='fold-hide'}
+paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+```
+
+Note: in the case of a regression model, `DQ2Yhat` does not exist.
+
+As the aim of this document is not to go into the detailed interpretation of 
+this model, the results will not be investigated further. Graphs are not 
+displayed.
+
+## Conclusion
+
+The logistic regression option is therefore functional on this type of data and 
+does not generate error messages. However, novice users should beware: it is 
+normal not to find exactly the same results as in discriminant analysis, since 
+certain quantities cannot be calculated.
+
+
+
 
 
 # Disclaimer
@@ -551,7 +611,7 @@ As far as data analysis is concerned, we now need to see whether any
 pre-processing, such as scaling, might be necessary. And since the results are 
 reliable, it would be interesting to investigate further whether a single 
 orthogonal component is sufficient (functionality not available on matlab) to 
-build the optimal mmodel.
+build the optimal model.
 
 In short, the results presented above should be taken with these precautions.
 
