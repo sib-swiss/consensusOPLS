@@ -139,7 +139,7 @@ We now install and load the `ConsensusOPLS` R package using:
 # detach("package:ConsensusOPLS", unload=T)
 # remove.packages("ConsensusOPLS")
 
-# Import check 07/04/2024
+# Import check 25/04/2024
 # devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
 library(ConsensusOPLS)
 ```
