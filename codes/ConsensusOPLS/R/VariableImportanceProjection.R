@@ -5,7 +5,6 @@
 #' @param data A list of data blocks.
 #' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
 #' @param model A ConsensusOPLS model Default, NULL, a model will be constructed.
-#' @param mc.cores Number of cores for parallel computing. Default: 1.
 #' @param ... arguments to pass to \code{RVConsensusOPLS}
 #'
 #' @return A table with the results:
@@ -20,7 +19,7 @@
 #' str(vip)
 #' @export
 #' 
-VIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
+VIP <- function(data, Y, model = NULL, ...) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
     if (!is.matrix(Y)) stop("Y is not a matrix.")
@@ -32,7 +31,7 @@ VIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
     }
     if (!is.list(model)) stop("model is not a list.")
     
-    VIP <- mclapply(1:length(data), mc.cores=mc.cores, function(itable) {
+    VIP <- lapply(1:length(data), function(itable) {
         # Dimensions of the data in the data
         nvariable <- ncol(data[[itable]])
         nsample   <- nrow(model$scoresP)
@@ -54,6 +53,6 @@ VIP <- function(data, Y, model = NULL, mc.cores = 1, ...) {
         return (VIP.itable)
     })
     names(VIP) <- names(data)
-
+    
     return (VIP)
 }

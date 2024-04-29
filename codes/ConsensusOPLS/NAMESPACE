@@ -3,6 +3,7 @@
 export(ConsensusOPLS)
 export(VIP)
 import(ggplot2)
+import(parallel)
 import(stats)
 importFrom(parallel,mclapply)
 importFrom(reshape2,melt)

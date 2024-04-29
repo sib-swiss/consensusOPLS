@@ -100,7 +100,7 @@
 #'              \item{cvTestIndex.}{ matrix. Indices for the test set 
 #'              observations during the cross-validation rounds.}
 #'              \item{DQ2Yhat.}{ numeric. Discriminant Q2 value for all 
-#'              Y-orthogonal components.}
+#'              Y-orthogonal components. Only for \code{da} mode.}
 #'              \item{nOcompOpt.}{ Number of orthogonal components used to build 
 #'              the optimal model.}
 #'          }
@@ -120,7 +120,7 @@
 #'      \item{R2Yhat}{ numeric. Variance explained by the i-th latent component 
 #'      of the model.}
 #'      \item{DQ2Yhat}{ numeric. Discriminant Q2 value for all Y-orthogonal 
-#'      components.}
+#'      components. Only for \code{da} mode.}
 #'      \item{Q2Yhat}{ matrix. Total Q-square result for all Y-orthogonal 
 #'      components.}
 #'      \item{Y}{ response variable in its dummy form.}
@@ -136,9 +136,8 @@
 #'                      modelType='da',
 #'                      nperm=5)
 #' str(res)
-#' @importFrom parallel mclapply
 #' @importFrom reshape2 melt
-#' @import ggplot2
+#' @import ggplot2 parallel
 #' @export
 #' 
 ConsensusOPLS <- function(data,
@@ -185,8 +184,12 @@ ConsensusOPLS <- function(data,
     # Init parameters
     permStats <- list()
     
+    # Create parallel cluster
+    cl <- makeCluster(mc.cores)
+    
     # Permutations
-    perms <- mclapply(X=1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #perms <- mclapply(X=1:(1+nperm), mc.cores=mc.cores, function(i) {
+    perms <- parLapply(cl, X=1:(1+nperm), function(i) {
         # Fix the random seed
         set.seed(i)
         
@@ -217,25 +220,31 @@ ConsensusOPLS <- function(data,
                      VIP=VIP)
         )
     })
-    permStats$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #permStats$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$lvnum  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$nOcompOpt + maxPcomp
     }))
-    permStats$R2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #permStats$R2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$R2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         utils::tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
     }))
-    permStats$DQ2Yhat <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #permStats$DQ2Yhat <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$DQ2Yhat <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[permStats$lvnum[i]]
     }))
-    permStats$Q2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #permStats$Q2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$Q2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$Q2Yhat[permStats$lvnum[i]]
     }))
     # permStats$PredAc <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     #     perms[[i]]$modelCV$da$tot_sens[2]
     # }))
-    permStats$Y      <- mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    #permStats$Y      <- mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$Y      <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$Ys
-    })
-    permStats$RV     <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    }))
+    #permStats$RV     <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
+    permStats$RV     <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         RVmodified(X = Y, Y = perms[[i]]$Ys)
     }))
     
@@ -257,8 +266,8 @@ ConsensusOPLS <- function(data,
         scores <- data.frame(scores, response=if (modelType=='da') koplsReDummy(Y) else Y)
         p_scores <- ggplot(scores, aes(x=p_1, y=o_1, colour=response)) +
             geom_point(size=4) +
-            labs(x="Predictive",
-                 y="Orthogonal",
+            labs(x = "Predictive",
+                 y = "Orthogonal",
                  title = "Scores on first orthogonal and predictive components") +
             theme_light()
 
@@ -272,8 +281,8 @@ ConsensusOPLS <- function(data,
         
         p_loadings <- ggplot(loadings, aes(x=p_1, y=o_1, col=block, label=variable)) +
             geom_point(size=2) +
-            labs(x="Predictive",
-                 y="Orthogonal",
+            labs(x = "Predictive",
+                 y = "Orthogonal",
                  title = "Loadings on first orthogonal and predictive components") +
             theme_light()
         
@@ -286,8 +295,8 @@ ConsensusOPLS <- function(data,
         
         p_vip <- ggplot(loadings_VIP, aes(x=p_1, y=VIP, col=block, label = label)) +
             geom_point(size=2) +
-            labs(x="Predictive",
-                 y="VIP",
+            labs(x = "Predictive",
+                 y = "VIP",
                  title = "VIP versus loadings on predictive components") +
             theme_light()
         
@@ -320,6 +329,9 @@ ConsensusOPLS <- function(data,
             theme_light() +
             ggtitle("R2 Permutation test")
     }
+    
+    ## Stop parallel clusters
+    stopCluster(cl)
     
     return (list(
         optimal = perms[[1]],
