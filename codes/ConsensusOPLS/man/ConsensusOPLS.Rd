@@ -135,7 +135,7 @@ Default, FALSE.}
              \item{cvTestIndex.}{ matrix. Indices for the test set 
              observations during the cross-validation rounds.}
              \item{DQ2Yhat.}{ numeric. Discriminant Q2 value for all 
-             Y-orthogonal components.}
+             Y-orthogonal components. Only for \code{da} mode.}
              \item{nOcompOpt.}{ Number of orthogonal components used to build 
              the optimal model.}
          }
@@ -155,7 +155,7 @@ Default, FALSE.}
      \item{R2Yhat}{ numeric. Variance explained by the i-th latent component 
      of the model.}
      \item{DQ2Yhat}{ numeric. Discriminant Q2 value for all Y-orthogonal 
-     components.}
+     components. Only for \code{da} mode.}
      \item{Q2Yhat}{ matrix. Total Q-square result for all Y-orthogonal 
      components.}
      \item{Y}{ response variable in its dummy form.}

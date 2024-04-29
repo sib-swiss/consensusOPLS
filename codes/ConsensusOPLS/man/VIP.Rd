@@ -4,7 +4,7 @@
 \alias{VIP}
 \title{Variable Importance in Projection}
 \usage{
-VIP(data, Y, model = NULL, mc.cores = 1, ...)
+VIP(data, Y, model = NULL, ...)
 }
 \arguments{
 \item{data}{A list of data blocks.}
@@ -12,8 +12,6 @@ VIP(data, Y, model = NULL, mc.cores = 1, ...)
 \item{Y}{A vector, factor, dummy matrix or numerical matrix for the response.}
 
 \item{model}{A ConsensusOPLS model Default, NULL, a model will be constructed.}
-
-\item{mc.cores}{Number of cores for parallel computing. Default: 1.}
 
 \item{...}{arguments to pass to \code{RVConsensusOPLS}}
 }

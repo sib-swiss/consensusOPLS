@@ -186,6 +186,9 @@ ConsensusOPLS <- function(data,
     
     # Create parallel cluster
     cl <- makeCluster(mc.cores)
+    clusterExport(cl,
+                  ls(all.names=TRUE, env=globalenv()),
+                  envir=.GlobalEnv)
     
     # Permutations
     #perms <- mclapply(X=1:(1+nperm), mc.cores=mc.cores, function(i) {
