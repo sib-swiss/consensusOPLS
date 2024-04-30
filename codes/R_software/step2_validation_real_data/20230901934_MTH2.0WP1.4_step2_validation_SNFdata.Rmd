@@ -148,7 +148,7 @@ We now install and load the `ConsensusOPLS` R package using:
 # detach("package:ConsensusOPLS", unload=T)
 # remove.packages("ConsensusOPLS")
 
-# Import check 07/04/2024
+# Import check 29/04/2024
 # devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
 library(ConsensusOPLS)
 ```
@@ -405,7 +405,7 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                              modelType = "reg",
                                              nperm = 0,
                                              cvType = "nfold",
-                                             nfold = CVfolds,
+                                             nfold = CVfolds, 
                                              kernelParams = 
                                                list(type = "p", 
                                                     params = c(order = 1)),
@@ -509,7 +509,7 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                              modelType = "reg",
                                              nperm = 0,
                                              cvType = "nfold",
-                                             nfold = CVfolds,
+                                             nfold = CVfolds, 
                                              kernelParams = 
                                                list(type = "p", 
                                                     params = c(order = 2)),
@@ -548,6 +548,71 @@ ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$sc
   ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
   theme_graphs+
   ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
+```
+
+
+
+
+
+# Parallelisation on windows
+
+In the last part of this document, we can evaluate the execution time of the 
+different models, depending on the number of cores used for parallelisation.
+As an example, let's take a model with 1000 permutations:
+
+```{r test_parallelisation_100}
+CVfolds <- round(sqrt(CVfolds), 0)
+CVfolds
+
+lapply(X = c(1:5),
+       FUN = function(cores_tested){
+         print(paste0("cores_tested = ", cores_tested))
+         Tstart<-Sys.time()
+         ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
+                                      Y=factor(Y),
+                                      maxPcomp = LVsPred,
+                                      maxOcomp  = LVsOrtho,
+                                      modelType = "da",
+                                      nperm = 100,
+                                      cvType = "nfold",
+                                      nfold = CVfolds,
+                                      kernelParams = 
+                                        list(type = "p", 
+                                             params = c(order = 2)),
+                                      mc.cores = cores_tested,
+                                      plots = TRUE,
+                                      verbose = FALSE)
+         Tend<-Sys.time()
+         Tellapsed <- Tend - Tstart
+         return(Tellapsed)
+       })
+```
+
+And now, let's take a model with 1000 permutations:
+
+```{r test_parallelisation_1000}
+lapply(X = c(1:5),
+       FUN = function(cores_tested){
+         print(paste0("cores_tested = ", cores_tested))
+         Tstart<-Sys.time()
+         ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
+                                      Y=factor(Y),
+                                      maxPcomp = LVsPred,
+                                      maxOcomp  = LVsOrtho,
+                                      modelType = "da",
+                                      nperm = 1000,
+                                      cvType = "nfold",
+                                      nfold = CVfolds,
+                                      kernelParams = 
+                                        list(type = "p", 
+                                             params = c(order = 2)),
+                                      mc.cores = cores_tested,
+                                      plots = TRUE,
+                                      verbose = FALSE)
+         Tend<-Sys.time()
+         Tellapsed <- Tend - Tstart
+         return(Tellapsed)
+       })
 ```
 
 
