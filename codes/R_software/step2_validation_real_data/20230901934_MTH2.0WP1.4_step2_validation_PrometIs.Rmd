@@ -139,7 +139,7 @@ We now install and load the `ConsensusOPLS` R package using:
 # detach("package:ConsensusOPLS", unload=T)
 # remove.packages("ConsensusOPLS")
 
-# Import check 25/04/2024
+# Import check 29/04/2024
 # devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
 library(ConsensusOPLS)
 ```
@@ -595,6 +595,67 @@ The logistic regression option is therefore functional on this type of data and
 does not generate error messages. However, novice users should beware: it is 
 normal not to find exactly the same results as in discriminant analysis, since 
 certain quantities cannot be calculated.
+
+
+
+
+
+# Parallelisation on windows
+
+In the last part of this document, we can evaluate the execution time of the 
+different models, depending on the number of cores used for parallelisation.
+As an example, let's take a model with 100 permutations:
+
+```{r test_parallelisation_100}
+lapply(X = c(1:5),
+       FUN = function(cores_tested){
+         print(paste0("cores_tested = ", cores_tested))
+         Tstart<-Sys.time()
+         ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
+                                      Y = as.matrix(Y_ter),
+                                      maxPcomp = LVsPred,
+                                      maxOcomp  = LVsOrtho,
+                                      modelType = "da",
+                                      nperm = 100,
+                                      cvType = "nfold",
+                                      nfold = CVfolds, 
+                                      kernelParams = list(type = "p",
+                                                          params = c(order = 1)),
+                                      mc.cores = cores_tested,
+                                      plots = FALSE,
+                                      verbose = FALSE)
+         Tend<-Sys.time()
+         Tellapsed <- Tend - Tstart
+         return(Tellapsed)
+       })
+```
+
+And now, let's take a model with 1000 permutations:
+
+```{r test_parallelisation_1000}
+lapply(X = c(1:5),
+       FUN = function(cores_tested){
+         print(paste0("cores_tested = ", cores_tested))
+         Tstart<-Sys.time()
+         ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
+                                      Y = as.matrix(Y_ter),
+                                      maxPcomp = LVsPred,
+                                      maxOcomp  = LVsOrtho,
+                                      modelType = "da",
+                                      nperm = 1000,
+                                      cvType = "nfold",
+                                      nfold = CVfolds,
+                                      kernelParams = list(type = "p",
+                                                          params = c(order = 1)),
+                                      mc.cores = cores_tested,
+                                      plots = FALSE,
+                                      verbose = FALSE)
+         Tend<-Sys.time()
+         Tellapsed <- Tend - Tstart
+         return(Tellapsed)
+       })
+```
+
 
 
 
