@@ -183,12 +183,22 @@ ConsensusOPLS <- function(data,
     
     # Init parameters
     permStats <- list()
+    # Loaded packages
+    loaded.package.names <- c(
+        sessionInfo()$basePkgs,
+        names(sessionInfo()$otherPkgs))
     
     # Create parallel cluster
     cl <- makeCluster(mc.cores)
     clusterExport(cl,
                   ls(all.names=TRUE, env=globalenv()),
                   envir=.GlobalEnv)
+    # Load the packages on all the cluster
+    parLapply(cl, 1:length(cl), function(i) {
+        lapply(loaded.package.names, function(lpn) {
+            require(lpn, character.only=TRUE)
+        })
+    })
     
     # Permutations
     #perms <- mclapply(X=1:(1+nperm), mc.cores=mc.cores, function(i) {

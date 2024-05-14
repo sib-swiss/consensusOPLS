@@ -105,7 +105,7 @@ Default, FALSE.}
              loading vectors.}
              \item{to}{ list. Weight vector for the i-th latent component of 
              the KOPLS model.}
-             \item{toNorm}{ list. Norm of the Y-orthogonal score matrix prior 
+             \item{\code{toNorm}}{ list. Norm of the Y-orthogonal score matrix prior 
              to scaling.}
              \item{Bt}{ list. T-U regression coefficients for predictions.}
              \item{K}{ matrix. The kernel matrix.}
@@ -117,9 +117,9 @@ Default, FALSE.}
              Y-orthogonal model components.}
              \item{R2Yhat}{ numeric. Variance explained by the i-th latent 
              component of the model.}
-             \item{lambda}{ x.}
-             \item{blockContribution}{ numeric. The specific importance of 
-             each block to the latent predictor variable }
+             \item{\code{lambda}}{ Raw lambda coefficient of each block in the latent variables.}
+             \item{\code{blockContribution}}{ Contribution of each block (normalized lambda values)
+             to the latent variables. }
              \item{loadings}{ Individual loading of each block for the 
              predictive latent variable of the optimal model. They allow to 
              detect data level differences according to the Y response.}
