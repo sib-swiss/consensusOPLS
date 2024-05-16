@@ -214,19 +214,19 @@ ConsensusOPLS <- function(data,
         }
             
         # Redo the Consensus OPLS-DA with RV coefficients weighting
-        modelCV <- RVConsensusOPLS(data = data,
-                                   Y = Ys,
-                                   maxPcomp = maxPcomp,
-                                   maxOcomp = maxOcomp,
-                                   modelType = modelType,
-                                   cvType = cvType,
-                                   nfold = nfold,
-                                   nMC = nMC,
-                                   cvFrac = cvFrac,
-                                   mc.cores = 1,
-                                   kernelParams = kernelParams,
-                                   verbose = verbose)
-        VIP <- VIP(data = data, Y = Ys, model=modelCV$Model)
+        modelCV <- ConsensusOPLS:::RVConsensusOPLS(data = data,
+                                                   Y = Ys,
+                                                   maxPcomp = maxPcomp,
+                                                   maxOcomp = maxOcomp,
+                                                   modelType = modelType,
+                                                   cvType = cvType,
+                                                   nfold = nfold,
+                                                   nMC = nMC,
+                                                   cvFrac = cvFrac,
+                                                   mc.cores = 1,
+                                                   kernelParams = kernelParams,
+                                                   verbose = verbose)
+        VIP <- ConsensusOPLS::VIP(data = data, Y = Ys, model=modelCV$Model)
         
         return (list(Ys=Ys,
                      modelCV=modelCV,
