@@ -189,7 +189,7 @@ ConsensusOPLS <- function(data,
         names(sessionInfo()$otherPkgs))
     
     # Create parallel cluster
-    warning(.libPaths())
+    globLibPaths <- .libPaths()
     cl <- makeCluster(mc.cores)
     clusterExport(cl,
                   ls(all.names=TRUE, env=globalenv()),
@@ -197,7 +197,7 @@ ConsensusOPLS <- function(data,
     # Load the packages on all the cluster
     parLapply(cl, 1:length(cl), function(i) {
         lapply(loaded.package.names, function(lpn) {
-            warning(.libPaths())
+            .libPaths(globLibPaths)
             library(lpn, character.only=TRUE)
         })
     })
