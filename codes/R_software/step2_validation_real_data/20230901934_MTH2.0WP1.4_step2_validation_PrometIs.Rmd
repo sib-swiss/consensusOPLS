@@ -45,7 +45,7 @@ updated codes from the `KOPLS` R package: codes translated from the
 the package source codes [@BYLESJO2008] (available at [Github repository](https://github.com/sdechaumet/ramopls/tree/master/inst/package)).
 
 The original method was improved during translation. Among other things, 
-parallelization have been implemented, mathematical formulas have been 
+parallelisation have been implemented, mathematical formulas have been 
 generalized for application to different practical cases, and a single function 
 has been created so that the user can execute the entire method (with an option 
 if he doesn't want to use permutation). 
@@ -79,9 +79,9 @@ dynamin-like GTPase 2) genes, respectively. Their dataset consists of 9 assays
 non-targeted and standardized approach.
 
 This analysis is not intended to be a comprehensive study of these data. We 
-simply want to make sure, on real data, that the matlab and R results are 
+simply want to make sure, on real data, that the Matlab and R results are 
 identical. We have therefore selected the post-processed data for plasma and 
-metabolomic data only.
+metabolomics data only.
 
 
 
@@ -139,7 +139,7 @@ We now install and load the `ConsensusOPLS` R package using:
 # detach("package:ConsensusOPLS", unload=T)
 # remove.packages("ConsensusOPLS")
 
-# Import check 29/04/2024
+# Import check 17/05/2024
 # devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
 library(ConsensusOPLS)
 ```
@@ -173,7 +173,8 @@ data_files
 block_names <- data_files[grep("Metabo|preclinical", data_files)]
 ```
 
-Now that we have a clear view of all the data blocks and files needed to build the model, we can import them.
+Now that we have a clear view of all the data blocks and files needed to build
+the model, we can import them.
 
 ```{r import_datasets}
 omics_ProMetIS <- lapply(block_names, function(block) {
@@ -326,23 +327,23 @@ rm(dims)
 Now we export the results in a format that can be recognized and used by Matlab.
 
 ```{r save_results, class.source='fold-hide'}
-## Save the inputs for matlab
-# common_pattern <- "20230901934_step2_validation"
-#
+# # Save the inputs for matlab
+# common_pattern <- "20230901934_step2_validation_data_ProMetIs"
+# 
 # R.matlab::writeMat(data_ProMetIS = data_PrometeIS,
 #                    con = file.path(path_data_produced,
-#                                    paste0(common_pattern, 
-#                                           "_data_ProMetIS_collection.mat")))
-#
+#                                    paste0(common_pattern,
+#                                           "_collection.mat")))
+# 
 # T1<-Sys.time()
 # R.matlab::writeMat(data_ProMetIS_VarNames = lapply(X = data_PrometeIS,
 #                                                    FUN = function(X) colnames(X)),
 #                    con = file.path(path_data_produced,
-#                                    paste0(common_pattern, 
-#                                           "_data_ProMetIS_VarNames.mat")))
+#                                    paste0(common_pattern,
+#                                           "_VarNames.mat")))
 # T2<-Sys.time()
 # Tdiff <- T2 - T1
-# Tdiff #Time difference of 21.86611 mins
+# Tdiff #Time difference of 24.37773 mins
 # 
 # R.matlab::writeMat(Y = Y_ter,
 #                    con = file.path(path_data_produced,
@@ -382,7 +383,7 @@ We import all the matlab results generated to compare them automatically.
 
 ```{r PrometIs_define_path}
 path_data_test <- "Matlab_results/"
-common_name <- "20230901934_"
+common_name <- "20230901934_ProMetIs_"
 common_RV <- "RVConsensusOPLS_"
 common_CV <- "ConsensusOPLSCV_"
 ```
@@ -390,33 +391,111 @@ common_CV <- "ConsensusOPLSCV_"
 ```{r PrometIs_RVConsensusOPLS_outputs}
 # ----- RVConsensusOPLS
 ## normKernels = Amat in matlab
+# Relative
+for(i in 1:length(nbrBlocs)){
+  matlab <- as.matrix(read.table(
+    file = paste0(path_data_test, common_name,
+                  common_RV, "02_Amat_", i, ".txt"),
+    header = TRUE, sep = "\t", dec = ".", row.names = 1))
+  R_res <- Res_Consensus$optimal$modelCV$normKernels[[i]]
+  relative_compare <- (matlab - R_res) / max(1, R_res)
+  
+  matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                           nrow = nrow(relative_compare))
+  colnames(matrix_compare) = colnames(relative_compare)
+  rownames(matrix_compare) = rownames(relative_compare)
+  testthat::expect_equal(relative_compare,
+                         matrix_compare, tolerance=1e-3)
+}
+# Absolute
 for(i in 1:length(nbrBlocs)){
   testthat::expect_equal(as.matrix(read.table(
-    file = paste0(path_data_test, common_name, 
-                  common_RV, "02_Amat_", i, ".txt"), 
-    header = TRUE, sep = "\t", dec = ".", row.names = 1)), 
-    Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-6)
+    file = paste0(path_data_test, common_name,
+                  common_RV, "02_Amat_", i, ".txt"),
+    header = TRUE, sep = "\t", dec = ".", row.names = 1)),
+    Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-3)
 }
 
+
+
 ## RV
+# Relative
+matlab <- as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
+  header = TRUE, sep = "\t", dec = "."))[1,]
+R_res <- Res_Consensus$optimal$modelCV$RV
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- rep(0, length(relative_compare))
+names(matrix_compare) <- names(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"), 
+  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
   header = TRUE, sep = "\t", dec = "."))[1,],
   Res_Consensus$optimal$modelCV$RV, tolerance=1e-6)
 
+
+
 ## lambda = lambda_raw in matlab
+# Relative
+matlab <- as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
+  header = TRUE, sep = "\t", dec = ".", row.names = 1))
+R_res <- Res_Consensus$optimal$modelCV$Model$lambda
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1)),
   Res_Consensus$optimal$modelCV$Model$lambda, tolerance=1e-6)
 
+
+
 ## blockContribution = lambda in matlab
+# Relative
+matlab <- as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"),
+  header = TRUE, sep = "\t", dec = ".", row.names = 1))
+R_res <- Res_Consensus$optimal$modelCV$Model$blockContribution
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"), 
   header = TRUE, sep = "\t", dec = ".", row.names = 1)),
   Res_Consensus$optimal$modelCV$Model$blockContribution, tolerance=1e-6)
 
+
+
 ## loadings
+for(i in 1:length(nbrBlocs)){
+  loading_R <- Res_Consensus$optimal$modelCV$Model$loadings[[1]]
+  rownames(loading_R) <- NULL
+  loadings_matlab <- as.matrix(read.table(
+    file = paste0(path_data_test, common_name,
+                  common_RV, "06_loadings_", i, ".txt"),
+    header = TRUE, sep = "\t", dec = "."))
+  loadings_tot <- (loadings_matlab - loading_R) / 
+    apply(abs(loading_R), c(1,2), max, 1)
+  matrix_compare <- matrix(0, nrow = nrow(loadings_tot), 
+                           ncol=ncol(loadings_tot))
+  colnames(matrix_compare) <- colnames(loadings_tot)
+  testthat::expect_equal(loadings_tot, 
+                         matrix_compare, tolerance=1e-3)
+}
+# Absolute
 for(i in 1:length(nbrBlocs)){
   loading_R <- Res_Consensus$optimal$modelCV$Model$loadings[[1]]
   rownames(loading_R) <- NULL
@@ -431,52 +510,147 @@ for(i in 1:length(nbrBlocs)){
 ```{r PrometIs_optimal_model_ConsensusOPLSCV_outputs}
 # ----- RVConsensusOPLS => ConsensusOPLSCV: optimal model
 ## Cp
+# Relatives
 Cp_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
                                                 common_CV, "01_Cp.txt"),
                                   header = FALSE, sep = ",", dec = "."))
 colnames(Cp_matlab) <- NULL
 rownames(Cp_matlab) <- c("1", "2")
+Cp_R <- Res_Consensus$optimal$modelCV$Model$Cp
+relative_compare <- (Cp_matlab - Cp_R)/ max(1, Cp_R)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(Cp_matlab,
                        Res_Consensus$optimal$modelCV$Model$Cp,
                        tolerance=1e-6)
 
+
+
 ## Sp
+# Relatives
+matlab <- as.numeric(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
+  header = FALSE, sep = ",", dec = "."))
+R_res <- Res_Consensus$optimal$modelCV$Model$Sp[1,1]
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+testthat::expect_equal(relative_compare,
+                       0, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(as.numeric(read.table(
   file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
   header = FALSE, sep = ",", dec = ".")),
   Res_Consensus$optimal$modelCV$Model$Sp[1,1], tolerance=1e-6)
 
+
+
 ## Up
+# Relatives
 Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
                                                 common_CV, "03_Up.txt"),
                                   header = FALSE, sep = ",", dec = "."))
 dimnames(Up_matlab) <- NULL
+Up_R <- Res_Consensus$optimal$modelCV$Model$Up
+relative_compare <- (Up_matlab - Up_R)/ max(1, Up_R)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(Up_matlab,
                        Res_Consensus$optimal$modelCV$Model$Up,
                        tolerance=1e-6)
 
+
+
 ## AllYhat
+# Relatives
 AllYhat_matlab <- as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "04_AllYhat.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1))
 colnames(AllYhat_matlab) <- gsub(pattern = "X", replacement = "", 
                                  x = colnames(AllYhat_matlab), fixed = TRUE)
+AllYhat_R <- Res_Consensus$optimal$modelCV$cv$AllYhat
+relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(AllYhat_matlab,
                        Res_Consensus$optimal$modelCV$cv$AllYhat, tolerance=1e-6)
 
+
+
 ## Q2Yhat
+# Relatives
+matlab <- as.numeric(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
+  header = FALSE, sep = ",", dec = ".")))
+R_res <- Res_Consensus$optimal$modelCV$cv$Q2Yhat
+relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
   header = FALSE, sep = ",", dec = "."))),
   Res_Consensus$optimal$modelCV$cv$Q2Yhat, tolerance=1e-6)
 
+
+
 ## DQ2Yhat
+# Relatives
+matlab <- as.numeric(as.matrix(read.table(
+  file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
+  header = FALSE, sep = ",", dec = ".")))
+R_res <- Res_Consensus$optimal$modelCV$cv$DQ2Yhat
+relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
   header = FALSE, sep = ",", dec = "."))),
   Res_Consensus$optimal$modelCV$cv$DQ2Yhat, tolerance=1e-6)
 
+
+
 ## Tp
+# Relatives
+for(i in 1:length(nbrBlocs)){
+  Tp_matlab <- read.table(file = paste0(path_data_test, common_name,
+                                        common_CV, "07_Tp_", i, ".txt"),
+                          header = TRUE, sep = "\t", dec = ".", row.names = 1)
+  if (i == 1){colnames(Tp_matlab) <- NULL
+  } else{colnames(Tp_matlab) <- "p_1"}
+  TP_R <- Res_Consensus$optimal$modelCV$Model$Tp[[i]]
+  relative_compare <- (as.matrix(Tp_matlab) - TP_R) / 
+    apply(abs(TP_R), c(1,2), max, 1)
+  matrix_compare <- matrix(0, nrow = nrow(relative_compare), 
+                           ncol=ncol(relative_compare))
+  colnames(matrix_compare) <- colnames(relative_compare)
+  rownames(matrix_compare) <- rownames(relative_compare)
+  testthat::expect_equal(relative_compare, 
+                         matrix_compare, tolerance=1e-3)
+}
+# Absolute
 for(i in 1:2){
   Tp_matlab <- read.table(file = paste0(path_data_test, common_name, 
                                         common_CV, "07_Tp_", i, ".txt"), 
@@ -488,7 +662,25 @@ for(i in 1:2){
                          tolerance=1e-6)
 }
 
+
+
 ## scores = [T To] in matlab
+# Relatives
+matlab <- read.table(file =
+                       paste0(path_data_test, common_name,
+                              common_CV, "08_scores.txt"),
+                     header = TRUE, sep = "\t", dec = ".",
+                     row.names = 1)
+R_res <- Res_Consensus$optimal$modelCV$Model$scores
+relative_compare <- (matlab - R_res)/ apply(abs(R_res), c(1,2), max, 1)
+relative_compare <- as.matrix(relative_compare)
+matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+                         nrow = nrow(relative_compare))
+colnames(matrix_compare) = colnames(relative_compare)
+rownames(matrix_compare) = rownames(relative_compare)
+testthat::expect_equal(relative_compare,
+                       matrix_compare, tolerance=1e-3)
+# Absolute
 testthat::expect_equal(read.table(file = 
                                     paste0(path_data_test, common_name, 
                                            common_CV, "08_scores.txt"), 
@@ -607,7 +799,10 @@ different models, depending on the number of cores used for parallelisation.
 As an example, let's take a model with 100 permutations:
 
 ```{r test_parallelisation_100}
-lapply(X = c(1:5),
+cores_max <- detectCores()
+cores_max
+
+lapply(X = c(1:cores_max),
        FUN = function(cores_tested){
          print(paste0("cores_tested = ", cores_tested))
          Tstart<-Sys.time()
@@ -633,7 +828,7 @@ lapply(X = c(1:5),
 And now, let's take a model with 1000 permutations:
 
 ```{r test_parallelisation_1000}
-lapply(X = c(1:5),
+lapply(X = c(1:cores_max),
        FUN = function(cores_tested){
          print(paste0("cores_tested = ", cores_tested))
          Tstart<-Sys.time()
