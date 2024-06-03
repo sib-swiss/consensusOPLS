@@ -101,7 +101,7 @@ packages, except for the stable packages.
 # install.packages(c("ggplot2", "ggrepel", "stats", "utils",
 #                    "parallel", "devtools", "DT", "psych", "plotly"))
 # update.packages(ask = FALSE)
-# 
+
 # if (!require("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install("ComplexHeatmap")
@@ -392,19 +392,19 @@ partitions for n-fold cross-validation, and the model type to indicate
 discriminant analysis. The result is the optimal model, without permutation.
 
 ```{r run_consensusOPLSmodel}
-copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
-                          Y = demo_3_Omics$Y,
-                          maxPcomp = LVsPred,
-                          maxOcomp  = LVsOrtho,
-                          modelType = "da",
-                          nperm = 100,
-                          cvType = "nfold",
-                          nfold = 3,
-                          kernelParams = list(type = "p", 
-                                              params = c(order = 1)),
-                          mc.cores = 1,
-                          plots = TRUE,
-                          verbose = FALSE)
+copls.da <- ConsensusOPLS::ConsensusOPLS(data = demo_3_Omics[BlockNames],
+                                         Y = demo_3_Omics$Y,
+                                         maxPcomp = LVsPred,
+                                         maxOcomp  = LVsOrtho,
+                                         modelType = "da",
+                                         nperm = 100,
+                                         cvType = "nfold",
+                                         nfold = 3,
+                                         kernelParams = list(type = "p", 
+                                                             params = c(order = 1)),
+                                         mc.cores = 1,
+                                         plots = TRUE,
+                                         verbose = FALSE)
 ```
 
 This model gives the results for:
