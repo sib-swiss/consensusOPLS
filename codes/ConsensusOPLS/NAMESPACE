@@ -2,9 +2,11 @@
 
 export(ConsensusOPLS)
 export(VIP)
+exportClasses(ConsensusOPLS)
 import(ggplot2)
+import(methods)
 import(parallel)
 import(stats)
+import(utils)
 importFrom(parallel,mclapply)
 importFrom(reshape2,melt)
-importFrom(utils,flush.console)

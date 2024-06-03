@@ -5,7 +5,7 @@
 #' @param data A list of data blocks.
 #' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
 #' @param model A ConsensusOPLS model Default, NULL, a model will be constructed.
-#' @param ... arguments to pass to \code{RVConsensusOPLS}
+#' @param ... arguments to pass to \code{ConsensusOPLS}
 #'
 #' @return A table with the results:
 #' \code{VIP = sqrt(p*q/s)}, where

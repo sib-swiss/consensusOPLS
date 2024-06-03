@@ -17,6 +17,7 @@
 #' Y
 #'
 #' @keywords internal
+#' @noRd
 #' 
 koplsDummy <- function(X, numClasses = NA) {
     # Variable format control
@@ -63,6 +64,7 @@ koplsDummy <- function(X, numClasses = NA) {
 #' X
 #'
 #' @keywords internal
+#' @noRd
 #' 
 koplsReDummy <- function(Y) {
     # Variable format control

@@ -33,6 +33,7 @@
 #' kernel_polynomial
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsKernel <- function(X1, X2 = NULL, type = 'p', params = c(order=1.0)) {
     # Variable format control

@@ -29,6 +29,7 @@
 #'                                 Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
 #' @importFrom parallel mclapply
 #' @keywords internal
+#' @noRd
 #' 
 RVConsensusOPLS <- function(data,
                             Y,
@@ -129,8 +130,8 @@ RVConsensusOPLS <- function(data,
     
     Ylarg <- ncol(Y)
     
-    # Search for the optimal model based on DQ2
-    if (modelType == 'da') {
+    # Search for the optimal model
+    if (modelType == 'da') { # Search for the optimal model based on DQ2
         mc <- min((maxOcomp+1)*Ylarg, mc.cores)
         mcj <- min(sqrt(mc), Ylarg)
         mci <- max(floor(mc.cores/mcj), 1)
@@ -156,7 +157,7 @@ RVConsensusOPLS <- function(data,
         }))
         
         dq2 <- rowMeans(dqq)
-        index <- maxPcomp + 1 #TODO
+        index <- maxPcomp + 1 #TODO: this is to have nOcompOpt > 0
         
         # Finds the optimal number of orthogonal components as a function of DQ2
         while (index < (maxOcomp+maxPcomp) && 
@@ -166,11 +167,10 @@ RVConsensusOPLS <- function(data,
         }
         
         # Add DQ2 in the model objects
-        modelCV$cv$DQ2Yhat <- dq2 
+        modelCV$cv$DQ2Yhat <- setNames(dq2, c("p", paste0("po", 1:maxOcomp)))
         # Add optimal number of orthogonal components in the model objects
         modelCV$cv$nOcompOpt <- index - maxPcomp
-        
-    } else { # if modelType == "reg"
+    } else { # if modelType == "reg", search for the optimal model based on Q2
         index <- maxPcomp + 1
         
         # Finds the optimal number of orthogonal components as a function of Q2Yhat
@@ -216,15 +216,15 @@ RVConsensusOPLS <- function(data,
     modelCV$Model$blockContribution <- sweep(x = lambda, MARGIN = 2, STATS = colSums(lambda), FUN = '/') 
     
     # Compute the loadings for the selected model size
-    loadings.list <- list( 
-        mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
+    loadings.list <- list(
+        P=mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             lpi <- tcrossprod(crossprod(x = data[[i]], 
                                         y = modelCV$Model$scoresP[, 1:maxPcomp, drop=F]), 
                               diag(diag(crossprod(modelCV$Model$scoresP[, 1:maxPcomp, drop=F]))^(-1), ncol=maxPcomp))
             colnames(lpi) <- paste0("p", 1:maxPcomp)
             return (lpi)
         }),
-        mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
+        O=mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) {
             loi <- tcrossprod(crossprod(x = data[[i]],
                                         y = modelCV$Model$scoresO[, 1:nOcompOpt, drop=F]),
                               diag(diag(crossprod(modelCV$Model$scoresO[, 1:nOcompOpt, drop=F]))^(-1), ncol=nOcompOpt))
@@ -232,7 +232,7 @@ RVConsensusOPLS <- function(data,
             return (loi)
         }))
     loadings <- mclapply(X = 1:ntable, mc.cores = mc.cores, FUN = function(i) { 
-        li <- cbind(loadings.list[[1]][[i]], loadings.list[[2]][[i]])
+        li <- cbind(loadings.list$P[[i]], loadings.list$O[[i]])
         colnames(li) <- c(paste0("p_", 1:maxPcomp), paste0("o_", 1:nOcompOpt))
         return (li)
     })
@@ -245,7 +245,7 @@ RVConsensusOPLS <- function(data,
     # Add the loadings in the model objects
     modelCV$Model$loadings <- loadings 
     # Add the scores in the model objects
-    modelCV$Model$scores <- cbind.data.frame(modelCV$Model$scoresP, modelCV$Model$scoresO)
+    modelCV$Model$scores <- cbind(modelCV$Model$scoresP, modelCV$Model$scoresO)
     
     # Return the final model
     return (modelCV)

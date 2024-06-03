@@ -39,8 +39,9 @@
 #'                                          nfoldRound = nfoldRound)
 #' cvs 
 #' 
-#' @keywords internal                         
-#' @importFrom parallel mclapply
+#' @import parallel
+#' @keywords internal
+#' @noRd
 #' 
 koplsCrossValSet <- function(K, Y, cvFrac = 4/5, cvType = "nfold", 
                              nfold = NA, nfoldRound = NA, mc.cores = 1, 

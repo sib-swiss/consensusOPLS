@@ -25,6 +25,7 @@
 #' test
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsSensSpec <- function(trueClass, predClass, labelClass = NULL) {
     # Contingency table

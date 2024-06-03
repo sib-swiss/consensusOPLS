@@ -13,7 +13,7 @@ VIP(data, Y, model = NULL, ...)
 
 \item{model}{A ConsensusOPLS model Default, NULL, a model will be constructed.}
 
-\item{...}{arguments to pass to \code{RVConsensusOPLS}}
+\item{...}{arguments to pass to \code{ConsensusOPLS}}
 }
 \value{
 A table with the results:

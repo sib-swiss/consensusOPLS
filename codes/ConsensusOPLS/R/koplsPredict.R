@@ -50,6 +50,7 @@
 #'                                      rescaleY = FALSE)
 #' pred
 #' @keywords internal
+#' @noRd
 #' 
 koplsPredict <- function(KteTr, Ktest, Ktrain,
                          model, nox, rescaleY = FALSE) {

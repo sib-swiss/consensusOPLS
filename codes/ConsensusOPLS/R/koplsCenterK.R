@@ -26,6 +26,7 @@
 #'                                  KteTr = KteTr, 
 #'                                  KtrTr = KtrTr)
 #' @keywords internal
+#' @noRd
 #' 
 koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
     # Variable format control
@@ -73,6 +74,7 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
 #' ConsensusOPLS:::koplsCenterKTeTr(KteTr = KteTr, KtrTr = KtrTr)
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsCenterKTeTr <- function(KteTr, KtrTr) {
     # Variable format control
@@ -112,20 +114,8 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
 #' ConsensusOPLS:::koplsCenterKTrTr(K = K)
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsCenterKTrTr <- function(K) {
     return (scale(t(scale(K, scale=F)), scale=F))
-    
-    # # Variable format control
-    # if (!is.matrix(K)) stop("K is not a matrix.")
-    # 
-    # # Define parameters
-    # scaling_matrix <- diag(nrow(K)) - 1/nrow(K)
-    # 
-    # # Center the kernel
-    # K <- crossprod(x = scaling_matrix, 
-    #                y = crossprod(x = t(K), y = scaling_matrix))
-    # 
-    # # Return the centered kernel matrix
-    # return (K)
 }

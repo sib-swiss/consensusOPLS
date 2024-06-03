@@ -1,12 +1,15 @@
 ---
-title: 'A consensus orthogonal partial least squares discriminant analysis
-(OPLS-DA) strategy for multiblock Omics data fusion.'
+title: 'Consensus OPLS For Multi-Block Data Fusion'
 author: "Celine Bougel"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-bibliography: vignette.bib
+bibliography: ConsensusOPLS.bib
 biblio-style: apalike
 link-citations: yes
 nocite: '@*'
+vignette: >
+  %\VignetteIndexEntry{Consensus OPLS For Multi-Block Data Fusion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 output:
   html_document:
     code_folding: show

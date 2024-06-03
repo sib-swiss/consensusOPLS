@@ -17,6 +17,7 @@ test_that("RVConsensusOPLS", {
                                nperm=100,
                                modelType="reg",
                                mc.cores=1,
+                               kernelParams = list(type = "p", params = c(order = 2)),
                                nfold=3)
     copls.da <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
                               Y=demo_3_Omics$Y,
@@ -24,8 +25,9 @@ test_that("RVConsensusOPLS", {
                               maxOcomp=3,
                               nperm=100,
                               modelType="da",
-                              mc.cores=1, plots=T,
-                              nfold=3)
+                              mc.cores=1,
+                              nfold=3,
+                              verbose=T)
     ## RV
     expect_equal(rvcopls$RV, c(MetaboData=0.770310488895171,
                                MicroData=0.835375809822633,
@@ -116,11 +118,11 @@ test_that("RVConsensusOPLS", {
                  c(-0.2020121, 0.9947210, 0.4679297), tolerance=1e-6)
     
     ## Q2Yhat
-    expect_equal(rvcopls$cv$Q2Yhat[1:5],
+    expect_equal(unname(rvcopls$cv$Q2Yhat[1:5]),
                  c(0.24144459290868, 0.254116314089248, 0.0688378757417817, -0.058455510451356, 0.159444129092519), tolerance=1e-6)
     
     ## DQ2Yhat
-    expect_equal(rvcopls$cv$DQ2Yhat[1:5],
+    expect_equal(unname(rvcopls$cv$DQ2Yhat[1:5]),
                  c(0.120292310258979, 0.151671627027632, -0.0418685758525927, -0.171662986447783, 0.0788120118584003), tolerance=1e-6)
     
     # ## Tcv

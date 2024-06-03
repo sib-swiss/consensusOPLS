@@ -9,6 +9,7 @@
 #' @return Predicted classification.
 #'
 #' @keywords internal
+#' @noRd
 #' 
 koplsBasicClassify <- function(X, k) {
     # Variable format control
@@ -43,6 +44,7 @@ koplsBasicClassify <- function(X, k) {
 #' test
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsMaxClassify <- function(X) {
     # Variable format control

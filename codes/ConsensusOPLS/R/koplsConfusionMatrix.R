@@ -12,6 +12,7 @@
 #' ConsensusOPLS:::koplsConfusionMatrix(trueClass = trueClass, 
 #'                                      predClass = predClass)
 #' @keywords internal
+#' @noRd
 #' 
 koplsConfusionMatrix <- function(trueClass, predClass) {
     return (table(trueClass, predClass))

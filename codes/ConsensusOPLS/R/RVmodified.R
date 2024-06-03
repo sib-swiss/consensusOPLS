@@ -18,6 +18,7 @@
 #' result
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 RVmodified <- function(X, Y){
     # Variable format control

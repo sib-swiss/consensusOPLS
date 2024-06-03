@@ -1,7 +1,64 @@
+#' @title \code{ConsensusOPLS} S4 class
+#' @description This object presents the result of a Consensus OPLS analysis.
+#' @slot nPcomp Number of Y-predictive components (latent variables) of the optimal model.
+#' @slot nOcomp Number of Y-orthogonal components (latent variables) of the optimal model.
+#' @slot blockContribution Relative contribution of each block (normalized \code{lambda} values) to the
+#' latent variables.
+#' @slot scores Representation of the samples in the latent variables of the optimal model.
+#' @slot loadings Contribution of each block's variables to the latent variables of the optimal
+#' model.
+#' @slot VIP Variable importance in projection (VIP) for each block of data, assessing the
+#' relevance of the variables in explaining the variation in the response.
+#' @slot R2X Proportion of variation in data blocks explained by the optimal model.
+#' @slot R2Y Proportion of variation in the response explained by the optimal model.
+#' @slot Q2 Predictive ability of the optimal model.
+#' @slot DQ2 Predictive ability of the optimal model, for discriminant analysis.
+#' @slot permStats Q2 and R2Y of models with permuted response.
+#' @slot plots Basic plots for the analysis.
+#' @slot cv Cross-validation result towards the optimal model.
+#' @name ConsensusOPLS-class
+#' @rdname ConsensusOPLS-class
+#' @import methods utils
+# #' @exportMethod generic
+#' @export
+#' 
+setClass("ConsensusOPLS",
+         slots = list(
+             nPcomp            = "numeric",
+             nOcomp            = "numeric",
+             blockContribution = "matrix",
+             scores            = "matrix",
+             loadings          = "list",
+             VIP               = "list",
+             R2X               = "numeric",
+             R2Y               = "numeric",
+             Q2                = "numeric",
+             DQ2               = "numeric",
+             permStats         = "list",
+             plots             = "list",
+             cv                = "list")
+)
+
+
+#' @noRd
+#' 
+setMethod("show", "ConsensusOPLS",
+          function(object) {
+              cat("***Optimal Consensus OPLS model***\n")
+              cat("\nNumber of predictive components: ", object@nPcomp, "\n")
+              cat("\nNumber of orthogonal components: ", object@nOcomp, "\n")
+              cat("\nBlock contribution:\n")
+              print(object@blockContribution)
+              cat("\nExplained variance R2 in reponse:", object@R2Y[length(object@R2Y)], "\n")
+              cat("\nPredictive ability (cross validation Q2): ", object@Q2[length(object@Q2)], "\n")
+          }
+)
+
+
 #' @title ConsensusOPLS
 #' @description
 #' Constructs the consensus OPLS model with an optimal number of orthogonal 
-#' components for given data blocks and Y response, and evaluate the model 
+#' components for given data blocks and response, and evaluate the model 
 #' quality w.r.t other models built with randomly permuted responses.
 #' 
 #' @param data A list of data blocks. Each element of the list must be of matrix 
@@ -36,98 +93,10 @@
 #' @param plots A logical indicating if plots are generated. For more aesthetic 
 #' graphics, please refer to the package thumbnail. Interpretation help is also 
 #' provided. Default, FALSE.
-#' @param verbose A logical indicating if the computation progress will be shown. 
-#' Default, FALSE.
+#' @param verbose A logical indicating if detailed information (cross
+#' validation) will be shown. Default, FALSE.
 #'
-#' @return \code{ConsensusOPLS} returns a list of 
-#' \item{\code{optimal}}{ results for optimal consensus OPLS model:}
-#' \itemize{
-#'      \item{Ys.}{ Response variable converted to dummy format.}
-#'      \item{modelCV.}{ x.}
-#'      \itemize{
-#'          \item{Model.}{ x.}
-#'          \itemize{
-#'              \item{params.}{ Contains all model parameters such as number of 
-#'              predictive components, number of orthogonal components, 
-#'              sstot_K (numeric. Total sums of squares in \code{K}.), 
-#'              sstot_Y ( numeric. Total sums of squares in Y.), 
-#'              preProcK (character. Pre-processing setting for K.), 
-#'              preProcY (character. Pre-processing setting for Y.), class.}
-#'              \item{scoresP}{ Representation of the samples into the new 
-#'              predictive components calculated by the optimal model.}
-#'              \item{scoresO}{ Representation of the samples into the new 
-#'              orthoginal components calculated by the optimal model.}
-#'              \item{Cp}{ matrix. Y loading matrix.}
-#'              \item{Sp}{ matrix. Sigma matrix, containing singular values from 
-#'              \code{t(Y)* K *Y} used for scaling.}
-#'              \item{Sps}{ matrix. Scaled Sigma matrix, containing scaled 
-#'              singular values.}
-#'              \item{Up}{ matrix. Y score matrix.}
-#'              \item{Tp}{ list. Predictive score matrix for all Y-orthogonal 
-#'              components.}
-#'              \item{co}{ list. Y-orthogonal loading vectors.}
-#'              \item{so}{ list. Eigenvalues from estimation of Y-orthogonal 
-#'              loading vectors.}
-#'              \item{to}{ list. Weight vector for the i-th latent component of 
-#'              the KOPLS model.}
-#'              \item{\code{toNorm}}{ list. Norm of the Y-orthogonal score matrix prior 
-#'              to scaling.}
-#'              \item{Bt}{ list. T-U regression coefficients for predictions.}
-#'              \item{K}{ matrix. The kernel matrix.}
-#'              \item{EEprime}{ matrix. The deflated kernel matrix for residual 
-#'              statistics.}
-#'              \item{R2X}{ numeric. Cumulative explained variation for all 
-#'              model components.}
-#'              \item{R2XO}{ numeric. Cumulative explained variation for 
-#'              Y-orthogonal model components.}
-#'              \item{R2Yhat}{ numeric. Variance explained by the i-th latent 
-#'              component of the model.}
-#'              \item{\code{lambda}}{ Raw lambda coefficient of each block in the latent variables.}
-#'              \item{\code{blockContribution}}{ Contribution of each block (normalized lambda values)
-#'              to the latent variables. }
-#'              \item{loadings}{ Individual loading of each block for the 
-#'              predictive latent variable of the optimal model. They allow to 
-#'              detect data level differences according to the Y response.}
-#'              \item{scores}{ Representation of the samples into the new 
-#'              components calculated by the optimal model.}
-#'          }
-#'          \item{cv}{ Cross-validation results.}
-#'          \itemize{
-#'              \item{AllYhat.}{ matrix. All predicted Y values as a 
-#'              concatenated matrix for each block of data.}
-#'              \item{Q2Yhat.}{ matrix. Total Q-square result for all 
-#'              Y-orthogonal components.}
-#'              \item{cvTestIndex.}{ matrix. Indices for the test set 
-#'              observations during the cross-validation rounds.}
-#'              \item{DQ2Yhat.}{ numeric. Discriminant Q2 value for all 
-#'              Y-orthogonal components. Only for \code{da} mode.}
-#'              \item{nOcompOpt.}{ Number of orthogonal components used to build 
-#'              the optimal model.}
-#'          }
-#'          \item{RV.}{ Value of the modified RV coefficient for each data block.}
-#'          \item{normKernels.}{ Normalized kernel for each data block}
-#'      }
-#'      \item{VIP.}{ The variable Importance in projection (VIP) for each block of 
-#'  data. Within each block, the relevance of the variables in explaining 
-#'  variation in the Y response was assessed using the VIP parameter, which 
-#'  reflects the importance of the variables in relation to both response and 
-#'  projection quality.}
-#' }
-#' \item{\code{permuted}}{ models with permuted responses.}
-#' \item{\code{permStats}}{ permutation statistics.}
-#' \itemize{
-#'      \item{lvnum}{ x.}
-#'      \item{R2Yhat}{ numeric. Variance explained by the i-th latent component 
-#'      of the model.}
-#'      \item{DQ2Yhat}{ numeric. Discriminant Q2 value for all Y-orthogonal 
-#'      components. Only for \code{da} mode.}
-#'      \item{Q2Yhat}{ matrix. Total Q-square result for all Y-orthogonal 
-#'      components.}
-#'      \item{Y}{ response variable in its dummy form.}
-#'      \item{RV}{ Value of the modified RV coefficient for each data block.}
-#' }
-#' \item{\code{plots}}{ plots.}
-#'
+#' @return An object of class \code{ConsensusOPLS}.
 #' @examples
 #' data(demo_3_Omics)
 #' res <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
@@ -137,7 +106,7 @@
 #'                      nperm=5)
 #' str(res)
 #' @importFrom reshape2 melt
-#' @import ggplot2 parallel
+#' @import utils ggplot2 parallel 
 #' @export
 #' 
 ConsensusOPLS <- function(data,
@@ -192,7 +161,7 @@ ConsensusOPLS <- function(data,
     globLibPaths <- .libPaths()
     cl <- makeCluster(mc.cores)
     clusterExport(cl,
-                  ls(all.names=TRUE, env=globalenv()),
+                  ls(all.names=TRUE, envir=globalenv()),
                   envir=.GlobalEnv)
     # Load the packages on all the cluster
     parLapply(cl, 1:length(cl), function(i) {
@@ -216,19 +185,19 @@ ConsensusOPLS <- function(data,
         }
             
         # Redo the Consensus OPLS-DA with RV coefficients weighting
-        modelCV <- ConsensusOPLS:::RVConsensusOPLS(data = data,
-                                                   Y = Ys,
-                                                   maxPcomp = maxPcomp,
-                                                   maxOcomp = maxOcomp,
-                                                   modelType = modelType,
-                                                   cvType = cvType,
-                                                   nfold = nfold,
-                                                   nMC = nMC,
-                                                   cvFrac = cvFrac,
-                                                   mc.cores = 1,
-                                                   kernelParams = kernelParams,
-                                                   verbose = verbose)
-        VIP <- ConsensusOPLS::VIP(data = data, Y = Ys, model=modelCV$Model)
+        modelCV <- RVConsensusOPLS(data = data,
+                                   Y = Ys,
+                                   maxPcomp = maxPcomp,
+                                   maxOcomp = maxOcomp,
+                                   modelType = modelType,
+                                   cvType = cvType,
+                                   nfold = nfold,
+                                   nMC = nMC,
+                                   cvFrac = cvFrac,
+                                   mc.cores = 1,
+                                   kernelParams = kernelParams,
+                                   verbose = verbose)
+        VIP <- VIP(data = data, Y = Ys, model=modelCV$Model)
         
         return (list(Ys=Ys,
                      modelCV=modelCV,
@@ -348,15 +317,29 @@ ConsensusOPLS <- function(data,
     ## Stop parallel clusters
     stopCluster(cl)
     
-    return (list(
-        optimal = perms[[1]],
-        permuted = perms[-1],
-        permStats = permStats,
-        plots = if (!plots) NULL else list(contribution = p_contribution,
-                                           scores       = p_scores,
-                                           loadings     = p_loadings,
-                                           VIP          = p_vip,
-                                           Q2           = p_q2,
-                                           DQ2          = if (modelType=='da') p_dq2 else NULL,
-                                           R2           = p_r2)))
+    return (new("ConsensusOPLS",
+                nPcomp            = perms[[1]]$modelCV$Model$params$nPcomp,
+                nOcomp            = perms[[1]]$modelCV$Model$params$nOcomp,
+                blockContribution = perms[[1]]$modelCV$Model$blockContribution,
+                scores            = perms[[1]]$modelCV$Model$scores,
+                loadings          = perms[[1]]$modelCV$Model$loadings,
+                VIP               = perms[[1]]$VIP,
+                R2X               = perms[[1]]$modelCV$Model$R2X,
+                R2Y               = perms[[1]]$modelCV$Model$R2Yhat,
+                Q2                = perms[[1]]$modelCV$cv$Q2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)],
+                DQ2               = if (modelType=='da') 
+                    perms[[1]]$modelCV$cv$DQ2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)] else numeric(),
+                permStats         = list(Q2Y=permStats$Q2Yhat,
+                                         DQ2Y=permStats$DQ2Yhat,
+                                         R2Y=permStats$R2Yhat),
+                plots             = if (!plots) list() else 
+                    list(contribution = p_contribution,
+                         scores       = p_scores,
+                         loadings     = p_loadings,
+                         VIP          = p_vip,
+                         Q2           = p_q2,
+                         DQ2          = if (modelType=='da') p_dq2 else NULL,
+                         R2           = p_r2),
+                cv                = if (verbose) perms[[1]]$modelCV$cv else list())
+            )
 }

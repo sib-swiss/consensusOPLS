@@ -63,6 +63,7 @@
 #' ls(model)
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # Variable format control
@@ -183,35 +184,34 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # ---------- extra stuff -----------------
     # should work but not fully tested (MB 2007-02-19)
     # TODO check
-    sstot_Y <- sum( sum(Ypreproc**2))
-    FY <- Ypreproc - tcrossprod(x = Up, y = Cp)
-    R2Y <- 1 - sum(sum(FY^2))/sstot_Y
+    sstot_Y <- sum(sum(Ypreproc**2))
+    #FY <- Ypreproc - tcrossprod(x = Up, y = Cp)
+    #R2Y <- 1 - sum(sum(FY^2))/sstot_Y
     # --------- #
     
     EEprime <- Kdeflate[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
     sstot_K <- sum( diag(Kdeflate[1,1][[1]]))
     
-    R2X <- 1 - sapply(1 : (nox+1),
-                      function(i){
-                          sum( diag(Kdeflate[i,i][[1]] - tcrossprod(Tp[[nox+1]])) )
-                      }) / sstot_K
-    
-    R2XC <- rep(1 - sum(diag(Kdeflate[1,1][[1]] - tcrossprod(Tp[[nox+1]]))) / sstot_K,
+    # Explained variance
+    R2X <- 1 - sapply(1:(nox+1),
+                      function(i) {
+                          sum(diag(Kdeflate[i,i][[1]] - tcrossprod(Tp[[nox+1]])))
+                      })/sstot_K
+    R2XC <- rep(1 - sum(diag(Kdeflate[1,1][[1]] - tcrossprod(Tp[[nox+1]])))/sstot_K,
                 times = nox+1)
-    
-    R2XO <- 1 - sapply(1 : (nox+1),
-                       function(i){
-                           sum( diag( Kdeflate[i,i][[1]] ))    
-                       }) / sstot_K
-    
-    Yhat <- lapply(1 : (nox+1),
-                   function(i){
+    R2XO <- 1 - sapply(1:(nox+1),
+                       function(i) {
+                           sum(diag(Kdeflate[i,i][[1]]))    
+                       })/sstot_K
+    Yhat <- lapply(1:(nox+1),
+                   function(i) {
                        crossprod(t(Tp[[i]]), tcrossprod(Bt[[i]], Cp))
                    })
     R2Yhat <- 1 - sapply(Yhat,
-                         function(i){
-                             sum( sum((i - Ypreproc)**2) )/sstot_Y 
+                         function(yh) {
+                             sum(sum((yh - Ypreproc)^2))/sstot_Y 
                          })
+    names(R2X) <- names(R2XC) <- names(R2XO) <- names(R2Yhat) <- c("p", paste0("po", 1:nox))
     
     # Convert to matrix structure
     if (nox > 0) {
@@ -222,7 +222,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     }
     
     # Group parameters in data.frame
-    params <- list("nPcomp"  = A,
+    params <- list("nPcomp"   = A,
                    "nOcomp"   = nox, 
                    "sstot_K"  = sstot_K,
                    "sstot_Y"  = sstot_Y,
@@ -231,8 +231,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                    "class"    = "kopls")
     
     return (list("params"   = params,
-                 "scoresP"  = Tp[[nox+1]],
-                 "scoresO"  = To,
+                 "scoresP"  = as.matrix(Tp[[nox+1]]),
+                 "scoresO"  = as.matrix(To),
                  "Cp"       = Cp,
                  "Sp"       = Sp,
                  "Sps"      = Sps,

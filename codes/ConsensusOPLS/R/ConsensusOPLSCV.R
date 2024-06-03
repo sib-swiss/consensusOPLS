@@ -103,11 +103,10 @@
 #'            \item{maxOcomp}{ integer. Number of Y-orthogonal components.}
 #'            \item{maxPcomp}{ integer. Number of Y-predictive components.}
 #' \item{class}{ character. Model class is \code{koplscv}.}
-#' @examples
-#' #TODO
-#' @importFrom utils flush.console
+#' @import utils
 #' @keywords internal 
-#'  
+#' @noRd
+#' 
 ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp, 
                             modelType = "da", 
                             cvType = 'nfold',
@@ -166,8 +165,6 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
     # ----- Parameters init
     release <- ""
 
-    pressyTot <- matrix(data = 0, nrow = maxOcomp+1, ncol = 1)
-    pressyVarsTot <- matrix(data = 0, nrow = maxOcomp+1, ncol = 1)
     YhatDaSave <- list()
     cvTestIndex <- list()
     cvTrainingIndex <- list()
@@ -195,8 +192,8 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         cvSet <- koplsCrossValSet(K = K, Y = Y, cvFrac = cvFrac, cvType = cvType, 
                                   nfold = nrun, nfoldRound = icv, random.seed = 10403+icv)
         #TODO: check when nfold > 1, i.e. repeated test samples
-        cvTestIndex[[length(cvTestIndex)+1]] <- cvSet$testIndex #rbind(cvTestIndex, cvSet$testIndex)
-        cvTrainingIndex[[length(cvTrainingIndex)+1]] <- cvSet$trainingIndex #rbind(cvTrainingIndex, cvSet$trainingIndex)
+        cvTestIndex[[length(cvTestIndex)+1]] <- cvSet$testIndex
+        cvTrainingIndex[[length(cvTrainingIndex)+1]] <- cvSet$trainingIndex
         
         # Get Kernel matrices 
         # % change so that this is done in the K matrix only once and 
@@ -250,7 +247,10 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
             return (tmp$X)
         }))
         
-        if (icv==0) pressyTot <- 0 else
+        if (icv==0) 
+            pressyTot <-setNames(rep(0,  maxOcomp+1), c("p", paste0("po", 1:maxOcomp))) 
+            #pressyTot <- 0 
+        else
             pressyTot <- pressyTot + sapply(modelPredys, function(mp) {
                 sum((YScaleObjTest$X - mp$modelPredy$Yhat)^2)
             })
@@ -331,7 +331,6 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         for (i in 1:(maxOcomp + 1)) {
             # Predicted class on all samples
             predClass <- koplsMaxClassify(X = YhatDaSave[[i]][[1]])
-            #print(YhatDaSave[[i]][[1]])
             # Calculate sensitivity and specificity
             daMetrics <- koplsSensSpec(trueClass = classVect[cvTestIndex[[1]]],
                                        predClass = predClass,

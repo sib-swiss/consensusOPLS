@@ -20,6 +20,7 @@
 #' result$PRESSD
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 DQ2 <- function(Ypred, Y) {
     # Variable format control

@@ -24,6 +24,7 @@
 #' 
 #' @import stats
 #' @keywords internal
+#' @noRd
 #' 
 koplsScale <- function(X, centerType = "no", scaleType = "no"){
     # Variable format control
@@ -93,6 +94,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' test$X
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsRescale <- function(scaleS, varargin = NULL){
     # Variable format control
