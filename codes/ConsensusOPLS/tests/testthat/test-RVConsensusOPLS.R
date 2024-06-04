@@ -26,7 +26,7 @@ test_that("RVConsensusOPLS", {
                               nperm=100,
                               modelType="da",
                               mc.cores=1,
-                              nfold=3,
+                              nfold=14,
                               verbose=T)
     ## RV
     expect_equal(rvcopls$RV, c(MetaboData=0.770310488895171,
@@ -85,9 +85,9 @@ test_that("RVConsensusOPLS", {
                  c(-0.00916472674616893, -0.208638510110777, -0.115250463686483), tolerance=1e-6)
     
     ## scores
-    expect_equal(rvcopls$Model$scores[6:8,'p_1'],
+    expect_equal(unname(rvcopls$Model$scores[6:8,'p_1']),
                  c(-0.115250463686483,-0.134547425243546,0.169584736593916), tolerance=1e-6)
-    expect_equal(rvcopls$Model$scores[6:8,'o_1'],
+    expect_equal(unname(rvcopls$Model$scores[6:8,'o_1']),
                  c(0.225639604453228, -0.750090705302492, -0.246527124390688), tolerance=1e-6)
                  
     ## loadings
@@ -108,13 +108,13 @@ test_that("RVConsensusOPLS", {
     
     #### CV
     ## AllYhat
-    expect_equal(rvcopls$cv$AllYhat[1:3,1],
+    expect_equal(unname(rvcopls$cv$AllYhat[1:3,1]),
                  c(0.1381898, 0.6109852, 0.5683056), tolerance=1e-6)
-    expect_equal(rvcopls$cv$AllYhat[4:6,2],
+    expect_equal(unname(rvcopls$cv$AllYhat[4:6,2]),
                  c(0.60339737, 0.23570761, 0.48595049), tolerance=1e-6)
-    expect_equal(rvcopls$cv$AllYhat[1:3,3],
+    expect_equal(unname(rvcopls$cv$AllYhat[1:3,3]),
                  c(0.136238770, 0.524588637, 0.740291299), tolerance=1e-6)
-    expect_equal(rvcopls$cv$AllYhat[7:9,4],
+    expect_equal(unname(rvcopls$cv$AllYhat[7:9,4]),
                  c(-0.2020121, 0.9947210, 0.4679297), tolerance=1e-6)
     
     ## Q2Yhat

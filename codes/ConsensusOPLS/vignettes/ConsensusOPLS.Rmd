@@ -27,6 +27,7 @@ output:
     chunk_output_type: console
 ---
 
+<!-- TODO -->
 <style>
 body {
 text-align: justify}
@@ -48,8 +49,10 @@ established data analysis strategies, i.e. multiblock approaches and the OPLS-DA
 framework to offer an efficient tool for the fusion of Omics data obtained from 
 multiple sources [@BOCCARD2013].
 
-The method, already available in MATLAB (available at [Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)), has been 
-translated into an R package (available at [Gitlab repository](https://github.com/sib-swiss/consensusOPLS)) that includes 
+The method, already available in MATLAB (available at
+[Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)),
+has been translated into an R package (available at
+[Gitlab repository](https://github.com/sib-swiss/consensusOPLS)) that includes 
 quality metrics for optimal model selection, such as the R-squared (R²) 
 coefficient, the Stone-Geisser Q² coefficient, the discriminant Q² index (DQ²) 
 [@WESTERHUIS2008], the permutation **diagnostics statistics** 
@@ -78,15 +81,12 @@ OPLS-DA strategy was applied for the differential analysis of the two selected
 tumor origins and the simultaneous analysis of the three blocks of data.
 
 
-
-
-
 # R environment preparation
 
 ```{r setup, class.source='fold-hide'}
 #install.packages("knitr")
 library(knitr)
-knitr::opts_chunk$set(echo = TRUE)
+opts_chunk$set(echo = TRUE)
 
 # To ensure repeatability
 set.seed(12)
@@ -98,6 +98,12 @@ code below has been designed to have as few dependencies as possible on R
 packages, except for the stable packages.
 
 ```{r packages_installation, class.source='fold-hide', warning=FALSE, message=FALSE}
+pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "plotly")
+sapply(pkgs, function(x) {
+    if (!requireNamespace(x, quietly = T)) {
+        install.packages(x)
+    }
+})
 # install.packages(c("ggplot2", "ggrepel", "stats", "utils",
 #                    "parallel", "devtools", "DT", "psych", "plotly"))
 # update.packages(ask = FALSE)
@@ -110,8 +116,6 @@ packages, except for the stable packages.
 ```{r packages_load, warning=FALSE, message=FALSE, class.source='fold-hide'}
 library(ggplot2) # to make beautiful graphs
 library(ggrepel) # to annotate ggplot2 graph
-library(stats) # to use R statistical functions
-library(utils) # to use R utility functions
 library(parallel) # to run some codes in parallel
 library(devtools) # to install some packages
 library(DT) # to make interactive data tables
@@ -126,12 +130,9 @@ Then we create a uniform theme that will be used for all graphic output.
 theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
                                    axis.title = element_text(size=16),
                                    axis.text = element_text(size=14),
-                                   plot.title = element_text(size = 16),
-                                   legend.title = element_text(size = 14))
+                                   plot.title = element_text(size=16),
+                                   legend.title = element_text(size=14))
 ```
-
-
-
 
 
 # Loading package
@@ -150,94 +151,88 @@ library(ConsensusOPLS)
 ```
 
 
-
-
-
-
 # Data preprocessing
 
-As mentioned earlier, we use the demonstration dataset proposed into the package.
-The data pre-processing stages have already been completed.
+As mentioned earlier, we use the demonstration dataset proposed in the package.
 
 ```{r import_demo_3_Omics}
 data(demo_3_Omics, package = "ConsensusOPLS")
 ```
 
-This file corresponds to a `r class(demo_3_Omics)` of size `r length(demo_3_Omics)`.
-It contains the data of `r ls(demo_3_Omics)`. 
+This will load an data object of type `r class(demo_3_Omics)` with
+`r length(demo_3_Omics)` matrices `r paste(ls(demo_3_Omics), collapse=', ')`.
 
-In other words, this list contains an element for each data blocks, a list of
-observations names (samples) and the binary response matrix Y. Since the 
-`ConsensusOPLS` method performs **horizontal integration**, all data blocks have 
-the same number of samples (rows). We can check this with the following command:
-
-```{r rename_blocks}
-# Manually rename data blocks
-BlockNames <- c("MetaboData", "MicroData", "ProteoData")
-
-# Number of data blocks
-nbrBlocs <- length(BlockNames)
-```
+In other words, this list contains three data blocks, a list of observation
+names (samples), and the binary response matrix Y. Since the `ConsensusOPLS`
+method performs **horizontal integration**, all data blocks should have the
+same samples (rows). We can check the block dimension this with the following
+command:
 
 ```{r check_dims, class.source='fold-hide'}
 # Check dimension
-dims <- lapply(X = 1:length(demo_3_Omics[BlockNames]),
-               FUN = function(X){dim(demo_3_Omics[[X]])})
+BlockNames <- c("MetaboData", "MicroData", "ProteoData")
+nbrBlocs <- length(BlockNames)
+dims <- lapply(X=demo_3_Omics[BlockNames], FUN=dim)
 names(dims) <- BlockNames
 dims
 
 # Remove unuseful object for the next steps
 rm(dims)
 ```
+The identical order of samples in the three omics blocks should be ensured.
 
-It's not necessary to have so many elements in the list. The main thing is to 
-have a list for the data blocks (ideally with row and column names filled in), 
-and the Y response.
+```{r check_orders, class.source='fold-hide'}
+rns <- do.call(cbind, lapply(X=demo_3_Omics[BlockNames], rownames))
+rns.unique <- apply(rns, 1, function(x) length(unique(x)))
+stopifnot(max(rns.unique) == 1)
+```
 
-
-
-
+The list of the data blocks `demo_3_Omics[BlockNames]` and the response
+`demo_3_Omics$Y` are required as input to the ConsensusOPLS analysis.
 
 # Data visualization
 
 ## Summary by Y groups
 
-Before getting to the heart of the method, we offer a brief description of the 
-variables, by response variable group. There are interactive tables, so the 
-user can sort the variables in ascending or descending order. The user also can 
-search for a variable of interest.
+Before performing the multiblock analysis, we might investigate the nature of
+variables in each omics block w.r.t the response. The interactive tables are
+produced here below, so that the variables can be sorted in ascending or
+descending order. A variable of interest can also be looked up.
 
-**Note**: variables are indicated by a final character 1 or 2 to show the group 
-to which they belong in relation to variable Y.
 
 ```{r describe_data_by_Y_function, class.source='fold-hide'}
-describe_data_by_Y <- function(data, group){
-  bloc_by_Y <- psych::describeBy(x = data, group = group, 
-                                 mat = TRUE)[, c("group1", "n", "mean", "sd", 
-                                                 "median", "min", "max", "range", 
-                                                 "se")]
-  bloc_by_Y[3:ncol(bloc_by_Y)] <- round(bloc_by_Y[3:ncol(bloc_by_Y)], 
-                                        digits = 2)
-  return(DT::datatable(bloc_by_Y))
+require(psych)
+require(DT)
+describe_data_by_Y <- function(data, group) {
+    bloc_by_Y <- describeBy(x = data, group = group,
+                            mat = TRUE)[, c("group1", "n", "mean", "sd",
+                                            "median", "min", "max", "range",
+                                            "se")]
+    bloc_by_Y[3:ncol(bloc_by_Y)] <- round(bloc_by_Y[3:ncol(bloc_by_Y)], 
+                                          digits = 2)
+  return (datatable(bloc_by_Y))
 }
 ```
 
+For metabolomic data,
+
 ```{r describe_data_by_Y_bloc1}
-# Metabolomic
 describe_data_by_Y(data = demo_3_Omics[[BlockNames[1]]],
-                   group = demo_3_Omics$Y[, 1])
+                   group = demo_3_Omics$ObsNames[,1])
 ```
+
+For microarray data,
 
 ```{r describe_data_by_Y_bloc2}
-#Microarray
 describe_data_by_Y(data = demo_3_Omics[[BlockNames[2]]],
-                   group = demo_3_Omics$Y[, 1])
+                   group = demo_3_Omics$ObsNames[,1])
 ```
 
+For proteomic data,
+
 ```{r describe_data_by_Y_bloc3}
-# Proteomic
 describe_data_by_Y(data = demo_3_Omics[[BlockNames[3]]],
-                   group = demo_3_Omics$Y[, 1])
+                   group = demo_3_Omics$ObsNames[,1])
 ```
 
 What information do these tables provide? To begin with, we see that there are 
@@ -270,11 +265,9 @@ are highly variable. So, the data needs to be standardized.
 demo_3_Omics_not_scaled <- demo_3_Omics
 
 # Scaling data
-demo_3_Omics[BlockNames] <- 
-  lapply(X = 1:nbrBlocs, 
-         FUN = function(X){base::scale(demo_3_Omics[X][[1]], 
-                                       center = TRUE, scale = TRUE)
-         })
+demo_3_Omics[BlockNames] <- lapply(X=demo_3_Omics[BlockNames], FUN=function(x)
+    scale(x, center = TRUE, scale = TRUE)
+)
 ```
 
 ## Heatmap and density plots
@@ -287,7 +280,7 @@ following code (code hidden).
 ```{r heatmap_function, message = FALSE, class.source='fold-hide'}
 heatmap_data <- function(data, bloc_name, factor = NULL){
   if(!is.null(factor)){
-    ht <- ComplexHeatmap::Heatmap(
+    ht <- Heatmap(
       matrix = data, name = "Values",
       row_dend_width = unit(3, "cm"),
       column_dend_height = unit(3, "cm"),
@@ -297,7 +290,7 @@ heatmap_data <- function(data, bloc_name, factor = NULL){
       row_title_rot = 0
     )
   } else{
-    ht <- ComplexHeatmap::Heatmap(
+    ht <- Heatmap(
       matrix = data, name = "Values",
       row_dend_width = unit(3, "cm"),
       column_dend_height = unit(3, "cm"),
@@ -392,19 +385,19 @@ partitions for n-fold cross-validation, and the model type to indicate
 discriminant analysis. The result is the optimal model, without permutation.
 
 ```{r run_consensusOPLSmodel}
-copls.da <- ConsensusOPLS::ConsensusOPLS(data = demo_3_Omics[BlockNames],
-                                         Y = demo_3_Omics$Y,
-                                         maxPcomp = LVsPred,
-                                         maxOcomp  = LVsOrtho,
-                                         modelType = "da",
-                                         nperm = 100,
-                                         cvType = "nfold",
-                                         nfold = 3,
-                                         kernelParams = list(type = "p", 
-                                                             params = c(order = 1)),
-                                         mc.cores = 1,
-                                         plots = TRUE,
-                                         verbose = FALSE)
+copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
+                          Y = demo_3_Omics$Y,
+                          maxPcomp = LVsPred,
+                          maxOcomp  = LVsOrtho,
+                          modelType = "da",
+                          nperm = 100,
+                          cvType = "nfold",
+                          nfold = 14,
+                          kernelParams = list(type = "p", 
+                                              params = c(order = 1)),
+                          mc.cores = 1,
+                          plots = TRUE,
+                          verbose = FALSE)
 ```
 
 This model gives the results for:
@@ -416,10 +409,6 @@ copls.da
 # List all results available
 summary(attributes(copls.da))
 ```
-
-
-
-
 
 
 # Display the main results
@@ -484,60 +473,60 @@ VIP <- copls.da@VIP
 
 # Multiply VIP * sign(loadings for predictive component)
 VIP_plot <- lapply(X = 1:nbrBlocs,
-                         FUN = function(X){
-                           signe_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
-                           result <- VIP[[X]]*signe_loadings
-                           return(sort(result, decreasing = TRUE))})
+                   FUN = function(X){
+                       signe_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
+                       result <- VIP[[X]]*signe_loadings
+                       return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- BlockNames
 ```
 
 ```{r plot_VIP, class.source='fold-hide'}
 # Metabo data
-VIP_metabo <- ggplot2::ggplot(data = data.frame(
+VIP_metabo <- ggplot(data = data.frame(
     "variables" = factor(names(VIP_plot[[1]]),
                          levels=names(VIP_plot[[1]])[order(abs(VIP_plot[[1]]), 
                                                            decreasing=T)]), 
     "valeur" = VIP_plot[[1]]), 
     aes(x = variables, y = valeur)) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::labs(title = paste0("Barplot of ", names(VIP_plot)[1])) +
-    ggplot2::xlab("Predictive variables") +
-    ggplot2::ylab("VIP x loading sign") +
+    geom_bar(stat = "identity") +
+    labs(title = paste0("Barplot of ", names(VIP_plot)[1])) +
+    xlab("Predictive variables") +
+    ylab("VIP x loading sign") +
     theme_graphs +
-    ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-plotly::ggplotly(VIP_metabo)
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+ggplotly(VIP_metabo)
 rm(VIP_metabo)
 
 # Microarray data
-VIP_micro <-  ggplot2::ggplot(data = data.frame(
+VIP_micro <-  ggplot(data = data.frame(
     "variables" = factor(names(VIP_plot[[2]]),
                          levels=names(VIP_plot[[2]])[order(abs(VIP_plot[[2]]), 
                                                            decreasing=T)]), 
     "valeur" = VIP_plot[[2]]), 
     aes(x = variables, y = valeur)) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::labs(title = paste0("Barplot of ", names(VIP_plot)[2])) +
-    ggplot2::xlab("Predictive variables") +
-    ggplot2::ylab("VIP x loading sign") +
+    geom_bar(stat = "identity") +
+    labs(title = paste0("Barplot of ", names(VIP_plot)[2])) +
+    xlab("Predictive variables") +
+    ylab("VIP x loading sign") +
     theme_graphs +
-    ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-plotly::ggplotly(VIP_micro)
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+ggplotly(VIP_micro)
 rm(VIP_micro)
 
 # Proteo data
-VIP_proteo <-  ggplot2::ggplot(data = data.frame(
+VIP_proteo <-  ggplot(data = data.frame(
     "variables" = factor(names(VIP_plot[[3]]),
                          levels=names(VIP_plot[[3]])[order(abs(VIP_plot[[3]]), 
                                                            decreasing=T)]), 
     "valeur" = VIP_plot[[3]]), 
     aes(x = variables, y = valeur)) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::labs(title = paste0("Barplot of ", names(VIP_plot)[3])) +
-    ggplot2::xlab("Predictive variables") +
-    ggplot2::ylab("VIP x loading sign") +
+    geom_bar(stat = "identity") +
+    labs(title = paste0("Barplot of ", names(VIP_plot)[3])) +
+    xlab("Predictive variables") +
+    ylab("VIP x loading sign") +
     theme_graphs +
-    ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-plotly::ggplotly(VIP_proteo)
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+ggplotly(VIP_proteo)
 rm(VIP_proteo)
 ```
 
@@ -553,18 +542,18 @@ The scores plot shows the representation of the samples in the two new
 components calculated by the optimal model. A horizontal separation is expected.
 
 ```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
-ggplot2::ggplot(data = data.frame("p_1" = copls.da@scores[, "p_1"],
+ggplot(data = data.frame("p_1" = copls.da@scores[, "p_1"],
                                   "o_1" = copls.da@scores[, "o_1"],
-                                  "Labs" = as.matrix(base::unlist(demo_3_Omics$ObsNames[, 1]))),
+                                  "Labs" = as.matrix(unlist(demo_3_Omics$ObsNames[, 1]))),
                 aes(x = p_1, y = o_1, label = Labs, 
                     shape = Labs, colour = Labs)) +
-  ggplot2::xlab("Predictive component") +
-  ggplot2::ylab("Orthogonal component") +
-  ggplot2::ggtitle("ConsensusOPLS Score plot")+
-  ggplot2::geom_point(size = 2.5) + 
-  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
+  xlab("Predictive component") +
+  ylab("Orthogonal component") +
+  ggtitle("ConsensusOPLS Score plot")+
+  geom_point(size = 2.5) + 
+  geom_text_repel(size = 4, show.legend = FALSE) + 
   theme_graphs+
-  ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
+  scale_color_manual(values = c("#7F3C8D", "#11A579"))
 ```
 
 Graph of scores obtained by the optimal ConsensusOPLS model for ovarian tissue 
@@ -577,19 +566,20 @@ partition of the classes was obtained.
 ## Block contributions to the predictive component
 
 ```{r ggplot_data_pred_compo, class.source='fold-hide'}
-plot_bloc_pred <- ggplot2::ggplot(data = 
-                                    data.frame("Values" = copls.da@blockContribution[, "p_1"],
-                                               "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
-                                  aes(x = Blocks, y = Values,
-                                      fill = Blocks, labels = Values)) +
-  ggplot2::geom_bar(stat = 'identity') + 
-  ggplot2::xlab("Data blocks") +
-  ggplot2::ylab("Weight") +
-  ggplot2::ggtitle("Block contributions to the predictive component")+
-  theme_graphs+
-  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+plot_bloc_pred <- ggplot(
+    data = data.frame("Values" = copls.da@blockContribution[, "p_1"],
+                      "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
+    aes(x = Blocks, y = Values,
+        fill = Blocks, labels = Values)) +
+    geom_bar(stat = 'identity') + 
+    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+    ggtitle("Block contributions to the predictive component")+
+    xlab("Data blocks") +
+    ylab("Weight") +
+    theme_graphs +
+    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-plotly::ggplotly(plot_bloc_pred)
+plot_bloc_pred
 rm(plot_bloc_pred)
 ```
 
@@ -600,19 +590,21 @@ and the metabolomic block (26.8$\%$).
 ## Block contributions to the first orthogonal component
 
 ```{r ggplot_data_1st_ortho_compo, class.source='fold-hide'}
-plot_bloc_1stOcomp <- ggplot2::ggplot(data = 
-                                        data.frame("Values" = copls.da@blockContribution[, "o_1"],
-                                                   "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
-                                      aes(x = Blocks, y = Values,
-                                          fill = Blocks, labels = Values)) +
-  ggplot2::geom_bar(stat = 'identity') + 
-  ggplot2::xlab("Data blocks") +
-  ggplot2::ylab("Weight") +
-  ggplot2::ggtitle("Block contributions to the first orthogonal component")+
-  theme_graphs+
-  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+plot_bloc_1stOcomp <- ggplot(
+    data = 
+        data.frame("Values" = copls.da@blockContribution[, "o_1"],
+                   "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
+    aes(x = Blocks, y = Values,
+        fill = Blocks, labels = Values)) +
+    geom_bar(stat = 'identity') + 
+    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+    ggtitle("Block contributions to the first orthogonal component") +
+    xlab("Data blocks") +
+    ylab("Weight") +
+    theme_graphs +
+    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-plotly::ggplotly(plot_bloc_1stOcomp)
+plot_bloc_1stOcomp
 rm(plot_bloc_1stOcomp)
 ```
 
@@ -633,41 +625,44 @@ data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
                              "Blocks" = c(data_two_plots$Blocks,
                                           labels(demo_3_Omics[1:nbrBlocs])))
 
-plot_bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
+plot_bloc_PredVSOrtho <- ggplot(data = data_two_plots,
                                          aes(x = factor(Type), 
                                              y = Values, 
                                              fill = factor(Type))) +
-  ggplot2::geom_bar(stat = 'identity') + 
-  ggplot2::xlab("Data blocks") +
-  ggplot2::ylab("Weight") +
-  ggplot2::ggtitle("Block contributions to each component")+
-  facet_wrap(. ~ Blocks)+
-  theme_graphs+
-  ggplot2::scale_fill_discrete(name = "Component")+
-  ggplot2::scale_fill_manual(values = c("#7F3C8D", "#11A579"))
+    geom_bar(stat = 'identity') + 
+    ggtitle("Block contributions to each component")+
+    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+    xlab("Data blocks") +
+    ylab("Weight") +
+    facet_wrap(. ~ Blocks)+
+    theme_graphs+
+    scale_fill_discrete(name = "Component")+
+    scale_fill_manual(values = c("#7F3C8D", "#11A579"))
 
-plotly::ggplotly(plot_bloc_PredVSOrtho)
+plot_bloc_PredVSOrtho
 rm(plot_bloc_PredVSOrtho)
 ```
 
 In the same way, the previous graph can be represented as:
 
 ```{r plot_bloc_PredVSOrtho_bis, message = FALSE, class.source='fold-hide'}
-bloc_PredVSOrtho <- ggplot2::ggplot(data = data_two_plots,
-                                         aes(x = Blocks, 
-                                             y = Values, 
-                                             fill = Blocks)) +
-  ggplot2::geom_bar(stat = 'identity') + 
-  ggplot2::xlab("Components") +
-  ggplot2::ylab("Weight") +
-  ggplot2::ggtitle("Block contributions to each component")+
-  facet_wrap(. ~ factor(Type))+
-  theme_graphs+
-  ggplot2::theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))+
-  theme(plot.title = element_text(hjust = 0.5, margin = margin(t = 5, r = 0, b = 0, l = 100)))+
-  ggplot2::scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+bloc_PredVSOrtho <- ggplot(data = data_two_plots,
+                           aes(x = Blocks, 
+                               y = Values, 
+                               fill = Blocks)) +
+    geom_bar(stat = 'identity') +
+    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+    ggtitle("Block contributions to each component") +
+    xlab("Components") +
+    ylab("Weight") +
+    facet_wrap(. ~ factor(Type)) +
+    theme_graphs +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          plot.title = element_text(hjust = 0.5, 
+                                    margin = margin(t = 5, r = 0, b = 0, l = 100))) +
+    scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-plotly::ggplotly(bloc_PredVSOrtho)
+bloc_PredVSOrtho
 rm(bloc_PredVSOrtho)
 ```
 
@@ -676,20 +671,20 @@ rm(bloc_PredVSOrtho)
 ## Block contributions predictive vs. orthogonal
 
 ```{r ggplot_data_pred_vs_ortho, message = FALSE, warning = FALSE, class.source='fold-hide'}
-data_PredVSOrtho <- ggplot2::ggplot(data = data.frame("Pred" = copls.da@blockContribution[, "p_1"],
-                                                      "Ortho" = copls.da@blockContribution[, "o_1"],
-                                                      "Labels" = labels(demo_3_Omics[1:nbrBlocs])),
-                                    aes(x = Pred, y = Ortho, label = Labels, 
-                                        shape = Labels, colour = Labels)) +
-  ggplot2::xlab("Predictive component") +
-  ggplot2::ylab("Orthogonal component") +
-  ggplot2::ggtitle("Block contributions predictive vs. orthogonal")+
-  ggplot2::geom_point(size = 2.5) + 
-  ggrepel::geom_text_repel(size = 4, show.legend = FALSE) + 
-  theme_graphs+
-  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+data_PredVSOrtho <- ggplot(data = data.frame("Pred" = copls.da@blockContribution[, "p_1"],
+                                             "Ortho" = copls.da@blockContribution[, "o_1"],
+                                             "Labels" = labels(demo_3_Omics[1:nbrBlocs])),
+                           aes(x = Pred, y = Ortho, label = Labels, 
+                               shape = Labels, colour = Labels)) +
+    xlab("Predictive component") +
+    ylab("Orthogonal component") +
+    ggtitle("Block contributions predictive vs. orthogonal") +
+    geom_point(size = 2.5) + 
+    geom_text_repel(size = 4, show.legend = FALSE) + 
+    theme_graphs +
+    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-plotly::ggplotly(data_PredVSOrtho)
+data_PredVSOrtho
 rm(data_PredVSOrtho)
 ```
 
@@ -704,11 +699,11 @@ loadings <- copls.da@loadings
 data_loads <- sapply(X = 1:nbrBlocs,
                      FUN = function(X){
                        data.frame("Pred" = 
-                                    loadings[[X]][, base::grep(pattern = "p_",
+                                    loadings[[X]][, grep(pattern = "p_",
                                                                x = colnames(loadings[[X]]),
                                                                fixed = TRUE)],
                                   "Ortho" = 
-                                    loadings[[X]][, base::grep(pattern = "o_",
+                                    loadings[[X]][, grep(pattern = "o_",
                                                                x = colnames(loadings[[X]]),
                                                                fixed = TRUE)],
                                   "Labels" = labels(demo_3_Omics[1:nbrBlocs])[[X]])
@@ -720,23 +715,24 @@ The loading plot shows the representation of variables in the two new components
 calculated by the optimal model.
 
 ```{r ggplot_data_loadings, class.source='fold-hide'}
-loadings_plot <- ggplot2::ggplot(data = data_loads) +
-  ggplot2::geom_point(data = as.data.frame(data_loads$V1),
+loadings_plot <- ggplot() +
+  geom_point(data = as.data.frame(data_loads$V1),
                       aes(x = Pred, y = Ortho, colour = Labels), 
                       size = 2.5, alpha = 0.5) + 
-  ggplot2::geom_point(data = as.data.frame(data_loads$V2),
+  geom_point(data = as.data.frame(data_loads$V2),
                       aes(x = Pred, y = Ortho, colour = Labels),
                       size = 2.5, alpha = 0.5) +
-  ggplot2::geom_point(data = as.data.frame(data_loads$V3),
+  geom_point(data = as.data.frame(data_loads$V3),
                       aes(x = Pred, y = Ortho, colour = Labels),
                       size = 2.5, alpha = 0.5) +
-  ggplot2::xlab("Predictive component") +
-  ggplot2::ylab("Orthogonal component") +
-  ggplot2::ggtitle("Loadings plot on first orthogonal and predictive component")+
+  xlab("Predictive component") +
+  ylab("Orthogonal component") +
+  ggtitle("Loadings plot on first orthogonal and predictive component")+
   theme_graphs+
-  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+  scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-plotly::ggplotly(loadings_plot)
+#ggplotly(loadings_plot)
+loadings_plot
 rm(loadings_plot)
 ```
 
@@ -759,16 +755,17 @@ loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
 ```
 
 ```{r ggplot_data_loadings_VIP, class.source='fold-hide'}
-p_loadings_VIP <- ggplot2::ggplot(data = loadings_VIP,
+p_loadings_VIP <- ggplot(data = loadings_VIP,
                                   aes(x=p_1, y=VIP, col=block, label = label)) +
-    ggplot2::geom_point(size = 2.5, alpha = 0.5) + 
-    ggplot2::xlab("Predictive component") +
-    ggplot2::ylab("Variable Importance in Projection") +
-    ggplot2::ggtitle("VIP versus loadings on predictive components")+
+    geom_point(size = 2.5, alpha = 0.5) + 
+    xlab("Predictive component") +
+    ylab("Variable Importance in Projection") +
+    ggtitle("VIP versus loadings on predictive components")+
     theme_graphs+
-    ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-plotly::ggplotly(p_loadings_VIP)
+#ggplotly(p_loadings_VIP)
+p_loadings_VIP
 rm(p_loadings_VIP)
 ```
 
@@ -785,62 +782,58 @@ PermRes <- copls.da@permStats
 ```
 
 ```{r plot_R2_perm, class.source='fold-hide'}
-R2Yperm <- ggplot2::ggplot(data = data.frame("R2Yperm" = PermRes$R2Y),
+R2Yperm <- ggplot(data = data.frame("R2Yperm" = PermRes$R2Y),
                            aes(x = R2Yperm)) +
-    ggplot2::geom_histogram(aes(y = after_stat(density)), bins = 30,
+    geom_histogram(aes(y = after_stat(density)), bins = 30,
                             color="grey", fill="grey") +
-    ggplot2::geom_density(color = "blue", size = 0.5) +
-    ggplot2::geom_vline(aes(xintercept=PermRes$R2Y[1]), 
+    geom_density(color = "blue", size = 0.5) +
+    geom_vline(aes(xintercept=PermRes$R2Y[1]), 
                color="blue", linetype="dashed", size=1) +
-    ggplot2::xlab("R2 values") +
-    ggplot2::ylab("Frequency") +
-    ggplot2::ggtitle("R2 Permutation test")+
+    xlab("R2 values") +
+    ylab("Frequency") +
+    ggtitle("R2 Permutation test")+
     theme_graphs
 
-plotly::ggplotly(R2Yperm)
+#ggplotly(R2Yperm)
+R2Yperm
 rm(R2Yperm)
 ```
 
 ```{r plot_Q2_perm, message = FALSE, class.source='fold-hide'}
-Q2Yperm <- ggplot2::ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Y),
+Q2Yperm <- ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Y),
                            aes(x = Q2Yperm)) +
-    ggplot2::geom_histogram(aes(y = after_stat(density)), bins = 30,
+    geom_histogram(aes(y = after_stat(density)), bins = 30,
                             color="grey", fill="grey") +
-    ggplot2::geom_density(color = "blue", size = 0.5) +
-    ggplot2::geom_vline(aes(xintercept=PermRes$Q2Y[1]), 
+    geom_density(color = "blue", size = 0.5) +
+    geom_vline(aes(xintercept=PermRes$Q2Y[1]), 
                         color="blue", linetype="dashed", size=1) +
-    ggplot2::xlab("Q2 values") +
-    ggplot2::ylab("Frequency") +
-    ggplot2::ggtitle("Q2 Permutation test")+
+    xlab("Q2 values") +
+    ylab("Frequency") +
+    ggtitle("Q2 Permutation test")+
     theme_graphs
 
-plotly::ggplotly(Q2Yperm)
+#ggplotly(Q2Yperm)
+Q2Yperm
 rm(Q2Yperm)
 ```
 
 ```{r plot_DQ2_perm, message = FALSE, class.source='fold-hide'}
-DQ2Yperm <- ggplot2::ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Y),
+DQ2Yperm <- ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Y),
                             aes(x = DQ2Yperm)) +
-    ggplot2::geom_histogram(aes(y = after_stat(density)), bins = 30,
+    geom_histogram(aes(y = after_stat(density)), bins = 30,
                             color="grey", fill="grey") +
-    ggplot2::geom_density(color = "blue", size = 0.5) +
-    ggplot2::geom_vline(aes(xintercept=PermRes$DQ2Y[1]), 
+    geom_density(color = "blue", size = 0.5) +
+    geom_vline(aes(xintercept=PermRes$DQ2Y[1]), 
                         color="blue", linetype="dashed", size=1) +
-    ggplot2::xlab("DQ2 values") +
-    ggplot2::ylab("Frequency") +
-    ggplot2::ggtitle("DQ2 Permutation test")+
+    xlab("DQ2 values") +
+    ylab("Frequency") +
+    ggtitle("DQ2 Permutation test")+
     theme_graphs
 
-plotly::ggplotly(DQ2Yperm)
+#ggplotly(DQ2Yperm)
+DQ2Yperm
 rm(DQ2Yperm)
 ```
-
-
-
-
-
-
-
 
 
 
