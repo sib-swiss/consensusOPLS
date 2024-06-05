@@ -23,8 +23,8 @@ A table with the results:
 \code{s} the total Y variance explained by the model.
 }
 \description{
-Calculate the VIP (Variable Importance in Projection) for each variable 
-in a ConsensusOPLS model.
+Calculate the VIP (Variable Importance in Projection) for each
+variable in a ConsensusOPLS model.
 }
 \examples{
 vip <- VIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 

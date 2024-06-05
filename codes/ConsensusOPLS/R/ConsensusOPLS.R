@@ -1,5 +1,7 @@
 #' @title \code{ConsensusOPLS} S4 class
 #' @description This object presents the result of a Consensus OPLS analysis.
+#' @slot modelType The type of requested OPLS regression model.
+#' @slot response The provided response.
 #' @slot nPcomp Number of Y-predictive components (latent variables) of the optimal model.
 #' @slot nOcomp Number of Y-orthogonal components (latent variables) of the optimal model.
 #' @slot blockContribution Relative contribution of each block (normalized \code{lambda} values) to the
@@ -14,16 +16,16 @@
 #' @slot Q2 Predictive ability of the optimal model.
 #' @slot DQ2 Predictive ability of the optimal model, for discriminant analysis.
 #' @slot permStats Q2 and R2Y of models with permuted response.
-#' @slot plots Basic plots for the analysis.
 #' @slot cv Cross-validation result towards the optimal model.
 #' @name ConsensusOPLS-class
 #' @rdname ConsensusOPLS-class
 #' @import methods utils
-# #' @exportMethod generic
 #' @export
 #' 
 setClass("ConsensusOPLS",
          slots = list(
+             modelType         = "character",
+             response          = "vector",
              nPcomp            = "numeric",
              nOcomp            = "numeric",
              blockContribution = "matrix",
@@ -35,23 +37,538 @@ setClass("ConsensusOPLS",
              Q2                = "numeric",
              DQ2               = "numeric",
              permStats         = "list",
-             plots             = "list",
              cv                = "list")
 )
 
 
 #' @noRd
 #' 
-setMethod("show", "ConsensusOPLS",
-          function(object) {
-              cat("***Optimal Consensus OPLS model***\n")
-              cat("\nNumber of predictive components: ", object@nPcomp, "\n")
-              cat("\nNumber of orthogonal components: ", object@nOcomp, "\n")
-              cat("\nBlock contribution:\n")
-              print(object@blockContribution)
-              cat("\nExplained variance R2 in reponse:", object@R2Y[length(object@R2Y)], "\n")
-              cat("\nPredictive ability (cross validation Q2): ", object@Q2[length(object@Q2)], "\n")
-          }
+setMethod(
+    f = "show", signature = "ConsensusOPLS",
+    definition = function(object) {
+        cat("***Optimal Consensus OPLS model***\n")
+        cat("\nNumber of predictive components: ", object@nPcomp, "\n")
+        cat("\nNumber of orthogonal components: ", object@nOcomp, "\n")
+        cat("\nBlock contribution:\n")
+        print(object@blockContribution)
+        cat("\nExplained variance R2 in response:",
+            object@R2Y[length(object@R2Y)], "\n")
+        cat("\nPredictive ability (cross validation Q2): ",
+            object@Q2[length(object@Q2)], "\n")
+    }
+)
+
+
+#' @title Block contribution plot
+#' @description
+#' Plot of relative contribution of each data block in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to number of blocks + 1.
+#' @param ... \code{barplot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotContribution
+#'  
+setGeneric(
+    name = "plotContribution",
+    def = function(object,
+                   col = NULL,
+                   ...) {
+        standardGeneric("plotContribution")
+    }
+)
+
+
+#' @title Block contribution plot
+#' @description
+#' Plot of relative contribution of each data block in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to number of blocks + 1.
+#' @param ... \code{barplot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotContribution
+#'  
+setMethod(
+    f = "plotContribution",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          col = NULL,
+                          ...) {
+        contributions <- reshape2::melt(object@blockContribution)
+        colnames(contributions) <- c("Block", "Component", "Contribution")
+        if (is.null(col)) col <- 1:nrow(object@blockContribution) + 1
+        
+        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+        barplot(data=contributions,
+                Contribution ~ Block + Component, beside=T,
+                col=col,
+                legend.text=T, 
+                args.legend=list(x="topright", inset=c(-0.3, 0), 
+                                 title="Block",
+                                 cex=0.9, bty='n')
+                )
+    }
+)       
+
+
+#' @title Score plot
+#' @description 
+#' Plot of samples in the space of latent variables of the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp1 Latent variable for abscissa. Default, the first predictive
+#' component, \code{p_1}.
+#' @param comp2 Latent variable for ordinate. Default, the first orthogonal
+#' component, \code{o_1}.
+#' @param col A vector of color codes or names. Default, NULL, generated
+#' following the \code{response}.
+#' @param pch Graphic symbol. Default, 19.
+#' @param ... \code{plot} arguments.
+#' @import graphics grDevices
+#' @export
+#' @rdname plotScores
+#'  
+setGeneric(
+    name = "plotScores",
+    def = function(object,
+                   comp1 = "p_1",
+                   comp2 = "o_1",
+                   col = NULL,
+                   pch = 19,
+                   ...) {
+        standardGeneric("plotScores")
+    }
+)
+
+
+#' @title Score plot
+#' @description 
+#' Plot of samples in the space of latent variables of the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp1 Latent variable for abscissa. Default, the first predictive
+#' component, \code{p_1}.
+#' @param comp2 Latent variable for ordinate. Default, the first orthogonal
+#' component, \code{o_1}.
+#' @param col A vector of color codes or names. Default, NULL, generated
+#' following the \code{response}.
+#' @param pch Graphic symbol. Default, 19.
+#' @param ... \code{plot} arguments.
+#' @import graphics grDevices
+#' @export
+#' @rdname plotScores
+#'  
+setMethod(
+    f = "plotScores",
+    signature = "ConsensusOPLS",
+    definition = function(object, 
+                          comp1 = "p_1",
+                          comp2 = "o_1",
+                          col = NULL,
+                          pch = 19,
+                          ...) {
+        stopifnot(comp1 %in% colnames(object@scores) && 
+                      comp2 %in% colnames(object@scores))
+        if (is.null(col)) {
+            if (object@modelType=='da') {
+                response <- factor(object@response)
+                col <- c(1:nlevels(response)+1)[response]
+                
+                par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+                plot(object@scores[, c(comp1, comp2)], col=col, pch=pch, ...)
+                legend("topright", inset=c(-0.4, 0), 
+                       legend=levels(response),
+                       col=c(1:nlevels(response)+1), pch=pch,
+                       title="Response",
+                       cex=0.9, bty='n')
+            } else {
+                col.breaks <- cut(object@response, breaks=10)
+                val.breaks <- as.numeric(unique(
+                    gsub("\\(|\\]", "", unlist(strsplit(levels(col.breaks),
+                                                        split=",")))))
+                rbPal <- colorRampPalette(c('blue', "ivory"))
+                col <- rbPal(10)[as.numeric(col.breaks)]
+                layout(matrix(1:2, ncol=2), widths=c(3,1), heights=c(1,1))
+                plot(object@scores[, c(comp1, comp2)], col=col, pch=pch, ...)
+                legend_image <- as.raster(matrix(sort(col), ncol=1))
+                plot(x=c(0,2.2), y=c(0,1), type='n', axes=F,
+                     xlab='', ylab='', main="Response", cex.main=0.9)
+                text(x=1.7,
+                     y=seq(from=0.7, to=1, length.out=3),
+                     labels=round(seq(from=min(val.breaks), to=max(val.breaks),
+                                      length.out=3), 0),
+                     cex=0.8)
+                rasterImage(legend_image, 0, 0.7, 1.2, 1)
+            }
+        } else {
+            plot(object@scores[, c(comp1, comp2)], col=col, pch=pch, ...)
+        }
+    }
+)
+
+
+#' @title Loading plot
+#' @description Plot of variable loadings in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp1 Latent variable for X-axis. Default, the first predictive
+#' component, \code{p_1}.
+#' @param comp2 Latent variable for Y-axis. Default, the first orthogonal
+#' component, \code{o_1}.
+#' @param blockId The positions or names of the blocks for the plot.
+#' Default, NULL, all.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to \code{length(blockId)+1}.
+#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
+#' 1 to \code{length(blockId)}.
+#' @param ... \code{plot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotLoadings
+#'  
+setGeneric(
+    name = "plotLoadings",
+    def = function(object,
+                   comp1 = "p_1",
+                   comp2 = "o_1",
+                   blockId = NULL,
+                   col = NULL,
+                   pch = NULL,
+                   ...) {
+        standardGeneric("plotLoadings")
+    }
+)
+
+
+#' @title Loading plot
+#' @description Plot of variable loadings in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp1 Latent variable for X-axis. Default, the first predictive
+#' component, \code{p_1}.
+#' @param comp2 Latent variable for Y-axis. Default, the first orthogonal
+#' component, \code{o_1}.
+#' @param blockId The positions or names of the blocks for the plot.
+#' Default, NULL, all.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to \code{length(blockId)+1}.
+#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
+#' 1 to \code{length(blockId)}.
+#' @param ... \code{plot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotLoadings
+#'  
+setMethod(
+    f = "plotLoadings",
+    signature = "ConsensusOPLS",
+    definition = function(object, 
+                          comp1 = "p_1",
+                          comp2 = "o_1",
+                          blockId = NULL,
+                          col = NULL,
+                          pch = NULL,
+                          ...) {
+        stopifnot(comp1 %in% colnames(object@scores) && 
+                      comp2 %in% colnames(object@scores))
+        
+        if (is.null(blockId)) blockId <- names(object@loadings)
+        if (is.null(col)) col <- 1:length(blockId) + 1
+        if (is.null(pch)) pch <- 1:length(blockId)
+
+        loadings <- do.call(rbind.data.frame, object@loadings[blockId])
+        
+        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+        plot(loadings[, c(comp1, comp2)], 
+             col=col[factor(unlist(lapply(blockId, function(x) 
+                 rep(x, nrow(object@loadings[[x]])))))],
+             pch=pch[factor(unlist(lapply(blockId, function(x) 
+                 rep(x, nrow(object@loadings[[x]])))))],
+             ...)
+        legend("topright", inset=c(-0.4, 0), 
+               legend=names(object@loadings[blockId]),
+               col=col, pch=pch, title="Block",
+               cex=0.9, bty='n')
+    }
+)
+
+
+#' @title VIP plot
+#' @description Plot of VIP versus variable loadings in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp The latent variable on which VIPs and loadings are plotted.
+#' Default, the first predictive component, \code{p_1}.
+#' @param blockId The positions or names of the blocks for the plot.
+#' Default, NULL, all.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to \code{length(blockId)+1}.
+#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
+#' 1 to \code{length(blockId)}.
+#' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
+#' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
+#' @param ... \code{plot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotVIP
+#'  
+setGeneric(
+    name = "plotVIP",
+    def = function(object,
+                   comp = "p_1",
+                   blockId = NULL,
+                   col = NULL,
+                   pch = NULL,
+                   xlab = NULL,
+                   ylab = NULL,
+                   ...) {
+        standardGeneric("plotVIP")
+    }
+)
+
+
+#' @title VIP plot
+#' @description Plot of VIP versus variable loadings in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp The latent variable on which VIPs and loadings are plotted.
+#' Default, the first predictive component, \code{p_1}.
+#' @param blockId The positions or names of the blocks for the plot.
+#' Default, NULL, all.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to \code{length(blockId)+1}.
+#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
+#' 1 to \code{length(blockId)}.
+#' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
+#' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
+#' @param ... \code{plot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotVIP
+#'  
+setMethod(
+    f = "plotVIP",
+    signature = "ConsensusOPLS",
+    definition = function(object, 
+                          comp = "p_1",
+                          blockId = NULL,
+                          col = NULL,
+                          pch = NULL,
+                          xlab = NULL,
+                          ylab = NULL,
+                          ...) {
+        stopifnot(comp %in% colnames(object@scores))
+        
+        if (is.null(blockId)) blockId <- names(object@loadings)
+        if (is.null(col)) col <- 1:length(blockId) + 1
+        if (is.null(pch)) pch <- 1:length(blockId)
+        
+        loadings <- do.call(rbind.data.frame, object@loadings[blockId])
+        loadings <- loadings[, comp, drop=F]
+        VIPs <- do.call(rbind.data.frame, object@VIP[blockId])
+        VIPs <- VIPs[, comp, drop=F]
+        loadings_VIP <- cbind.data.frame(loadings, VIPs[rownames(loadings),])
+        colnames(loadings_VIP) <- c("loadings", "VIP")
+        
+        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+        plot(loadings_VIP, 
+             col=col[factor(unlist(lapply(blockId, function(x) 
+                 rep(x, nrow(object@loadings[[x]])))))],
+             pch=pch[factor(unlist(lapply(blockId, function(x)
+                 rep(x, nrow(object@loadings[[x]])))))],
+             xlab=if (is.null(xlab)) paste0("Loadings on ", comp) else xlab,
+             ylab=if (is.null(ylab)) paste0("VIP on ", comp) else ylab,
+             ...)
+        legend("topright", inset=c(-0.4, 0), 
+               legend=names(object@loadings[blockId]),
+               col=col, pch=pch, title="Block",
+               cex=0.9, bty='n')
+    }
+)
+
+
+#' @title Q2 plot
+#' @description Plot of Q2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotQ2
+#'  
+setGeneric(
+    name = "plotQ2",
+    def = function(object,
+                   breaks = 10,
+                   xlab = "Q2",
+                   main = "Q2 in models with permuted response",
+                   col = "blue",
+                   lty = 2,
+                   ...) {
+        standardGeneric("plotQ2")
+    }
+)
+
+
+#' @title Q2 plot
+#' @description Plot of Q2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotQ2
+#'  
+setMethod(
+    f = "plotQ2",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          breaks = 10,
+                          xlab = "Q2",
+                          main = "Q2 in models with permuted response",
+                          col = "blue",
+                          lty = 2,
+                          ...) {
+        hist(object@permStats$Q2Y[-1], breaks=breaks, probability=T,
+             xlab=xlab, main=main, ...)
+        lines(density(object@permStats$Q2Y[-1]))
+        abline(v=object@permStats$Q2Y[1], col=col, lty=lty, xpd=F)
+    }
+)
+
+
+#' @title DQ2 plot
+#' @description Plot of DQ2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotDQ2
+#'  
+setGeneric(
+    name = "plotDQ2",
+    def = function(object,
+                   breaks = 10,
+                   xlab = "DQ2",
+                   main = "DQ2 in models with permuted response",
+                   col = "blue",
+                   lty = 2,
+                   ...) {
+        standardGeneric("plotDQ2")
+    }
+)
+
+
+#' @title DQ2 plot
+#' @description Plot of DQ2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotDQ2
+#'  
+setMethod(
+    f = "plotDQ2",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          breaks = 10,
+                          xlab = "DQ2",
+                          main = "DQ2 in models with permuted response",
+                          col = "blue",
+                          lty = 2,
+                          ...) {
+        stopifnot(length(object@permStats$DQ2Y) > 0)
+        
+        hist(object@permStats$DQ2Y[-1], breaks=breaks, probability=T,
+             xlab=xlab, main=main, ...)
+        lines(density(object@permStats$DQ2Y[-1]))
+        abline(v=object@permStats$DQ2Y[1], col=col, lty=lty, xpd=F)
+    }
+)
+
+
+#' @title R2 plot
+#' @description Plot of R2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotR2
+#'  
+setGeneric(
+    name = "plotR2",
+    def = function(object,
+                   breaks = 10,
+                   xlab = "R2",
+                   main = "R2 in models with permuted response",
+                   col = "blue",
+                   lty = "dashed",
+                   ...) {
+        standardGeneric("plotR2")
+    }
+)
+
+
+#' @title R2 plot
+#' @description Plot of R2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotR2
+#'  
+setMethod(
+    f = "plotR2",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          breaks = 10,
+                          xlab = "R2",
+                          main = "R2 in models with permuted response",
+                          col = "blue",
+                          lty = "dashed",
+                          ...) {
+        hist(object@permStats$R2Y[-1], breaks=breaks, probability=T,
+             xlab=xlab, main=main, ...)
+        lines(density(object@permStats$R2Y[-1]))
+        abline(v=object@permStats$R2Y[1], col=col, lty=lty, xpd=F)
+    }
 )
 
 
@@ -90,23 +607,21 @@ setMethod("show", "ConsensusOPLS",
 #' @param kernelParams List of parameters for the kernel. Default, 
 #' list(type='p', params = c(order=1.0)).
 #' @param mc.cores Number of cores for parallel computing. Default, 1.
-#' @param plots A logical indicating if plots are generated. For more aesthetic 
-#' graphics, please refer to the package thumbnail. Interpretation help is also 
-#' provided. Default, FALSE.
 #' @param verbose A logical indicating if detailed information (cross
 #' validation) will be shown. Default, FALSE.
 #'
 #' @return An object of class \code{ConsensusOPLS}.
 #' @examples
 #' data(demo_3_Omics)
-#' res <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#' datablocks <- lapply(demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)
+#' res <- ConsensusOPLS(data=datablocks, 
 #'                      Y=demo_3_Omics$Y,
 #'                      maxPcomp=1, maxOcomp=2, 
 #'                      modelType='da',
 #'                      nperm=5)
-#' str(res)
+#' res
 #' @importFrom reshape2 melt
-#' @import utils ggplot2 parallel 
+#' @import utils parallel 
 #' @export
 #' 
 ConsensusOPLS <- function(data,
@@ -121,7 +636,6 @@ ConsensusOPLS <- function(data,
                           cvFrac = 4/5,
                           kernelParams = list(type='p', params = c(order=1.0)),
                           mc.cores = 1,
-                          plots = FALSE,
                           verbose = FALSE) {
     # Variable format control
     if (!is.list(data)) stop("data is not a list.")
@@ -172,7 +686,6 @@ ConsensusOPLS <- function(data,
     })
     
     # Permutations
-    #perms <- mclapply(X=1:(1+nperm), mc.cores=mc.cores, function(i) {
     perms <- parLapply(cl, X=1:(1+nperm), function(i) {
         # Fix the random seed
         set.seed(i)
@@ -204,142 +717,49 @@ ConsensusOPLS <- function(data,
                      VIP=VIP)
         )
     })
-    #permStats$lvnum  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     permStats$lvnum  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$nOcompOpt + maxPcomp
     }))
-    #permStats$R2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     permStats$R2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         utils::tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
     }))
-    #permStats$DQ2Yhat <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     permStats$DQ2Yhat <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[permStats$lvnum[i]]
     }))
-    #permStats$Q2Yhat  <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     permStats$Q2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$Q2Yhat[permStats$lvnum[i]]
     }))
     # permStats$PredAc <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     #     perms[[i]]$modelCV$da$tot_sens[2]
     # }))
-    #permStats$Y      <- mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     permStats$Y      <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$Ys
     }))
-    #permStats$RV     <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
     permStats$RV     <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         RVmodified(X = Y, Y = perms[[i]]$Ys)
     }))
     
-    if (plots) {
-        # plot blockContribution of the optimal model
-        contributions <- perms[[1]]$modelCV$Model$blockContribution
-        contributions <- reshape2::melt(contributions)
-        colnames(contributions) <- c("block", "comp", "value")
-        
-        p_contribution <- ggplot(contributions, aes(x=comp, y=value, fill=block)) +
-            geom_bar(stat = "identity", position=position_dodge()) +
-            theme_light() +
-            labs(x = "components", y = "contribution of blocks",
-                 fill = "block",
-                 title = "contributions")
-        
-        # plot scores of the optimal model
-        scores <- perms[[1]]$modelCV$Model$scores
-        scores <- data.frame(scores, response=if (modelType=='da') koplsReDummy(Y) else Y)
-        p_scores <- ggplot(scores, aes(x=p_1, y=o_1, colour=response)) +
-            geom_point(size=4) +
-            labs(x = "Predictive",
-                 y = "Orthogonal",
-                 title = "Scores on first orthogonal and predictive components") +
-            theme_light()
-
-        # plot loadings of the optimal model
-        loadings <- do.call(rbind.data.frame, perms[[1]]$modelCV$Model$loadings)
-        loadings$block <- do.call(c, lapply(names(perms[[1]]$modelCV$Model$loadings), function(x) 
-            rep(x, nrow(perms[[1]]$modelCV$Model$loadings[[x]]))))
-        loadings$variable <- gsub(paste(paste0(names(perms[[1]]$modelCV$Model$loadings), '.'), 
-                                        collapse='|'), '', 
-                                  rownames(loadings))
-        
-        p_loadings <- ggplot(loadings, aes(x=p_1, y=o_1, col=block, label=variable)) +
-            geom_point(size=2) +
-            labs(x = "Predictive",
-                 y = "Orthogonal",
-                 title = "Loadings on first orthogonal and predictive components") +
-            theme_light()
-        
-        # plot loadings and VIP of the optimal model
-        VIP <- data.frame(VIP = unlist(perms[[1]]$VIP), 
-                          variable = unlist(lapply(perms[[1]]$VIP, names)))
-        
-        loadings_VIP <- merge(loadings, VIP, by="variable")
-        loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
-        
-        p_vip <- ggplot(loadings_VIP, aes(x=p_1, y=VIP, col=block, label = label)) +
-            geom_point(size=2) +
-            labs(x = "Predictive",
-                 y = "VIP",
-                 title = "VIP versus loadings on predictive components") +
-            theme_light()
-        
-        # plot Q2 permutations
-        Q2Yperm <- data.frame(Q2Yperm = permStats$Q2Yhat)
-        
-        p_q2 <- ggplot(data = Q2Yperm, aes(x = Q2Yperm)) +
-            geom_histogram(color="grey", fill="grey") +
-            geom_vline(aes(xintercept=permStats$Q2Yhat[1]), color="blue", linetype="dashed", size=1) +
-            theme_light() +
-            ggtitle("Q2 Permutation test")
-        
-        # plot DQ2 permutations
-        if (modelType=='da') {
-            DQ2Yperm <- data.frame(DQ2Yperm = permStats$DQ2Yhat)
-            
-            p_dq2 <- ggplot(data = DQ2Yperm, aes(x = DQ2Yperm)) +
-                geom_histogram(color="grey", fill="grey") +
-                geom_vline(aes(xintercept=permStats$DQ2Yhat[1]), color="blue", linetype="dashed", size=1) +
-                theme_light() +
-                ggtitle("DQ2 Permutation test")
-        }
-        
-        # plot R2Y permutations
-        R2Yperm <- data.frame(R2Yperm = permStats$R2Yhat)
-        
-        p_r2 <- ggplot(data = R2Yperm, aes(x = R2Yperm)) +
-            geom_histogram(color="grey", fill="grey") +
-            geom_vline(aes(xintercept=permStats$R2Yhat[1]), color="blue", linetype="dashed", size=1) +
-            theme_light() +
-            ggtitle("R2 Permutation test")
-    }
-    
     ## Stop parallel clusters
     stopCluster(cl)
     
-    return (new("ConsensusOPLS",
-                nPcomp            = perms[[1]]$modelCV$Model$params$nPcomp,
-                nOcomp            = perms[[1]]$modelCV$Model$params$nOcomp,
-                blockContribution = perms[[1]]$modelCV$Model$blockContribution,
-                scores            = perms[[1]]$modelCV$Model$scores,
-                loadings          = perms[[1]]$modelCV$Model$loadings,
-                VIP               = perms[[1]]$VIP,
-                R2X               = perms[[1]]$modelCV$Model$R2X,
-                R2Y               = perms[[1]]$modelCV$Model$R2Yhat,
-                Q2                = perms[[1]]$modelCV$cv$Q2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)],
-                DQ2               = if (modelType=='da') 
-                    perms[[1]]$modelCV$cv$DQ2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)] else numeric(),
-                permStats         = list(Q2Y=permStats$Q2Yhat,
-                                         DQ2Y=permStats$DQ2Yhat,
-                                         R2Y=permStats$R2Yhat),
-                plots             = if (!plots) list() else 
-                    list(contribution = p_contribution,
-                         scores       = p_scores,
-                         loadings     = p_loadings,
-                         VIP          = p_vip,
-                         Q2           = p_q2,
-                         DQ2          = if (modelType=='da') p_dq2 else NULL,
-                         R2           = p_r2),
-                cv                = if (verbose) perms[[1]]$modelCV$cv else list())
-            )
+    return (new(
+        "ConsensusOPLS",
+        modelType         = modelType,
+        response          = if (modelType=='da') koplsReDummy(Y) else as.vector(Y),
+        nPcomp            = perms[[1]]$modelCV$Model$params$nPcomp,
+        nOcomp            = perms[[1]]$modelCV$Model$params$nOcomp,
+        blockContribution = perms[[1]]$modelCV$Model$blockContribution,
+        scores            = perms[[1]]$modelCV$Model$scores,
+        loadings          = perms[[1]]$modelCV$Model$loadings,
+        VIP               = perms[[1]]$VIP,
+        R2X               = perms[[1]]$modelCV$Model$R2X,
+        R2Y               = perms[[1]]$modelCV$Model$R2Yhat,
+        Q2                = perms[[1]]$modelCV$cv$Q2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)],
+        DQ2               = if (modelType=='da') 
+            perms[[1]]$modelCV$cv$DQ2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)] else numeric(),
+        permStats         = list(Q2Y=permStats$Q2Yhat,
+                                 DQ2Y=permStats$DQ2Yhat,
+                                 R2Y=permStats$R2Yhat),
+        cv                = if (verbose) perms[[1]]$modelCV$cv else list())
+    )
 }

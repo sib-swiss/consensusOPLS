@@ -10,6 +10,10 @@ This object presents the result of a Consensus OPLS analysis.
 \section{Slots}{
 
 \describe{
+\item{\code{modelType}}{The type of requested OPLS regression model.}
+
+\item{\code{response}}{The provided response.}
+
 \item{\code{nPcomp}}{Number of Y-predictive components (latent variables) of the optimal model.}
 
 \item{\code{nOcomp}}{Number of Y-orthogonal components (latent variables) of the optimal model.}
@@ -34,8 +38,6 @@ relevance of the variables in explaining the variation in the response.}
 \item{\code{DQ2}}{Predictive ability of the optimal model, for discriminant analysis.}
 
 \item{\code{permStats}}{Q2 and R2Y of models with permuted response.}
-
-\item{\code{plots}}{Basic plots for the analysis.}
 
 \item{\code{cv}}{Cross-validation result towards the optimal model.}
 }}

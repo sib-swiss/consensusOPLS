@@ -1,6 +1,6 @@
 #' @title Variable Importance in Projection
-#' @description Calculate the VIP (Variable Importance in Projection) for each variable 
-#' in a ConsensusOPLS model.
+#' @description Calculate the VIP (Variable Importance in Projection) for each
+#' variable in a ConsensusOPLS model.
 #' 
 #' @param data A list of data blocks.
 #' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
@@ -34,22 +34,28 @@ VIP <- function(data, Y, model = NULL, ...) {
     VIP <- lapply(1:length(data), function(itable) {
         # Dimensions of the data in the data
         nvariable <- ncol(data[[itable]])
-        nsample   <- nrow(model$scoresP)
-        ncomp     <- ncol(model$scoresP)
+        nsample   <- nrow(model$scores)
+        ncomp     <- ncol(model$scores)
         
-        Qs <- crossprod(Y, model$scoresP) %*% diag(1/diag(crossprod(model$scoresP)), 
-                                                          ncol=ncomp) #nclass x ncomp
+        #nclass x ncomp
+        Qs <- crossprod(Y, model$scores) %*% diag(1/diag(crossprod(model$scores)), 
+                                                          ncol=ncomp)
+        #nsample x ncomp
         Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)), 
-                                           ncol=ncomp) #nsample x ncomp
+                                           ncol=ncomp)
+        #nvariable x ncomp
         Ws <- crossprod(data[[itable]], Us) %*% diag(1/diag(crossprod(Us)), 
-                                                     ncol=ncomp) #nvariable x ncomp
+                                                     ncol=ncomp)
         Ws <- apply(Ws, 2, function(x) x/norm(x, type='2'))
-        s <- diag(crossprod(model$scoresP) %*% crossprod(Qs)) # ncomp x ncomp x ncomp x ncomp
+        # ncomp x ncomp x ncomp x ncomp
+        s <- diag(diag(crossprod(model$scores) %*% crossprod(Qs)))
         
-        VIP.itable <- apply(Ws, 1, function(x) {
+        VIP.itable <- t(apply(Ws, 1, function(x) {
             q <- crossprod(s, x^2)
             return (sqrt(nvariable * q / sum(s)))
-        })
+        }))
+        colnames(VIP.itable) <- colnames(model$scores)
+        
         return (VIP.itable)
     })
     names(VIP) <- names(data)

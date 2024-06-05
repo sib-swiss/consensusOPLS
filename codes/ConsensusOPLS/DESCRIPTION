@@ -44,10 +44,11 @@ Authors@R:
            email = "thuong.tran@sib.swiss",
            comment = c(ORCID = "0000-0003-2074-5029"))
           )
-Depends: R (>= 4.0.0)
-Imports: stats, utils, ggplot2, methods, parallel, reshape2
+Depends: R (>= 4.0.0), stats, utils, graphics, grDevices, methods
+Imports: parallel, reshape2
 Suggests: 
-    testthat (>= 3.0.0), knitr, ComplexHeatmap, DT, devtools, ggrepel, plotly, psych
+    testthat (>= 3.0.0), knitr, ggplot2, ggrepel, plotly, psych, DT,
+    ComplexHeatmap
 Config/testthat/edition: 3
 License: file LICENSE
 Encoding: UTF-8

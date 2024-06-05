@@ -17,7 +17,6 @@ ConsensusOPLS(
   cvFrac = 4/5,
   kernelParams = list(type = "p", params = c(order = 1)),
   mc.cores = 1,
-  plots = FALSE,
   verbose = FALSE
 )
 }
@@ -63,10 +62,6 @@ list(type='p', params = c(order=1.0)).}
 
 \item{mc.cores}{Number of cores for parallel computing. Default, 1.}
 
-\item{plots}{A logical indicating if plots are generated. For more aesthetic 
-graphics, please refer to the package thumbnail. Interpretation help is also 
-provided. Default, FALSE.}
-
 \item{verbose}{A logical indicating if detailed information (cross
 validation) will be shown. Default, FALSE.}
 }
@@ -80,10 +75,11 @@ quality w.r.t other models built with randomly permuted responses.
 }
 \examples{
 data(demo_3_Omics)
-res <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+datablocks <- lapply(demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)
+res <- ConsensusOPLS(data=datablocks, 
                      Y=demo_3_Omics$Y,
                      maxPcomp=1, maxOcomp=2, 
                      modelType='da',
                      nperm=5)
-str(res)
+res
 }
