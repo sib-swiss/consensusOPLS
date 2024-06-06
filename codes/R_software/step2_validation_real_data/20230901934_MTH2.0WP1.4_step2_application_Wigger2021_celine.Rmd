@@ -74,7 +74,7 @@ theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
 # QR code
 
 ```{r QRcode_Matlab}
-path_logo <- "../../../communication/presentations/" 
+path_logo <- "../../../communication/presentations/Logos/" 
 
 #install.packages("qrcode")
 library(qrcode)
@@ -105,7 +105,7 @@ qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
     
 
 # Lire le logo
-logo <- image_read(paste0(path_logo, "RFMF/", "Matlablogo.png"))
+logo <- image_read(paste0(path_logo, "Matlablogo.jpg"))
 
 #Ajouter fond blanc
 logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
@@ -183,13 +183,7 @@ image_write(qr_with_logo,
 ```
 
 ```{r QRcode_theo_rfmf_excel}
-# Chemin de l'image
-path_img_theo <- "C:/Users/cbougel/Desktop/20230901934_MTH2.0WP1_task4_copie/communication/presentations"
-
-#install.packages("magick")
-library(magick)
-
-# Ficher excel
+# Link
 url_excel <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbpa2OjCNfkn3i12OlltlhdJlWG8Xz6FT2RktRG6kI2-gLWUI2zReqaoe7gknoww/pubhtml"
 qr <- qrcode::qr_code(url_excel, ecl = "L")
 
@@ -210,7 +204,7 @@ qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
     
 
 # Lire le logo
-logo <- image_read(paste0(path_img_theo, "/Logos/", "Logo_Excel.png"))
+logo <- image_read(paste0(path_logo, "Logo_Excel.png"))
 
 #Ajouter fond blanc
 logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
@@ -229,21 +223,15 @@ qr_with_logo <- image_composite(qr_inverted, logo_resized,
 
 # Sauvegarder l'image finale
 image_write(qr_inverted, 
-            path = paste0(path_img_theo, "/", "QRcode_Excel_SansLogo.png"), 
+            path = paste0(path_logo, "QRcode_Excel_SansLogo.png"), 
             format = "png")
 image_write(qr_with_logo, 
-            path = paste0(path_img_theo, "/", "QRcode_Excel.png"), 
+            path = paste0(path_logo, "QRcode_Excel.png"), 
             format = "png")
 ```
 
 ```{r QRcode_theo_rfmf_peak_forest}
-# Chemin de l'image
-path_img_theo <- "C:/Users/cbougel/Desktop/20230901934_MTH2.0WP1_task4_copie/communication/presentations"
-
-#install.packages("magick")
-library(magick)
-
-# Ficher excel
+# Link
 url_peak <- "https://demo.peakforest.org/webapp/"
 qr <- qrcode::qr_code(url_peak, ecl = "L")
 
@@ -264,7 +252,7 @@ qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
     
 
 # Lire le logo
-logo <- image_read(paste0(path_img_theo, "/Logos/", "Logo_Peak_Forest.png"))
+logo <- image_read(paste0(path_logo, "Logo_Peak_Forest.png"))
 
 #Ajouter fond blanc
 logo_with_bg <- image_background(logo, "white", flatten = TRUE)
@@ -283,20 +271,14 @@ qr_with_logo <- image_composite(qr_inverted, logo_resized,
 
 # Sauvegarder l'image finale
 image_write(qr_inverted, 
-            path = paste0(path_img_theo, "/", "QRcode_Peak_Forest_SansLogo.png"), 
+            path = paste0(path_logo, "QRcode_Peak_Forest_SansLogo.png"), 
             format = "png")
 image_write(qr_with_logo, 
-            path = paste0(path_img_theo, "/", "QRcode_Peak_Forest.png"), 
+            path = paste0(path_logo, "QRcode_Peak_Forest.png"), 
             format = "png")
 ```
 
 ```{r QRcode_baptiste_rfmf_video1}
-# Chemin de l'image
-path_img_theo <- "C:/Users/cbougel/Desktop/20230901934_MTH2.0WP1_task4_copie/communication/presentations"
-
-#install.packages("magick")
-library(magick)
-
 # Ficher excel
 url_PCA <- "https://drive.google.com/file/d/1scrbN29pTb99fR3ukSkG1oiDcjVj9PSo/view?usp=drive_link"
 qr <- qrcode::qr_code(url_PCA, ecl = "L")
@@ -318,8 +300,7 @@ qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
     
 
 # Lire le logo
-logo <- image_read(paste0(path_img_theo, "/Logos/", 
-                          "image_QR-removebg-preview.png"))
+logo <- image_read(paste0(path_logo, "image_QR-removebg-preview.png"))
 
 #Ajouter fond blanc
 logo_with_bg <- image_background(logo, "white", flatten = TRUE)
@@ -338,20 +319,14 @@ qr_with_logo <- image_composite(qr_inverted, logo_resized,
 
 # Sauvegarder l'image finale
 image_write(qr_inverted, 
-            path = paste0(path_img_theo, "/", "QRcode_Baptiste_sansLogo.png"), 
+            path = paste0(path_logo, "QRcode_Baptiste_sansLogo.png"), 
             format = "png")
 image_write(qr_with_logo, 
-            path = paste0(path_img_theo, "/", "QRcode_Baptiste.png"), 
+            path = paste0(path_logo, "QRcode_Baptiste.png"), 
             format = "png")
 ```
 
 ```{r QRcode_baptiste_rfmf_video2}
-# Chemin de l'image
-path_img_theo <- "C:/Users/cbougel/Desktop/20230901934_MTH2.0WP1_task4_copie/communication/presentations"
-
-#install.packages("magick")
-library(magick)
-
 # Ficher excel
 url_raman <- "https://drive.google.com/file/d/1OmodWSV-_Bfc_dtHtpd5KwWPc02LFsdo/view?usp=drive_link"
 qr <- qrcode::qr_code(url_raman, ecl = "L")
@@ -373,8 +348,7 @@ qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
     
 
 # Lire le logo
-logo <- image_read(paste0(path_img_theo, "/Logos/", 
-                          "raman.png"))
+logo <- image_read(paste0(path_logo, "raman.png"))
 
 #Ajouter fond blanc
 logo_with_bg <- image_background(logo, "white", flatten = TRUE)
@@ -393,10 +367,10 @@ qr_with_logo <- image_composite(qr_inverted, logo_resized,
 
 # Sauvegarder l'image finale
 image_write(qr_inverted, 
-            path = paste0(path_img_theo, "/", "QRcode_Baptiste_2_sansLogo.png"), 
+            path = paste0(path_logo, "QRcode_Baptiste_2_sansLogo.png"), 
             format = "png")
 image_write(qr_with_logo, 
-            path = paste0(path_img_theo, "/", "QRcode_Baptiste_2.png"), 
+            path = paste0(path_logo, "QRcode_Baptiste_2.png"), 
             format = "png")
 ```
 
@@ -539,7 +513,7 @@ COPLS_res <- ConsensusOPLS(
   kernelParams = list(type = "p", 
                     params = c(order = 1)),
   mc.cores = 1,
-  verbose = FALSE,
+  verbose = TRUE,
   plots = TRUE
 )
 ```
@@ -547,21 +521,20 @@ COPLS_res <- ConsensusOPLS(
 ## Permutations
 
 ```{r reg permutations, message=FALSE, warning=FALSE, fig.align='center'}
-
-Q2perm <- data.frame(Q2perm = COPLS_res$permStats$Q2Yhat)
+Q2perm <- data.frame(Q2perm = COPLS_res@permStats$Q2Y)
 
 ggplot(data = Q2perm, aes(x = Q2perm)) +
   geom_histogram(color="grey", fill="grey") +
-  geom_vline(aes(xintercept=COPLS_res$optimal$modelCV$cv$Q2Yhat[2]),color="blue", linetype="dashed", size=1) +
+  geom_vline(aes(xintercept=COPLS_res@Q2[2]),color="blue", linetype="dashed", size=1) +
   theme_graphs +
   ggtitle("Q2 Permutation test")
 
 
-R2Yperm <- data.frame(R2Yperm = COPLS_res$permStats$R2Yhat)
+R2Yperm <- data.frame(R2Yperm = COPLS_res@permStats$R2Y)
 
 ggplot(data = R2Yperm, aes(x = R2Yperm)) +
   geom_histogram(color="grey", fill="grey") +
-  geom_vline(aes(xintercept=COPLS_res$optimal$modelCV$Model$R2Yhat[2]),color="blue", linetype="dashed", size=1) +
+  geom_vline(aes(xintercept=COPLS_res@R2Y[2]),color="blue", linetype="dashed", size=1) +
   theme_graphs +
   ggtitle("R2Y Permutation test")
 
@@ -570,7 +543,7 @@ ggplot(data = R2Yperm, aes(x = R2Yperm)) +
 ## Blocks contribution
 
 ```{r consensus OPLS-reg contributions, message=FALSE, warning=FALSE, fig.align='center'}
-contributions <- COPLS_res$optimal$modelCV$Model$blockContribution
+contributions <- COPLS_res@blockContribution
 contributions <- melt(contributions)
 colnames(contributions) <- c("dataset", "Dim", "value")
 
@@ -586,8 +559,7 @@ ggplot(contributions, aes(x=Dim, y=value, fill=dataset)) +
 ## Scores Plot
 
 ```{r consensus OPLS-reg scores, message=FALSE, warning=FALSE, fig.align='center'}
-
-scores <- data.frame(metadata, COPLS_res$optimal$modelCV$Model$scores)
+scores <- data.frame(metadata, COPLS_res@scores)
 
 ggplot(scores, aes(x=p_1, y=o_1, fill=HbA1c, col = Diabetes.status)) +
   geom_point(size=4, shape = 21, stroke = 1.5) +
@@ -598,7 +570,7 @@ ggplot(scores, aes(x=p_1, y=o_1, fill=HbA1c, col = Diabetes.status)) +
   scale_color_manual(values= diabetes.status.colors) +
   theme_graphs
 
-YpredYobs <- data.frame(Yobs = Y, Ypred =COPLS_res$optimal$modelCV$cv$AllYhat[,2], metadata)
+YpredYobs <- data.frame(Yobs = Y, Ypred =COPLS_res@cv$AllYhat[,2], metadata)
 
 ggplot(YpredYobs) +
   geom_point(size=4, shape = 21, stroke = 1.5, aes(x=Yobs, y=Ypred, fill=HbA1c, col = Diabetes.status)) +
@@ -614,11 +586,11 @@ ggplot(YpredYobs) +
 ## Loadings 
 
 ```{r consensus OPLS-reg loadings, message=FALSE, warning=FALSE, fig.align='center'}
-
-loadings <- rbind.data.frame(COPLS_res$optimal$modelCV$Model$loadings$rna, COPLS_res$optimal$modelCV$Model$loadings$lipids, COPLS_res$optimal$modelCV$Model$loadings$sphingolipids)
-loadings$dataset <- c(rep("genes", nrow(COPLS_res$optimal$modelCV$Model$loadings$rna)),
-                      rep("lipids", nrow(COPLS_res$optimal$modelCV$Model$loadings$lipids)),
-                      rep("sphingolipids", nrow(COPLS_res$optimal$modelCV$Model$loadings$sphingolipids)))
+loadings <- rbind.data.frame(COPLS_res@loadings$rna, COPLS_res@loadings$lipids, COPLS_res@loadings$sphingolipids)
+loadings$dataset <- c(rep("genes", nrow(COPLS_res@loadings$rna)),
+                      rep("lipids", nrow(COPLS_res@loadings$lipids)),
+                      rep("sphingolipids",
+                          nrow(COPLS_res@loadings$sphingolipids)))
 loadings$variable <- rownames(loadings)
 
 ggplot(loadings, aes(x=p_1, y=o_1, col=dataset, label = variable)) +
@@ -636,7 +608,7 @@ ggplot(loadings, aes(x=p_1, y=o_1, col=dataset, label = variable)) +
 
 ```{r consensus OPLS-reg VIP loadings, message=FALSE, warning=FALSE, fig.align='center'}
 
-VIP <- data.frame(VIP = c(COPLS_res$optimal$VIP$rna, COPLS_res$optimal$VIP$lipids, COPLS_res$optimal$VIP$sphingolipids), variable = c(names(COPLS_res$optimal$VIP$rna), names(COPLS_res$optimal$VIP$lipids), names(COPLS_res$optimal$VIP$sphingolipids)))
+VIP <- data.frame(VIP = c(COPLS_res@VIP$rna, COPLS_res@VIP$lipids, COPLS_res@VIP$sphingolipids), variable = c(names(COPLS_res@VIP$rna), names(COPLS_res@VIP$lipids), names(COPLS_res@VIP$sphingolipids)))
 
 loadings_VIP <- merge(loadings, VIP, by="variable")
 loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
@@ -666,14 +638,13 @@ ggplot(loadings_VIP, aes(x=rank, y=VIP, fill=dataset, label = label)) +
 
 ```{r extract_VIP, class.source='fold-hide'}
 # Compute the VIP
-Optimal_model_no_perm <- COPLS_res$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt
-VIP <- Optimal_model_no_perm$VIP
+position <- COPLS_res@cv$nOcompOpt
+VIP <- COPLS_res@VIP
 
 # Multiply VIP * sign(loadings for predictive component)
 VIP_plot <- lapply(X = 1:3,
                          FUN = function(X){
-                           signe_loadings <- sign(Optimal_model_no_perm$modelCV$Model$loadings[[X]][, "p_1"])
+                           signe_loadings <- sign(COPLS_res@loadings[[X]][, "p_1"])
                            result <- VIP[[X]]*signe_loadings
                            return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- names(VIP)
@@ -697,7 +668,7 @@ VIP_rna <- ggplot2::ggplot(data = data_reduced,
   theme_graphs +
   ggplot2::theme(axis.text.x = element_text(angle = 66, vjust = 1, hjust = 1)) 
 VIP_rna
-plotly::ggplotly(VIP_rna)
+#plotly::ggplotly(VIP_rna)
 rm(VIP_rna)
 
 # Lipids data
@@ -717,7 +688,7 @@ VIP_lipids <-  ggplot2::ggplot(data = data_reduced,
   theme_graphs +
   ggplot2::theme(axis.text.x = element_text(angle = 66, vjust = 1, hjust = 1)) 
 VIP_lipids
-plotly::ggplotly(VIP_lipids)
+#plotly::ggplotly(VIP_lipids)
 rm(VIP_lipids)
 
 # Sphingolipids data
@@ -736,15 +707,14 @@ VIP_sphingolipids <-  ggplot2::ggplot(data = data,
   theme_graphs +
   ggplot2::theme(axis.text.x = element_text(angle = 66, vjust = 1, hjust = 1)) 
 VIP_sphingolipids
-plotly::ggplotly(VIP_sphingolipids)
+#plotly::ggplotly(VIP_sphingolipids)
 rm(VIP_sphingolipids)
 ```
 
 
 # Consensus OPLS discriminant analysis of the 3 diabetes status (IGT, T2D and T3D)
 
-```{r consensusOPLS DA, message=FALSE, warning=FALSE, fig.align='center'}
-
+```{r consensusOPLS_DA, message=FALSE, warning=FALSE, fig.align='center'}
 diab.patients <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("IGT", "T2D", "T3D")]
 metadata.diab <- metadata[diab.patients,]
 
@@ -772,37 +742,39 @@ COPLS_res_DA <- ConsensusOPLS(
   kernelParams = list(type = "p", 
                     params = c(order = 1)),
   mc.cores = 1,
-  verbose = FALSE,
+  verbose = TRUE,
   plots = TRUE
 )
 ```
 
 ## Permutations
 
-```{r DA permutations, message=FALSE, warning=FALSE, fig.align='center'}
-
-Q2perm_DA <- data.frame(Q2perm = COPLS_res_DA$permStats$Q2Yhat)
+```{r DA_permutations, message=FALSE, warning=FALSE, fig.align='center'}
+Q2perm_DA <- data.frame(Q2perm = COPLS_res_DA@permStats$Q2Y)
 
 ggplot(data = Q2perm_DA, aes(x = Q2perm)) +
   geom_histogram(color="grey", fill="grey") +
-  geom_vline(aes(xintercept=COPLS_res_DA$optimal$modelCV$cv$Q2Yhat[2]),color="blue", linetype="dashed", size=1) +
+  geom_vline(aes(xintercept=COPLS_res_DA@permStats$Q2Y[2]),
+             color="blue", linetype="dashed", size=1) +
   theme_graphs +
   ggtitle("Q2 Permutation test")
 
-dQ2perm_DA <- data.frame(dQ2perm = COPLS_res_DA$permStats$DQ2Yhat)
+dQ2perm_DA <- data.frame(dQ2perm = COPLS_res_DA@permStats$DQ2)
 
 ggplot(data = dQ2perm_DA, aes(x = dQ2perm)) +
   geom_histogram(color="grey", fill="grey") +
-  geom_vline(aes(xintercept=COPLS_res_DA$optimal$modelCV$cv$DQ2Yhat[2]),color="blue", linetype="dashed", size=1) +
+  geom_vline(aes(xintercept=COPLS_res_DA@permStats$DQ2[2]),
+             color="blue", linetype="dashed", size=1) +
   theme_graphs +
   ggtitle("dQ2 Permutation test")
 
 
-R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA$permStats$R2Yhat)
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA@permStats$R2Y)
 
 ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
   geom_histogram(color="grey", fill="grey") +
-  geom_vline(aes(xintercept=COPLS_res_DA$optimal$modelCV$Model$R2Yhat[2]),color="blue", linetype="dashed", size=1) +
+  geom_vline(aes(xintercept=COPLS_res_DA@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
   theme_graphs +
   ggtitle("R2Y Permutation test")
 
@@ -812,8 +784,7 @@ ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
 
 
 ```{r consensus OPLS-DA contributions, message=FALSE, warning=FALSE, fig.align='center'}
-
-contributions_DA <- COPLS_res_DA$optimal$modelCV$Model$blockContribution
+contributions_DA <- COPLS_res_DA@blockContribution
 contributions_DA <- melt(contributions_DA)
 colnames(contributions_DA) <- c("dataset", "Dim", "value")
 
@@ -831,8 +802,7 @@ ggplot(contributions_DA, aes(x=Dim, y=value, fill=dataset)) +
 ## Scores Plot
 
 ```{r consensus OPLS-DA scores, message=FALSE, warning=FALSE, fig.align='center'}
-
-scores_DA <- data.frame(metadata.diab, COPLS_res_DA$optimal$modelCV$Model$scores)
+scores_DA <- data.frame(metadata.diab, COPLS_res_DA@scores)
 
 ggplot(scores_DA, aes(x=p_1, y=p_2, col = Diabetes.status)) +
   geom_point(size=4) +
@@ -841,17 +811,15 @@ ggplot(scores_DA, aes(x=p_1, y=p_2, col = Diabetes.status)) +
        title = "scores plots on predictive latent variables") +
   scale_color_manual(values= diabetes.status.colors) +
   theme_graphs
-
 ```
 
 ## Loadings 
 
 ```{r consensus OPLS-DA loadings, message=FALSE, warning=FALSE, fig.align='center'}
-
-loadings_DA <- rbind.data.frame(COPLS_res_DA$optimal$modelCV$Model$loadings$rna, COPLS_res_DA$optimal$modelCV$Model$loadings$lipids, COPLS_res_DA$optimal$modelCV$Model$loadings$sphingolipids)
-loadings_DA$dataset <- c(rep("genes", nrow(COPLS_res_DA$optimal$modelCV$Model$loadings$rna)),
-                      rep("lipids", nrow(COPLS_res_DA$optimal$modelCV$Model$loadings$lipids)),
-                      rep("sphingolipids", nrow(COPLS_res_DA$optimal$modelCV$Model$loadings$sphingolipids)))
+loadings_DA <- rbind.data.frame(COPLS_res_DA@loadings$rna, COPLS_res_DA@loadings$lipids, COPLS_res_DA@loadings$sphingolipids)
+loadings_DA$dataset <- c(rep("genes", nrow(COPLS_res_DA@loadings$rna)),
+                      rep("lipids", nrow(COPLS_res_DA@loadings$lipids)),
+                      rep("sphingolipids", nrow(COPLS_res_DA@loadings$sphingolipids)))
 loadings_DA$variable <- rownames(loadings_DA)
 
 ggplot(loadings_DA, aes(x=p_1, y=o_1, col=dataset, label = variable)) +
@@ -868,8 +836,7 @@ ggplot(loadings_DA, aes(x=p_1, y=o_1, col=dataset, label = variable)) +
 ## VIP of the optimal model
 
 ```{r consensus OPLS-DA VIP loadings, message=FALSE, warning=FALSE, fig.align='center'}
-
-VIP_DA <- data.frame(VIP = c(COPLS_res_DA$optimal$VIP$rna, COPLS_res_DA$optimal$VIP$lipids, COPLS_res_DA$optimal$VIP$sphingolipids), variable = c(names(COPLS_res_DA$optimal$VIP$rna), names(COPLS_res_DA$optimal$VIP$lipids), names(COPLS_res_DA$optimal$VIP$sphingolipids)))
+VIP_DA <- data.frame(VIP = c(COPLS_res_DA@VIP$rna, COPLS_res_DA@VIP$lipids, COPLS_res_DA@VIP$sphingolipids), variable = c(names(COPLS_res_DA@VIP$rna), names(COPLS_res_DA@VIP$lipids), names(COPLS_res_DA@VIP$sphingolipids)))
 
 loadings_VIP_DA <- merge(loadings_DA, VIP_DA, by="variable")
 loadings_VIP_DA$label <- ifelse(loadings_VIP_DA$VIP > 1, loadings_VIP_DA$variable, NA)

@@ -27,7 +27,6 @@ output:
     chunk_output_type: console
 ---
 
-<!-- TODO -->
 <style>
 body {
 text-align: justify}
@@ -97,20 +96,13 @@ installed (the code chunks are not shown, click on `Show` to open them). The
 code below has been designed to have as few dependencies as possible on R 
 packages, except for the stable packages.
 
-```{r packages_installation, class.source='fold-hide', warning=FALSE, message=FALSE}
-pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "plotly")
+```{r packages_installation, class.source='fold-hide'}
+pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "plotly", "BiocManager", "ComplexHeatmap")
 sapply(pkgs, function(x) {
-    if (!requireNamespace(x, quietly = T)) {
+    if (!requireNamespace(x, quietly = TRUE)) {
         install.packages(x)
     }
 })
-# install.packages(c("ggplot2", "ggrepel", "stats", "utils",
-#                    "parallel", "devtools", "DT", "psych", "plotly"))
-# update.packages(ask = FALSE)
-
-# if (!require("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
-# BiocManager::install("ComplexHeatmap")
 ```
 
 ```{r packages_load, warning=FALSE, message=FALSE, class.source='fold-hide'}
@@ -397,7 +389,7 @@ copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
                                               params = c(order = 1)),
                           mc.cores = 1,
                           plots = TRUE,
-                          verbose = FALSE)
+                          verbose = TRUE)
 ```
 
 This model gives the results for:
@@ -566,21 +558,18 @@ partition of the classes was obtained.
 ## Block contributions to the predictive component
 
 ```{r ggplot_data_pred_compo, class.source='fold-hide'}
-plot_bloc_pred <- ggplot(
-    data = data.frame("Values" = copls.da@blockContribution[, "p_1"],
-                      "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
-    aes(x = Blocks, y = Values,
-        fill = Blocks, labels = Values)) +
-    geom_bar(stat = 'identity') + 
-    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
-    ggtitle("Block contributions to the predictive component")+
-    xlab("Data blocks") +
-    ylab("Weight") +
-    theme_graphs +
-    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
-
-plot_bloc_pred
-rm(plot_bloc_pred)
+ggplot(
+  data = data.frame("Values" = copls.da@blockContribution[, "p_1"],
+                    "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
+  aes(x = Blocks, y = Values,
+      fill = Blocks, labels = Values)) +
+  geom_bar(stat = 'identity') + 
+  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  ggtitle("Block contributions to the predictive component")+
+  xlab("Data blocks") +
+  ylab("Weight") +
+  theme_graphs +
+  scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 The block contributions of the predictive latent variable indicated the specific 
@@ -590,22 +579,19 @@ and the metabolomic block (26.8$\%$).
 ## Block contributions to the first orthogonal component
 
 ```{r ggplot_data_1st_ortho_compo, class.source='fold-hide'}
-plot_bloc_1stOcomp <- ggplot(
-    data = 
-        data.frame("Values" = copls.da@blockContribution[, "o_1"],
-                   "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
-    aes(x = Blocks, y = Values,
-        fill = Blocks, labels = Values)) +
-    geom_bar(stat = 'identity') + 
-    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
-    ggtitle("Block contributions to the first orthogonal component") +
-    xlab("Data blocks") +
-    ylab("Weight") +
-    theme_graphs +
-    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
-
-plot_bloc_1stOcomp
-rm(plot_bloc_1stOcomp)
+ggplot(
+  data = 
+    data.frame("Values" = copls.da@blockContribution[, "o_1"],
+               "Blocks" = as.factor(labels(demo_3_Omics[1:nbrBlocs]))),
+  aes(x = Blocks, y = Values,
+      fill = Blocks, labels = Values)) +
+  geom_bar(stat = 'identity') + 
+  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  ggtitle("Block contributions to the first orthogonal component") +
+  xlab("Data blocks") +
+  ylab("Weight") +
+  theme_graphs +
+  scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 The block contributions of first orthogonal component indicated the specific 
@@ -625,28 +611,25 @@ data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
                              "Blocks" = c(data_two_plots$Blocks,
                                           labels(demo_3_Omics[1:nbrBlocs])))
 
-plot_bloc_PredVSOrtho <- ggplot(data = data_two_plots,
-                                         aes(x = factor(Type), 
-                                             y = Values, 
-                                             fill = factor(Type))) +
-    geom_bar(stat = 'identity') + 
-    ggtitle("Block contributions to each component")+
-    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
-    xlab("Data blocks") +
-    ylab("Weight") +
-    facet_wrap(. ~ Blocks)+
-    theme_graphs+
-    scale_fill_discrete(name = "Component")+
-    scale_fill_manual(values = c("#7F3C8D", "#11A579"))
-
-plot_bloc_PredVSOrtho
-rm(plot_bloc_PredVSOrtho)
+ggplot(data = data_two_plots,
+       aes(x = factor(Type), 
+           y = Values, 
+           fill = factor(Type))) +
+  geom_bar(stat = 'identity') + 
+  ggtitle("Block contributions to each component")+
+  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  xlab("Data blocks") +
+  ylab("Weight") +
+  facet_wrap(. ~ Blocks)+
+  theme_graphs+
+  scale_fill_discrete(name = "Component")+
+  scale_fill_manual(values = c("#7F3C8D", "#11A579"))
 ```
 
 In the same way, the previous graph can be represented as:
 
 ```{r plot_bloc_PredVSOrtho_bis, message = FALSE, class.source='fold-hide'}
-bloc_PredVSOrtho <- ggplot(data = data_two_plots,
+ggplot(data = data_two_plots,
                            aes(x = Blocks, 
                                y = Values, 
                                fill = Blocks)) +
@@ -661,9 +644,6 @@ bloc_PredVSOrtho <- ggplot(data = data_two_plots,
           plot.title = element_text(hjust = 0.5, 
                                     margin = margin(t = 5, r = 0, b = 0, l = 100))) +
     scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
-
-bloc_PredVSOrtho
-rm(bloc_PredVSOrtho)
 ```
 
 
@@ -671,21 +651,18 @@ rm(bloc_PredVSOrtho)
 ## Block contributions predictive vs. orthogonal
 
 ```{r ggplot_data_pred_vs_ortho, message = FALSE, warning = FALSE, class.source='fold-hide'}
-data_PredVSOrtho <- ggplot(data = data.frame("Pred" = copls.da@blockContribution[, "p_1"],
-                                             "Ortho" = copls.da@blockContribution[, "o_1"],
-                                             "Labels" = labels(demo_3_Omics[1:nbrBlocs])),
-                           aes(x = Pred, y = Ortho, label = Labels, 
-                               shape = Labels, colour = Labels)) +
-    xlab("Predictive component") +
-    ylab("Orthogonal component") +
-    ggtitle("Block contributions predictive vs. orthogonal") +
-    geom_point(size = 2.5) + 
-    geom_text_repel(size = 4, show.legend = FALSE) + 
-    theme_graphs +
-    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
-
-data_PredVSOrtho
-rm(data_PredVSOrtho)
+ggplot(data = data.frame("Pred" = copls.da@blockContribution[, "p_1"],
+                         "Ortho" = copls.da@blockContribution[, "o_1"],
+                         "Labels" = labels(demo_3_Omics[1:nbrBlocs])),
+       aes(x = Pred, y = Ortho, label = Labels, 
+           shape = Labels, colour = Labels)) +
+  xlab("Predictive component") +
+  ylab("Orthogonal component") +
+  ggtitle("Block contributions predictive vs. orthogonal") +
+  geom_point(size = 2.5) + 
+  geom_text_repel(size = 4, show.legend = FALSE) + 
+  theme_graphs +
+  scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 ## Loading plots (one for each data set)
@@ -731,8 +708,7 @@ loadings_plot <- ggplot() +
   theme_graphs+
   scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-#ggplotly(loadings_plot)
-loadings_plot
+ggplotly(loadings_plot)
 rm(loadings_plot)
 ```
 
@@ -764,8 +740,7 @@ p_loadings_VIP <- ggplot(data = loadings_VIP,
     theme_graphs+
     scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 
-#ggplotly(p_loadings_VIP)
-p_loadings_VIP
+ggplotly(p_loadings_VIP)
 rm(p_loadings_VIP)
 ```
 
@@ -782,57 +757,45 @@ PermRes <- copls.da@permStats
 ```
 
 ```{r plot_R2_perm, class.source='fold-hide'}
-R2Yperm <- ggplot(data = data.frame("R2Yperm" = PermRes$R2Y),
-                           aes(x = R2Yperm)) +
-    geom_histogram(aes(y = after_stat(density)), bins = 30,
-                            color="grey", fill="grey") +
-    geom_density(color = "blue", size = 0.5) +
-    geom_vline(aes(xintercept=PermRes$R2Y[1]), 
-               color="blue", linetype="dashed", size=1) +
-    xlab("R2 values") +
-    ylab("Frequency") +
-    ggtitle("R2 Permutation test")+
-    theme_graphs
-
-#ggplotly(R2Yperm)
-R2Yperm
-rm(R2Yperm)
+ggplot(data = data.frame("R2Yperm" = PermRes$R2Y),
+       aes(x = R2Yperm)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=PermRes$R2Y[1]), 
+             color="blue", linetype="dashed", size=1) +
+  xlab("R2 values") +
+  ylab("Frequency") +
+  ggtitle("R2 Permutation test")+
+  theme_graphs
 ```
 
 ```{r plot_Q2_perm, message = FALSE, class.source='fold-hide'}
-Q2Yperm <- ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Y),
-                           aes(x = Q2Yperm)) +
-    geom_histogram(aes(y = after_stat(density)), bins = 30,
-                            color="grey", fill="grey") +
-    geom_density(color = "blue", size = 0.5) +
-    geom_vline(aes(xintercept=PermRes$Q2Y[1]), 
-                        color="blue", linetype="dashed", size=1) +
-    xlab("Q2 values") +
-    ylab("Frequency") +
-    ggtitle("Q2 Permutation test")+
-    theme_graphs
-
-#ggplotly(Q2Yperm)
-Q2Yperm
-rm(Q2Yperm)
+ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Y),
+       aes(x = Q2Yperm)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", size = 0.5) +
+  geom_vline(aes(xintercept=PermRes$Q2Y[1]), 
+             color="blue", linetype="dashed", size=1) +
+  xlab("Q2 values") +
+  ylab("Frequency") +
+  ggtitle("Q2 Permutation test")+
+  theme_graphs
 ```
 
 ```{r plot_DQ2_perm, message = FALSE, class.source='fold-hide'}
-DQ2Yperm <- ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Y),
-                            aes(x = DQ2Yperm)) +
-    geom_histogram(aes(y = after_stat(density)), bins = 30,
-                            color="grey", fill="grey") +
-    geom_density(color = "blue", size = 0.5) +
-    geom_vline(aes(xintercept=PermRes$DQ2Y[1]), 
-                        color="blue", linetype="dashed", size=1) +
-    xlab("DQ2 values") +
-    ylab("Frequency") +
-    ggtitle("DQ2 Permutation test")+
-    theme_graphs
-
-#ggplotly(DQ2Yperm)
-DQ2Yperm
-rm(DQ2Yperm)
+ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Y),
+       aes(x = DQ2Yperm)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", size = 0.5) +
+  geom_vline(aes(xintercept=PermRes$DQ2Y[1]), 
+             color="blue", linetype="dashed", size=1) +
+  xlab("DQ2 values") +
+  ylab("Frequency") +
+  ggtitle("DQ2 Permutation test")+
+  theme_graphs
 ```
 
 

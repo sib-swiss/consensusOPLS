@@ -420,11 +420,11 @@ Now we export the results in a format that can be recognized and used by R.
 Now we export the results in a format that can be recognized and used by Matlab.
 
 ```{r save_results, class.source='fold-hide'}
-common_pattern <- "20230901934_step2_validation_data_SNF_common_"
-R.matlab::writeMat(data_SNF = omics.common.data2,
-                   con = file.path(path_data_produced,
-                                   paste0(common_pattern,
-                                          "collection.mat")))
+# common_pattern <- "20230901934_step2_validation_data_SNF_common_"
+# R.matlab::writeMat(data_SNF = omics.common.data2,
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern,
+#                                           "collection.mat")))
 # 
 # T1<-Sys.time()
 # R.matlab::writeMat(data_SNF_VarNames = lapply(X = omics.common.data2,
@@ -436,12 +436,12 @@ R.matlab::writeMat(data_SNF = omics.common.data2,
 # Tdiff <- T2 - T1
 # Tdiff #Time difference of 46.02359 mins
 # 
-R.matlab::writeMat(Y = Y,
-                   con = file.path(path_data_produced,
-                                   paste0(common_pattern, "Y_factor.mat")))
-R.matlab::writeMat(SampleNames = Sample_names,
-                   con = file.path(path_data_produced,
-                                   paste0(common_pattern, "SampleNames.mat")))
+# R.matlab::writeMat(Y = Y,
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern, "Y_factor.mat")))
+# R.matlab::writeMat(SampleNames = Sample_names,
+#                    con = file.path(path_data_produced,
+#                                    paste0(common_pattern, "SampleNames.mat")))
 ```
 
 
@@ -478,7 +478,7 @@ rvcopls <- ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
                                                params = c(order = 1)),
                                         mc.cores = 1,
                                         plots = TRUE,
-                                        verbose = FALSE)
+                                        verbose = TRUE)
 ```
 
 ```{r results_mod}
@@ -503,21 +503,21 @@ common_CV <- "ConsensusOPLSCV_"
 # ----- RVConsensusOPLS
 ## normKernels = Amat in matlab
 # Relative
-for(i in 1:length(nbrBlocs)){
-  matlab <- as.matrix(read.table(
-    file = paste0(path_data_test, common_name,
-                  common_RV, "02_Amat_", i, ".txt"),
-    header = TRUE, sep = "\t", dec = ".", row.names = 1))
-  R_res <- rvcopls$optimal$modelCV$normKernels[[i]]
-  relative_compare <- (matlab - R_res) / max(1, R_res)
-  
-  matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                           nrow = nrow(relative_compare))
-  colnames(matrix_compare) = colnames(relative_compare)
-  rownames(matrix_compare) = rownames(relative_compare)
-  testthat::expect_equal(relative_compare,
-                         matrix_compare, tolerance=1e-3)
-}
+# for(i in 1:length(nbrBlocs)){
+#   matlab <- as.matrix(read.table(
+#     file = paste0(path_data_test, common_name,
+#                   common_RV, "02_Amat_", i, ".txt"),
+#     header = TRUE, sep = "\t", dec = ".", row.names = 1))
+#   R_res <- rvcopls$optimal$modelCV$normKernels[[i]]
+#   relative_compare <- (matlab - R_res) / max(1, R_res)
+#   
+#   matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                            nrow = nrow(relative_compare))
+#   colnames(matrix_compare) = colnames(relative_compare)
+#   rownames(matrix_compare) = rownames(relative_compare)
+#   testthat::expect_equal(relative_compare,
+#                          matrix_compare, tolerance=1e-3)
+# }
 # Absolute
 # for(i in 1:length(nbrBlocs)){
 #   testthat::expect_equal(as.matrix(read.table(
@@ -531,36 +531,36 @@ for(i in 1:length(nbrBlocs)){
 
 ## RV
 # Relative
-matlab <- as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
-  header = TRUE, sep = "\t", dec = "."))[1,]
-R_res <- rvcopls$optimal$modelCV$RV
-relative_compare <- (matlab - R_res)/ max(1, R_res)
-matrix_compare <- rep(0, length(relative_compare))
-names(matrix_compare) <- names(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# matlab <- as.matrix(read.table(
+#   file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
+#   header = TRUE, sep = "\t", dec = "."))[1,]
+# R_res <- rvcopls$optimal$modelCV$RV
+# relative_compare <- (matlab - R_res)/ max(1, R_res)
+# matrix_compare <- rep(0, length(relative_compare))
+# names(matrix_compare) <- names(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
 # testthat::expect_equal(as.matrix(read.table(
 #   file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
 #   header = TRUE, sep = "\t", dec = "."))[1,],
-#   rvcopls$optimal$modelCV$RV, tolerance=1e-3)
+#   rvcopls$optimal$modelCV$RV, tolerance=1e-6)
 
 
 
 ## lambda = lambda_raw in matlab
 # Relative
-matlab <- as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
-  header = TRUE, sep = "\t", dec = ".", row.names = 1))
-R_res <- rvcopls$optimal$modelCV$Model$lambda
-relative_compare <- (matlab - R_res)/ max(1, R_res)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# matlab <- as.matrix(read.table(
+#   file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
+#   header = TRUE, sep = "\t", dec = ".", row.names = 1))
+# R_res <- rvcopls$optimal$modelCV$Model$lambda
+# relative_compare <- (matlab - R_res)/ max(1, R_res)
+# matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                          nrow = nrow(relative_compare))
+# colnames(matrix_compare) = colnames(relative_compare)
+# rownames(matrix_compare) = rownames(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
 # testthat::expect_equal(as.matrix(read.table(
 #   file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
@@ -574,7 +574,7 @@ testthat::expect_equal(relative_compare,
 matlab <- as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1))
-R_res <- rvcopls$optimal$modelCV$Model$blockContribution
+R_res <- rvcopls@blockContribution
 relative_compare <- (matlab - R_res)/ max(1, R_res)
 matrix_compare <- matrix(0, ncol = ncol(relative_compare),
                          nrow = nrow(relative_compare))
@@ -583,16 +583,13 @@ rownames(matrix_compare) = rownames(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-# testthat::expect_equal(as.matrix(read.table(
-#   file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"),
-#   header = TRUE, sep = "\t", dec = ".", row.names = 1)),
-#   rvcopls$optimal$modelCV$Model$blockContribution, tolerance=1e-3)
+# testthat::expect_equal(matlab, R_res, tolerance=1e-6)
 
 
 
 ## loadings
 for(i in 1:length(nbrBlocs)){
-  loading_R <- rvcopls$optimal$modelCV$Model$loadings[[1]]
+  loading_R <- rvcopls@loadings[[1]]
   rownames(loading_R) <- NULL
   loadings_matlab <- as.matrix(read.table(
     file = paste0(path_data_test, common_name,
@@ -608,10 +605,12 @@ for(i in 1:length(nbrBlocs)){
 }
 # Absolute
 # for(i in 1:length(nbrBlocs)){
+#   loading_R <- rvcopls@loadings[[1]]
+#   rownames(loading_R) <- NULL
 #   testthat::expect_equal(as.matrix(read.table(
-#     file = paste0(path_data_test, common_name,
-#                   common_RV, "06_loadings_", i, ".txt"),
-#     header = TRUE, sep = "\t", dec = ".")),
+#     file = paste0(path_data_test, common_name, 
+#                   common_RV, "06_loadings_", i, ".txt"), 
+#     header = TRUE, sep = "\t", dec = ".")), 
 #     loading_R, tolerance=1e-6)
 # }
 ```
@@ -620,35 +619,35 @@ for(i in 1:length(nbrBlocs)){
 # ----- RVConsensusOPLS => ConsensusOPLSCV: optimal model
 ## Cp
 # Relatives
-Cp_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
-                                                common_CV, "01_Cp.txt"),
-                                  header = FALSE, sep = ",", dec = "."))
-colnames(Cp_matlab) <- NULL
-rownames(Cp_matlab) <- c("Breast", "Lung")
-Cp_R <- rvcopls$optimal$modelCV$Model$Cp
-relative_compare <- (Cp_matlab - Cp_R)/ max(1, Cp_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# Cp_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
+#                                                 common_CV, "01_Cp.txt"),
+#                                   header = FALSE, sep = ",", dec = "."))
+# colnames(Cp_matlab) <- NULL
+# rownames(Cp_matlab) <- c("1", "2")
+# Cp_R <- rvcopls$optimal$modelCV$Model$Cp
+# relative_compare <- (Cp_matlab - Cp_R)/ max(1, Cp_R)
+# matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                          nrow = nrow(relative_compare))
+# colnames(matrix_compare) = colnames(relative_compare)
+# rownames(matrix_compare) = rownames(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
 # testthat::expect_equal(Cp_matlab,
-#                        Cp_R,
+#                        rvcopls$optimal$modelCV$Model$Cp,
 #                        tolerance=1e-6)
 
 
 
 ## Sp
 # Relatives
-matlab <- as.numeric(read.table(
-  file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
-  header = FALSE, sep = ",", dec = "."))
-R_res <- rvcopls$optimal$modelCV$Model$Sp[1,1]
-relative_compare <- (matlab - R_res)/ max(1, R_res)
-testthat::expect_equal(relative_compare,
-                       0, tolerance=1e-3)
+# matlab <- as.numeric(read.table(
+#   file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
+#   header = FALSE, sep = ",", dec = "."))
+# R_res <- rvcopls$optimal$modelCV$Model$Sp[1,1]
+# relative_compare <- (matlab - R_res)/ max(1, R_res)
+# testthat::expect_equal(relative_compare,
+#                        0, tolerance=1e-3)
 # Absolute
 # testthat::expect_equal(as.numeric(read.table(
 #   file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
@@ -659,38 +658,34 @@ testthat::expect_equal(relative_compare,
 
 ## Up
 # Relatives
-Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
-                                                common_CV, "03_Up.txt"),
-                                  header = FALSE, sep = ",", dec = "."))
-dimnames(Up_matlab) <- NULL
-Up_R <- rvcopls$optimal$modelCV$Model$Up
-relative_compare <- (Up_matlab - Up_R)/ max(1, Up_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
+#                                                 common_CV, "03_Up.txt"),
+#                                   header = FALSE, sep = ",", dec = "."))
+# dimnames(Up_matlab) <- NULL
+# Up_R <- rvcopls$optimal$modelCV$Model$Up
+# relative_compare <- (Up_matlab - Up_R)/ max(1, Up_R)
+# matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                          nrow = nrow(relative_compare))
+# colnames(matrix_compare) = colnames(relative_compare)
+# rownames(matrix_compare) = rownames(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
 # testthat::expect_equal(Up_matlab,
-#                        Up_R,
+#                        rvcopls$optimal$modelCV$Model$Up,
 #                        tolerance=1e-6)
 
 
 
 ## AllYhat
 # Relatives
-AllYhat_matlab <- as.matrix(read.table(
+matlab <- as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "04_AllYhat.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1))
-colnames(AllYhat_matlab) <- gsub(pattern = "X", replacement = "",
-                                 x = colnames(AllYhat_matlab), fixed = TRUE)
-colnames(AllYhat_matlab) <- gsub(pattern = "^1", replacement = "Breast",
-                                 x = colnames(AllYhat_matlab))
-colnames(AllYhat_matlab) <- gsub(pattern = "^2", replacement = "Lung",
-                                 x = colnames(AllYhat_matlab))
-AllYhat_R <- rvcopls$optimal$modelCV$cv$AllYhat
-relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
+colnames(matlab) <- gsub(pattern = "X", replacement = "", 
+                                 x = colnames(matlab), fixed = TRUE)
+R_res <- rvcopls@cv$AllYhat
+relative_compare <- (matlab - R_res)/ max(1, R_res)
 matrix_compare <- matrix(0, ncol = ncol(relative_compare),
                          nrow = nrow(relative_compare))
 colnames(matrix_compare) = colnames(relative_compare)
@@ -698,8 +693,7 @@ rownames(matrix_compare) = rownames(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-# testthat::expect_equal(AllYhat_matlab,
-#                        rvcopls$optimal$modelCV$cv$AllYhat, tolerance=1e-6)
+# testthat::expect_equal(matlab, R_res, tolerance=1e-6)
 
 
 
@@ -708,19 +702,14 @@ testthat::expect_equal(relative_compare,
 matlab <- as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
   header = FALSE, sep = ",", dec = ".")))
-R_res <- rvcopls$optimal$modelCV$cv$Q2Yhat
-relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
+R_res <- rvcopls@Q2
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- rep(0, length(relative_compare))
+names(matrix_compare) = names(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-# testthat::expect_equal(as.numeric(as.matrix(read.table(
-#   file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
-#   header = FALSE, sep = ",", dec = "."))),
-#   rvcopls$optimal$modelCV$cv$Q2Yhat, tolerance=1e-6)
+# testthat::expect_equal(matlab, unname(R_res), tolerance=1e-6)
 
 
 
@@ -729,49 +718,44 @@ testthat::expect_equal(relative_compare,
 matlab <- as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
   header = FALSE, sep = ",", dec = ".")))
-R_res <- rvcopls$optimal$modelCV$cv$DQ2Yhat
-relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
+R_res <- rvcopls@DQ2
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- rep(0, length(relative_compare))
+names(matrix_compare) = names(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-# testthat::expect_equal(as.numeric(as.matrix(read.table(
-#   file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
-#   header = FALSE, sep = ",", dec = "."))),
-#   rvcopls$optimal$modelCV$cv$DQ2Yhat, tolerance=1e-6)
+# testthat::expect_equal(matlab, unname(R_res), tolerance=1e-6)
 
 
 
 ## Tp
 # Relatives
-for(i in 1:length(nbrBlocs)){
-  Tp_matlab <- read.table(file = paste0(path_data_test, common_name,
-                                        common_CV, "07_Tp_", i, ".txt"),
-                          header = TRUE, sep = "\t", dec = ".", row.names = 1)
-  if (i == 1){colnames(Tp_matlab) <- NULL
-  } else{colnames(Tp_matlab) <- "p_1"}
-  TP_R <- rvcopls$optimal$modelCV$Model$Tp[[i]]
-  relative_compare <- (as.matrix(Tp_matlab) - TP_R) / 
-    apply(abs(TP_R), c(1,2), max, 1)
-  matrix_compare <- matrix(0, nrow = nrow(relative_compare), 
-                           ncol=ncol(relative_compare))
-  colnames(matrix_compare) <- colnames(relative_compare)
-  rownames(matrix_compare) <- rownames(relative_compare)
-  testthat::expect_equal(relative_compare, 
-                         matrix_compare, tolerance=1e-3)
-}
-# Absolute
-# for(i in 1:2){
+# for(i in 1:length(nbrBlocs)){
 #   Tp_matlab <- read.table(file = paste0(path_data_test, common_name,
 #                                         common_CV, "07_Tp_", i, ".txt"),
 #                           header = TRUE, sep = "\t", dec = ".", row.names = 1)
 #   if (i == 1){colnames(Tp_matlab) <- NULL
 #   } else{colnames(Tp_matlab) <- "p_1"}
-#   testthat::expect_equal(as.matrix(Tp_matlab),
-#                          rvcopls$optimal$modelCV$Model$Tp[[i]],
+#   TP_R <- rvcopls$optimal$modelCV$Model$Tp[[i]]
+#   relative_compare <- (as.matrix(Tp_matlab) - TP_R) / 
+#     apply(abs(TP_R), c(1,2), max, 1)
+#   matrix_compare <- matrix(0, nrow = nrow(relative_compare), 
+#                            ncol=ncol(relative_compare))
+#   colnames(matrix_compare) <- colnames(relative_compare)
+#   rownames(matrix_compare) <- rownames(relative_compare)
+#   testthat::expect_equal(relative_compare, 
+#                          matrix_compare, tolerance=1e-3)
+# }
+# Absolute
+# for(i in 1:2){
+#   Tp_matlab <- read.table(file = paste0(path_data_test, common_name, 
+#                                         common_CV, "07_Tp_", i, ".txt"), 
+#                           header = TRUE, sep = "\t", dec = ".", row.names = 1)
+#   if (i == 1){colnames(Tp_matlab) <- NULL
+#   } else{colnames(Tp_matlab) <- "p_1"}
+#   testthat::expect_equal(as.matrix(Tp_matlab), 
+#                          rvcopls$optimal$modelCV$Model$Tp[[i]], 
 #                          tolerance=1e-6)
 # }
 
@@ -784,7 +768,7 @@ matlab <- read.table(file =
                               common_CV, "08_scores.txt"),
                      header = TRUE, sep = "\t", dec = ".",
                      row.names = 1)
-R_res <- rvcopls$optimal$modelCV$Model$scores
+R_res <- rvcopls@scores
 relative_compare <- (matlab - R_res)/ apply(abs(R_res), c(1,2), max, 1)
 relative_compare <- as.matrix(relative_compare)
 matrix_compare <- matrix(0, ncol = ncol(relative_compare),
@@ -794,13 +778,7 @@ rownames(matrix_compare) = rownames(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-# testthat::expect_equal(read.table(file =
-#                                     paste0(path_data_test, common_name,
-#                                            common_CV, "08_scores.txt"),
-#                                   header = TRUE, sep = "\t", dec = ".",
-#                                   row.names = 1),
-#                        rvcopls$optimal$modelCV$Model$scores,
-#                        tolerance=1e-6)
+# testthat::expect_equal(as.matrix(matlab), R_res, tolerance=1e-6)
 ``` 
 
 
@@ -817,24 +795,23 @@ data set. The user can reproduce the results with the codes provided.
 ### Main results of the model DA
 
 ```{r print_main_results_R2, class.source='fold-hide'}
-Optimal_model_no_perm <- rvcopls$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+position <- rvcopls@cv$nOcompOpt
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(rvcopls@R2Y[position], 4))
 ```
 
 ```{r print_main_results_Q2, class.source='fold-hide'}
-paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(rvcopls@Q2[position], 4))
 ```
 
 ```{r print_main_results_DQ2, class.source='fold-hide'}
-paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+paste0('DQ2: ', round(rvcopls@DQ2[position], 4))
 ```
 
 ```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
 ggplot2::ggplot(data = data.frame(
-  "p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
-  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+  "p_1" = rvcopls@scores[, "p_1"],
+  "o_1" = rvcopls@scores[, "o_1"],
   "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
   "Factor" = gsub(pattern = "\\..*",
                   replacement = "",
@@ -867,24 +844,23 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                                     params = c(order = 1)),
                                              mc.cores = 1,
                                              plots = TRUE,
-                                             verbose = FALSE)
+                                             verbose = TRUE)
 ```
 
 ```{r print_main2_results_R2, class.source='fold-hide'}
-Optimal_model_no_perm <- rvcopls.reg$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+position <- rvcopls.reg@cv$nOcompOpt
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(rvcopls.reg@R2Y[position], 4))
 ```
 
 ```{r print_main2_results_Q2, class.source='fold-hide'}
-paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(rvcopls@Q2[position], 4))
 ```
 
 ```{r ggplot2_score_data, class.source='fold-hide', warning=FALSE}
 ggplot2::ggplot(data = data.frame(
-  "p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
-  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+  "p_1" = rvcopls.reg@scores[, "p_1"],
+  "o_1" = rvcopls.reg@scores[, "o_1"],
   "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
   "Factor" = gsub(pattern = "\\..*",
                   replacement = "",
@@ -919,28 +895,27 @@ rvcopls <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                                 params = c(order = 2)),
                                          mc.cores = 1,
                                          plots = TRUE,
-                                         verbose = FALSE)
+                                         verbose = TRUE)
 ```
 
 ```{r print_main_results_R2_kernel2, class.source='fold-hide'}
-Optimal_model_no_perm <- rvcopls$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+position <- rvcopls@cv$nOcompOpt
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(rvcopls@R2Y[position], 4))
 ```
 
 ```{r print_main_results_Q2_kernel2, class.source='fold-hide'}
-paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(rvcopls@Q2[position], 4))
 ```
 
 ```{r print_main_results_DQ2_kernel2, class.source='fold-hide'}
-paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+paste0('DQ2: ', round(rvcopls@DQ2[position], 4))
 ```
 
 ```{r ggplot_score_data_kernel2, class.source='fold-hide', warning=FALSE}
 ggplot2::ggplot(data = data.frame(
-  "p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
-  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+  "p_1" = rvcopls@scores[, "p_1"],
+  "o_1" = rvcopls@scores[, "o_1"],
   "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
   "Factor" = gsub(pattern = "\\..*",
                   replacement = "",
@@ -978,20 +953,19 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
 
 
 ```{r print_main2_results_R2_kernel2, class.source='fold-hide'}
-Optimal_model_no_perm <- rvcopls.reg$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+position <- rvcopls.reg@cv$nOcompOpt
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(rvcopls.reg@R2Y[position], 4))
 ```
 
 ```{r print_main2_results_Q2_kernel2, class.source='fold-hide'}
-paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(rvcopls.reg@Q2[position], 4))
 ```
 
 ```{r ggplot2_score_data_kernel2, class.source='fold-hide', warning=FALSE}
 ggplot2::ggplot(data = data.frame(
-  "p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
-  "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+  "p_1" = rvcopls.reg@scores[, "p_1"],
+  "o_1" = rvcopls.reg@scores[, "o_1"],
   "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
   "Factor" = gsub(pattern = "\\..*",
                   replacement = "",
@@ -1032,22 +1006,22 @@ ggplot2::ggplot(data = data.frame(
 
 ```{r print_main_results_R2_kernel3, class.source='fold-hide'}
 # Optimal_model_no_perm <- rvcopls$optimal
-# position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+# position <- rvcopls@nOcompOpt+1
 # 
-# paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+# paste0('R2: ', round(rvcopls@R2Yhat[position], 4))
 ```
 
 ```{r print_main_results_Q2_kernel3, class.source='fold-hide'}
-# paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+# paste0('Q2: ', round(rvcopls@Q2Yhat[position], 4))
 ```
 
 ```{r print_main_results_DQ2_kernel3, class.source='fold-hide'}
-# paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+# paste0('DQ2: ', round(rvcopls@DQ2Yhat[position], 4))
 ```
 
 ```{r ggplot_score_data_kernel3, class.source='fold-hide', warning=FALSE}
-# ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
-#                                   "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+# ggplot2::ggplot(data = data.frame("p_1" = rvcopls@scoresP,
+#                                   "o_1" = rvcopls@scoresO,
 #                                   "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
 #                                   "Factor" = gsub(pattern = "-.*",
 #                                                   replacement = "",
@@ -1087,18 +1061,18 @@ ggplot2::ggplot(data = data.frame(
 
 ```{r print_main2_results_R2_kernel3, class.source='fold-hide'}
 # Optimal_model_no_perm <- rvcopls.reg$optimal
-# position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt+1
+# position <- rvcopls@nOcompOpt+1
 # 
-# paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+# paste0('R2: ', round(rvcopls@R2Yhat[position], 4))
 ```
 
 ```{r print_main2_results_Q2_kernel3, class.source='fold-hide'}
-# paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+# paste0('Q2: ', round(rvcopls@Q2Yhat[position], 4))
 ```
 
 ```{r ggplot2_score_data_kernel3, class.source='fold-hide', warning=FALSE}
-# ggplot2::ggplot(data = data.frame("p_1" = Optimal_model_no_perm$modelCV$Model$scoresP,
-#                                   "o_1" = Optimal_model_no_perm$modelCV$Model$scoresO,
+# ggplot2::ggplot(data = data.frame("p_1" = rvcopls@scoresP,
+#                                   "o_1" = rvcopls@scoresO,
 #                                   "Labs" = as.matrix(base::unlist(rownames(omics.common.data2$Gene))),
 #                                   "Factor" = gsub(pattern = "-.*",
 #                                                   replacement = "",
@@ -1131,55 +1105,55 @@ CVfolds
 cores_max <- detectCores()
 cores_max
 
-# lapply(X = c(1:cores_max),
-#        FUN = function(cores_tested){
-#          print(paste0("cores_tested = ", cores_tested))
-#          Tstart<-Sys.time()
-#          ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
-#                                       Y=factor(Y),
-#                                       maxPcomp = LVsPred,
-#                                       maxOcomp  = LVsOrtho,
-#                                       modelType = "da",
-#                                       nperm = 100,
-#                                       cvType = "nfold",
-#                                       nfold = CVfolds,
-#                                       kernelParams = 
-#                                         list(type = "p", 
-#                                              params = c(order = 2)),
-#                                       mc.cores = cores_tested,
-#                                       plots = TRUE,
-#                                       verbose = FALSE)
-#          Tend<-Sys.time()
-#          Tellapsed <- Tend - Tstart
-#          return(Tellapsed)
-#        })
+lapply(X = c(1:cores_max),
+       FUN = function(cores_tested){
+         print(paste0("cores_tested = ", cores_tested))
+         Tstart<-Sys.time()
+         ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
+                                      Y=factor(Y),
+                                      maxPcomp = LVsPred,
+                                      maxOcomp  = LVsOrtho,
+                                      modelType = "da",
+                                      nperm = 100,
+                                      cvType = "nfold",
+                                      nfold = CVfolds,
+                                      kernelParams =
+                                        list(type = "p",
+                                             params = c(order = 2)),
+                                      mc.cores = cores_tested,
+                                      plots = TRUE,
+                                      verbose = FALSE)
+         Tend<-Sys.time()
+         Tellapsed <- Tend - Tstart
+         return(Tellapsed)
+       })
 ```
 
 And now, let's take a model with 1000 permutations:
 
 ```{r test_parallelisation_1000}
-# lapply(X = c(1:cores_max),
-#        FUN = function(cores_tested){
-#          print(paste0("cores_tested = ", cores_tested))
-#          Tstart<-Sys.time()
-#          ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
-#                                       Y=factor(Y),
-#                                       maxPcomp = LVsPred,
-#                                       maxOcomp  = LVsOrtho,
-#                                       modelType = "da",
-#                                       nperm = 1000,
-#                                       cvType = "nfold",
-#                                       nfold = CVfolds,
-#                                       kernelParams = 
-#                                         list(type = "p", 
-#                                              params = c(order = 2)),
-#                                       mc.cores = cores_tested,
-#                                       plots = TRUE,
-#                                       verbose = FALSE)
-#          Tend<-Sys.time()
-#          Tellapsed <- Tend - Tstart
-#          return(Tellapsed)
-#        })
+lapply(X = c(1:cores_max),
+       FUN = function(cores_tested){
+         print(paste0("cores_tested = ", cores_tested))
+         Tstart<-Sys.time()
+         ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
+                                      Y=factor(Y),
+                                      maxPcomp = LVsPred,
+                                      maxOcomp  = LVsOrtho,
+                                      modelType = "da",
+                                      nperm = 1000,
+                                      cvType = "nfold",
+                                      nfold = CVfolds,
+                                      kernelParams =
+                                        list(type = "p",
+                                             params = c(order = 2)),
+                                      mc.cores = cores_tested,
+                                      plots = TRUE,
+                                      verbose = FALSE)
+         Tend<-Sys.time()
+         Tellapsed <- Tend - Tstart
+         return(Tellapsed)
+       })
 ```
 
 

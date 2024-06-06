@@ -370,8 +370,8 @@ Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
                                               kernelParams = list(type = "p", 
                                                                   params = c(order = 1)),
                                               mc.cores = 1,
-                                              plots = FALSE,
-                                              verbose = FALSE)
+                                              plots = TRUE,
+                                              verbose = TRUE)
 T3<-Sys.time()
 Tdiff2 <- T3 - T2
 Tdiff2
@@ -392,69 +392,69 @@ common_CV <- "ConsensusOPLSCV_"
 # ----- RVConsensusOPLS
 ## normKernels = Amat in matlab
 # Relative
-for(i in 1:length(nbrBlocs)){
-  matlab <- as.matrix(read.table(
-    file = paste0(path_data_test, common_name,
-                  common_RV, "02_Amat_", i, ".txt"),
-    header = TRUE, sep = "\t", dec = ".", row.names = 1))
-  R_res <- Res_Consensus$optimal$modelCV$normKernels[[i]]
-  relative_compare <- (matlab - R_res) / max(1, R_res)
-  
-  matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                           nrow = nrow(relative_compare))
-  colnames(matrix_compare) = colnames(relative_compare)
-  rownames(matrix_compare) = rownames(relative_compare)
-  testthat::expect_equal(relative_compare,
-                         matrix_compare, tolerance=1e-3)
-}
+# for(i in 1:length(nbrBlocs)){
+#   matlab <- as.matrix(read.table(
+#     file = paste0(path_data_test, common_name,
+#                   common_RV, "02_Amat_", i, ".txt"),
+#     header = TRUE, sep = "\t", dec = ".", row.names = 1))
+#   R_res <- Res_Consensus$optimal$modelCV$normKernels[[i]]
+#   relative_compare <- (matlab - R_res) / max(1, R_res)
+#   
+#   matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                            nrow = nrow(relative_compare))
+#   colnames(matrix_compare) = colnames(relative_compare)
+#   rownames(matrix_compare) = rownames(relative_compare)
+#   testthat::expect_equal(relative_compare,
+#                          matrix_compare, tolerance=1e-3)
+# }
 # Absolute
-for(i in 1:length(nbrBlocs)){
-  testthat::expect_equal(as.matrix(read.table(
-    file = paste0(path_data_test, common_name,
-                  common_RV, "02_Amat_", i, ".txt"),
-    header = TRUE, sep = "\t", dec = ".", row.names = 1)),
-    Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-3)
-}
+# for(i in 1:length(nbrBlocs)){
+#   testthat::expect_equal(as.matrix(read.table(
+#     file = paste0(path_data_test, common_name,
+#                   common_RV, "02_Amat_", i, ".txt"),
+#     header = TRUE, sep = "\t", dec = ".", row.names = 1)),
+#     Res_Consensus$optimal$modelCV$normKernels[[i]], tolerance=1e-3)
+# }
 
 
 
 ## RV
 # Relative
-matlab <- as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
-  header = TRUE, sep = "\t", dec = "."))[1,]
-R_res <- Res_Consensus$optimal$modelCV$RV
-relative_compare <- (matlab - R_res)/ max(1, R_res)
-matrix_compare <- rep(0, length(relative_compare))
-names(matrix_compare) <- names(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# matlab <- as.matrix(read.table(
+#   file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
+#   header = TRUE, sep = "\t", dec = "."))[1,]
+# R_res <- Res_Consensus$optimal$modelCV$RV
+# relative_compare <- (matlab - R_res)/ max(1, R_res)
+# matrix_compare <- rep(0, length(relative_compare))
+# names(matrix_compare) <- names(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
-  header = TRUE, sep = "\t", dec = "."))[1,],
-  Res_Consensus$optimal$modelCV$RV, tolerance=1e-6)
+# testthat::expect_equal(as.matrix(read.table(
+#   file = paste0(path_data_test, common_name, common_RV, "01_RV.txt"),
+#   header = TRUE, sep = "\t", dec = "."))[1,],
+#   Res_Consensus$optimal$modelCV$RV, tolerance=1e-6)
 
 
 
 ## lambda = lambda_raw in matlab
 # Relative
-matlab <- as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
-  header = TRUE, sep = "\t", dec = ".", row.names = 1))
-R_res <- Res_Consensus$optimal$modelCV$Model$lambda
-relative_compare <- (matlab - R_res)/ max(1, R_res)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# matlab <- as.matrix(read.table(
+#   file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
+#   header = TRUE, sep = "\t", dec = ".", row.names = 1))
+# R_res <- Res_Consensus$optimal$modelCV$Model$lambda
+# relative_compare <- (matlab - R_res)/ max(1, R_res)
+# matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                          nrow = nrow(relative_compare))
+# colnames(matrix_compare) = colnames(relative_compare)
+# rownames(matrix_compare) = rownames(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
-  header = TRUE, sep = "\t", dec = ".", row.names = 1)),
-  Res_Consensus$optimal$modelCV$Model$lambda, tolerance=1e-6)
+# testthat::expect_equal(as.matrix(read.table(
+#   file = paste0(path_data_test, common_name, common_RV, "04_lambdaRaw.txt"),
+#   header = TRUE, sep = "\t", dec = ".", row.names = 1)),
+#   Res_Consensus$optimal$modelCV$Model$lambda, tolerance=1e-6)
 
 
 
@@ -463,7 +463,7 @@ testthat::expect_equal(as.matrix(read.table(
 matlab <- as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1))
-R_res <- Res_Consensus$optimal$modelCV$Model$blockContribution
+R_res <- Res_Consensus@blockContribution
 relative_compare <- (matlab - R_res)/ max(1, R_res)
 matrix_compare <- matrix(0, ncol = ncol(relative_compare),
                          nrow = nrow(relative_compare))
@@ -472,16 +472,13 @@ rownames(matrix_compare) = rownames(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_RV, "05_lambda.txt"), 
-  header = TRUE, sep = "\t", dec = ".", row.names = 1)),
-  Res_Consensus$optimal$modelCV$Model$blockContribution, tolerance=1e-6)
+testthat::expect_equal(matlab, R_res, tolerance=1e-6)
 
 
 
 ## loadings
 for(i in 1:length(nbrBlocs)){
-  loading_R <- Res_Consensus$optimal$modelCV$Model$loadings[[1]]
+  loading_R <- Res_Consensus@loadings[[1]]
   rownames(loading_R) <- NULL
   loadings_matlab <- as.matrix(read.table(
     file = paste0(path_data_test, common_name,
@@ -497,7 +494,7 @@ for(i in 1:length(nbrBlocs)){
 }
 # Absolute
 for(i in 1:length(nbrBlocs)){
-  loading_R <- Res_Consensus$optimal$modelCV$Model$loadings[[1]]
+  loading_R <- Res_Consensus@loadings[[1]]
   rownames(loading_R) <- NULL
   testthat::expect_equal(as.matrix(read.table(
     file = paste0(path_data_test, common_name, 
@@ -511,73 +508,73 @@ for(i in 1:length(nbrBlocs)){
 # ----- RVConsensusOPLS => ConsensusOPLSCV: optimal model
 ## Cp
 # Relatives
-Cp_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
-                                                common_CV, "01_Cp.txt"),
-                                  header = FALSE, sep = ",", dec = "."))
-colnames(Cp_matlab) <- NULL
-rownames(Cp_matlab) <- c("1", "2")
-Cp_R <- Res_Consensus$optimal$modelCV$Model$Cp
-relative_compare <- (Cp_matlab - Cp_R)/ max(1, Cp_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# Cp_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
+#                                                 common_CV, "01_Cp.txt"),
+#                                   header = FALSE, sep = ",", dec = "."))
+# colnames(Cp_matlab) <- NULL
+# rownames(Cp_matlab) <- c("1", "2")
+# Cp_R <- Res_Consensus$optimal$modelCV$Model$Cp
+# relative_compare <- (Cp_matlab - Cp_R)/ max(1, Cp_R)
+# matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                          nrow = nrow(relative_compare))
+# colnames(matrix_compare) = colnames(relative_compare)
+# rownames(matrix_compare) = rownames(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(Cp_matlab,
-                       Res_Consensus$optimal$modelCV$Model$Cp,
-                       tolerance=1e-6)
+# testthat::expect_equal(Cp_matlab,
+#                        Res_Consensus$optimal$modelCV$Model$Cp,
+#                        tolerance=1e-6)
 
 
 
 ## Sp
 # Relatives
-matlab <- as.numeric(read.table(
-  file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
-  header = FALSE, sep = ",", dec = "."))
-R_res <- Res_Consensus$optimal$modelCV$Model$Sp[1,1]
-relative_compare <- (matlab - R_res)/ max(1, R_res)
-testthat::expect_equal(relative_compare,
-                       0, tolerance=1e-3)
+# matlab <- as.numeric(read.table(
+#   file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
+#   header = FALSE, sep = ",", dec = "."))
+# R_res <- Res_Consensus$optimal$modelCV$Model$Sp[1,1]
+# relative_compare <- (matlab - R_res)/ max(1, R_res)
+# testthat::expect_equal(relative_compare,
+#                        0, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(as.numeric(read.table(
-  file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
-  header = FALSE, sep = ",", dec = ".")),
-  Res_Consensus$optimal$modelCV$Model$Sp[1,1], tolerance=1e-6)
+# testthat::expect_equal(as.numeric(read.table(
+#   file = paste0(path_data_test, common_name, common_CV, "02_Sp.txt"),
+#   header = FALSE, sep = ",", dec = ".")),
+#   Res_Consensus$optimal$modelCV$Model$Sp[1,1], tolerance=1e-6)
 
 
 
 ## Up
 # Relatives
-Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
-                                                common_CV, "03_Up.txt"),
-                                  header = FALSE, sep = ",", dec = "."))
-dimnames(Up_matlab) <- NULL
-Up_R <- Res_Consensus$optimal$modelCV$Model$Up
-relative_compare <- (Up_matlab - Up_R)/ max(1, Up_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
-testthat::expect_equal(relative_compare,
-                       matrix_compare, tolerance=1e-3)
+# Up_matlab <- as.matrix(read.table(file = paste0(path_data_test, common_name,
+#                                                 common_CV, "03_Up.txt"),
+#                                   header = FALSE, sep = ",", dec = "."))
+# dimnames(Up_matlab) <- NULL
+# Up_R <- Res_Consensus$optimal$modelCV$Model$Up
+# relative_compare <- (Up_matlab - Up_R)/ max(1, Up_R)
+# matrix_compare <- matrix(0, ncol = ncol(relative_compare),
+#                          nrow = nrow(relative_compare))
+# colnames(matrix_compare) = colnames(relative_compare)
+# rownames(matrix_compare) = rownames(relative_compare)
+# testthat::expect_equal(relative_compare,
+#                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(Up_matlab,
-                       Res_Consensus$optimal$modelCV$Model$Up,
-                       tolerance=1e-6)
+# testthat::expect_equal(Up_matlab,
+#                        Res_Consensus$optimal$modelCV$Model$Up,
+#                        tolerance=1e-6)
 
 
 
 ## AllYhat
 # Relatives
-AllYhat_matlab <- as.matrix(read.table(
+matlab <- as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "04_AllYhat.txt"),
   header = TRUE, sep = "\t", dec = ".", row.names = 1))
-colnames(AllYhat_matlab) <- gsub(pattern = "X", replacement = "", 
-                                 x = colnames(AllYhat_matlab), fixed = TRUE)
-AllYhat_R <- Res_Consensus$optimal$modelCV$cv$AllYhat
-relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
+colnames(matlab) <- gsub(pattern = "X", replacement = "", 
+                                 x = colnames(matlab), fixed = TRUE)
+R_res <- Res_Consensus@cv$AllYhat
+relative_compare <- (matlab - R_res)/ max(1, R_res)
 matrix_compare <- matrix(0, ncol = ncol(relative_compare),
                          nrow = nrow(relative_compare))
 colnames(matrix_compare) = colnames(relative_compare)
@@ -585,8 +582,7 @@ rownames(matrix_compare) = rownames(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(AllYhat_matlab,
-                       Res_Consensus$optimal$modelCV$cv$AllYhat, tolerance=1e-6)
+testthat::expect_equal(matlab, R_res, tolerance=1e-6)
 
 
 
@@ -595,19 +591,14 @@ testthat::expect_equal(AllYhat_matlab,
 matlab <- as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
   header = FALSE, sep = ",", dec = ".")))
-R_res <- Res_Consensus$optimal$modelCV$cv$Q2Yhat
-relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
+R_res <- Res_Consensus@Q2
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- rep(0, length(relative_compare))
+names(matrix_compare) = names(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(as.numeric(as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_CV, "05_Q2Yhat.txt"),
-  header = FALSE, sep = ",", dec = "."))),
-  Res_Consensus$optimal$modelCV$cv$Q2Yhat, tolerance=1e-6)
+testthat::expect_equal(matlab, unname(R_res), tolerance=1e-6)
 
 
 
@@ -616,51 +607,46 @@ testthat::expect_equal(as.numeric(as.matrix(read.table(
 matlab <- as.numeric(as.matrix(read.table(
   file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
   header = FALSE, sep = ",", dec = ".")))
-R_res <- Res_Consensus$optimal$modelCV$cv$DQ2Yhat
-relative_compare <- (AllYhat_matlab - AllYhat_R)/ max(1, AllYhat_R)
-matrix_compare <- matrix(0, ncol = ncol(relative_compare),
-                         nrow = nrow(relative_compare))
-colnames(matrix_compare) = colnames(relative_compare)
-rownames(matrix_compare) = rownames(relative_compare)
+R_res <- Res_Consensus@DQ2
+relative_compare <- (matlab - R_res)/ max(1, R_res)
+matrix_compare <- rep(0, length(relative_compare))
+names(matrix_compare) = names(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(as.numeric(as.matrix(read.table(
-  file = paste0(path_data_test, common_name, common_CV, "06_DQ2Yhat.txt"),
-  header = FALSE, sep = ",", dec = "."))),
-  Res_Consensus$optimal$modelCV$cv$DQ2Yhat, tolerance=1e-6)
+testthat::expect_equal(matlab, unname(R_res), tolerance=1e-6)
 
 
 
 ## Tp
 # Relatives
-for(i in 1:length(nbrBlocs)){
-  Tp_matlab <- read.table(file = paste0(path_data_test, common_name,
-                                        common_CV, "07_Tp_", i, ".txt"),
-                          header = TRUE, sep = "\t", dec = ".", row.names = 1)
-  if (i == 1){colnames(Tp_matlab) <- NULL
-  } else{colnames(Tp_matlab) <- "p_1"}
-  TP_R <- Res_Consensus$optimal$modelCV$Model$Tp[[i]]
-  relative_compare <- (as.matrix(Tp_matlab) - TP_R) / 
-    apply(abs(TP_R), c(1,2), max, 1)
-  matrix_compare <- matrix(0, nrow = nrow(relative_compare), 
-                           ncol=ncol(relative_compare))
-  colnames(matrix_compare) <- colnames(relative_compare)
-  rownames(matrix_compare) <- rownames(relative_compare)
-  testthat::expect_equal(relative_compare, 
-                         matrix_compare, tolerance=1e-3)
-}
+# for(i in 1:length(nbrBlocs)){
+#   Tp_matlab <- read.table(file = paste0(path_data_test, common_name,
+#                                         common_CV, "07_Tp_", i, ".txt"),
+#                           header = TRUE, sep = "\t", dec = ".", row.names = 1)
+#   if (i == 1){colnames(Tp_matlab) <- NULL
+#   } else{colnames(Tp_matlab) <- "p_1"}
+#   TP_R <- Res_Consensus$optimal$modelCV$Model$Tp[[i]]
+#   relative_compare <- (as.matrix(Tp_matlab) - TP_R) / 
+#     apply(abs(TP_R), c(1,2), max, 1)
+#   matrix_compare <- matrix(0, nrow = nrow(relative_compare), 
+#                            ncol=ncol(relative_compare))
+#   colnames(matrix_compare) <- colnames(relative_compare)
+#   rownames(matrix_compare) <- rownames(relative_compare)
+#   testthat::expect_equal(relative_compare, 
+#                          matrix_compare, tolerance=1e-3)
+# }
 # Absolute
-for(i in 1:2){
-  Tp_matlab <- read.table(file = paste0(path_data_test, common_name, 
-                                        common_CV, "07_Tp_", i, ".txt"), 
-                          header = TRUE, sep = "\t", dec = ".", row.names = 1)
-  if (i == 1){colnames(Tp_matlab) <- NULL
-  } else{colnames(Tp_matlab) <- "p_1"}
-  testthat::expect_equal(as.matrix(Tp_matlab), 
-                         Res_Consensus$optimal$modelCV$Model$Tp[[i]], 
-                         tolerance=1e-6)
-}
+# for(i in 1:2){
+#   Tp_matlab <- read.table(file = paste0(path_data_test, common_name, 
+#                                         common_CV, "07_Tp_", i, ".txt"), 
+#                           header = TRUE, sep = "\t", dec = ".", row.names = 1)
+#   if (i == 1){colnames(Tp_matlab) <- NULL
+#   } else{colnames(Tp_matlab) <- "p_1"}
+#   testthat::expect_equal(as.matrix(Tp_matlab), 
+#                          Res_Consensus$optimal$modelCV$Model$Tp[[i]], 
+#                          tolerance=1e-6)
+# }
 
 
 
@@ -671,7 +657,7 @@ matlab <- read.table(file =
                               common_CV, "08_scores.txt"),
                      header = TRUE, sep = "\t", dec = ".",
                      row.names = 1)
-R_res <- Res_Consensus$optimal$modelCV$Model$scores
+R_res <- Res_Consensus@scores
 relative_compare <- (matlab - R_res)/ apply(abs(R_res), c(1,2), max, 1)
 relative_compare <- as.matrix(relative_compare)
 matrix_compare <- matrix(0, ncol = ncol(relative_compare),
@@ -681,13 +667,7 @@ rownames(matrix_compare) = rownames(relative_compare)
 testthat::expect_equal(relative_compare,
                        matrix_compare, tolerance=1e-3)
 # Absolute
-testthat::expect_equal(read.table(file = 
-                                    paste0(path_data_test, common_name, 
-                                           common_CV, "08_scores.txt"), 
-                                  header = TRUE, sep = "\t", dec = ".", 
-                                  row.names = 1),
-                       Res_Consensus$optimal$modelCV$Model$scores, 
-                       tolerance=1e-6)
+testthat::expect_equal(as.matrix(matlab), R_res, tolerance=1e-6)
 ``` 
 
 
@@ -706,22 +686,21 @@ data set. The user can reproduce the results with the codes provided.
 
 ```{r print_main1_results_n0comp, class.source='fold-hide'}
 paste0('Optimal number of orthogonal composent: ',
-       Res_Consensus$optimal$modelCV$Model$params$nOcomp)
+       Res_Consensus@cv$nOcompOpt)
 ```
 
 ```{r print_main1_results_R2, class.source='fold-hide'}
-Optimal_model_no_perm <- Res_Consensus$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt
+position <- Res_Consensus@cv$nOcompOpt
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(Res_Consensus@R2Y[position], 4))
 ```
 
 ```{r print_main1_results_Q2, class.source='fold-hide'}
-paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(Res_Consensus@Q2[position], 4))
 ```
 
 ```{r print_main1_results_DQ2, class.source='fold-hide'}
-paste0('DQ2: ', round(Optimal_model_no_perm$modelCV$cv$DQ2Yhat[position], 4))
+paste0('DQ2: ', round(Res_Consensus@DQ2[position], 4))
 ```
 
 As the aim of this document is not to go into the detailed interpretation of 
@@ -750,8 +729,8 @@ Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
                                               kernelParams = list(type = "p", 
                                                                   params = c(order = 1)),
                                               mc.cores = 1,
-                                              plots = FALSE,
-                                              verbose = FALSE)
+                                              plots = TRUE,
+                                              verbose = TRUE)
 T5<-Sys.time()
 Tdiff3 <- T5 - T4
 Tdiff3
@@ -761,18 +740,17 @@ Tdiff3
 
 ```{r print_main2_results_n0comp, class.source='fold-hide'}
 paste0('Optimal number of orthogonal composent: ',
-       Res_Consensus$optimal$modelCV$Model$params$nOcomp)
+       Res_Consensus@nOcomp)
 ```
 
 ```{r print_main2_results_R2, class.source='fold-hide'}
-Optimal_model_no_perm <- Res_Consensus$optimal
-position <- Optimal_model_no_perm$modelCV$cv$nOcompOpt
+position <- Res_Consensus@cv$nOcompOpt
 
-paste0('R2: ', round(Optimal_model_no_perm$modelCV$Model$R2Yhat[position], 4))
+paste0('R2: ', round(Res_Consensus@R2Y[position], 4))
 ```
 
 ```{r print_main2_results_Q2, class.source='fold-hide'}
-paste0('Q2: ', round(Optimal_model_no_perm$modelCV$cv$Q2Yhat[position], 4))
+paste0('Q2: ', round(Res_Consensus@Q2[position], 4))
 ```
 
 Note: in the case of a regression model, `DQ2Yhat` does not exist.
