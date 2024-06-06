@@ -385,21 +385,25 @@ copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
                           nperm = 100,
                           cvType = "nfold",
                           nfold = 14,
+                          nMC = 100,
+                          cvFrac = 4/5,
                           kernelParams = list(type = "p", 
                                               params = c(order = 1)),
                           mc.cores = 1,
-                          plots = TRUE,
                           verbose = TRUE)
 ```
 
 This model gives the results for:
 
 ```{r outputs_model}
-# Print main results
+print("The main results of the ConsensusOPLS analysis:")
 copls.da
 
-# List all results available
+print("List of available outputs in the ConsensusOPLS object:")
 summary(attributes(copls.da))
+
+print("List of available CV results in the ConsensusOPLS object:")
+names(copls.da@cv)
 ```
 
 
@@ -467,7 +471,7 @@ VIP <- copls.da@VIP
 VIP_plot <- lapply(X = 1:nbrBlocs,
                    FUN = function(X){
                        signe_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
-                       result <- VIP[[X]]*signe_loadings
+                       result <- VIP[[X]][, "p_1"]*signe_loadings
                        return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- BlockNames
 ```
@@ -721,18 +725,27 @@ loadings$block <- do.call(c, lapply(names(copls.da@loadings), function(x)
 loadings$variable <- gsub(paste(paste0(names(copls.da@loadings), '.'), 
                                 collapse='|'), '', 
                           rownames(loadings))
+
+VIP <- do.call(rbind.data.frame, copls.da@VIP)
+VIP$block <- do.call(c, lapply(names(copls.da@VIP), function(x) 
+    rep(x, nrow(copls.da@VIP[[x]]))))
+VIP$variable <- gsub(paste(paste0(names(copls.da@VIP), '.'), 
+                                collapse='|'), '', 
+                          rownames(VIP))
         
-loadings_VIP <- merge(x = loadings, 
-                      y = data.frame("VIP" = unlist(copls.da@VIP), 
-                                     "variable" = unlist(lapply(copls.da@VIP, 
-                                                                names))), 
-                      by = "variable")
+loadings_VIP <- merge(x = loadings[, c("p_1", "variable")], 
+                      y = VIP[, c("p_1", "variable")], 
+                      by = "variable", all = TRUE)
+colnames(loadings_VIP) <- c("variable", "loadings", "VIP")
+loadings_VIP <- merge(x = loadings_VIP, 
+                      y = loadings[, c("block", "variable")], 
+                      by = "variable", all = TRUE)
 loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
 ```
 
 ```{r ggplot_data_loadings_VIP, class.source='fold-hide'}
 p_loadings_VIP <- ggplot(data = loadings_VIP,
-                                  aes(x=p_1, y=VIP, col=block, label = label)) +
+                                  aes(x=loadings, y=VIP, col=block, label = label)) +
     geom_point(size = 2.5, alpha = 0.5) + 
     xlab("Predictive component") +
     ylab("Variable Importance in Projection") +

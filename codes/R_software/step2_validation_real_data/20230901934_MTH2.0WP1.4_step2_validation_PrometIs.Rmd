@@ -370,7 +370,6 @@ Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
                                               kernelParams = list(type = "p", 
                                                                   params = c(order = 1)),
                                               mc.cores = 1,
-                                              plots = TRUE,
                                               verbose = TRUE)
 T3<-Sys.time()
 Tdiff2 <- T3 - T2
@@ -729,7 +728,6 @@ Res_Consensus <- ConsensusOPLS::ConsensusOPLS(data = data_PrometeIS,
                                               kernelParams = list(type = "p", 
                                                                   params = c(order = 1)),
                                               mc.cores = 1,
-                                              plots = TRUE,
                                               verbose = TRUE)
 T5<-Sys.time()
 Tdiff3 <- T5 - T4
@@ -795,7 +793,6 @@ lapply(X = c(1:cores_max),
                                       kernelParams = list(type = "p",
                                                           params = c(order = 1)),
                                       mc.cores = cores_tested,
-                                      plots = FALSE,
                                       verbose = FALSE)
          Tend<-Sys.time()
          Tellapsed <- Tend - Tstart
@@ -821,7 +818,6 @@ lapply(X = c(1:cores_max),
                                       kernelParams = list(type = "p",
                                                           params = c(order = 1)),
                                       mc.cores = cores_tested,
-                                      plots = FALSE,
                                       verbose = FALSE)
          Tend<-Sys.time()
          Tellapsed <- Tend - Tstart

@@ -1,21 +1,21 @@
 #' @title Consensus OPLS For Multi-Block Data Fusion
 #' @description
-#' The fusion of data from multiple sources constitutes a relevant approach to
-#' assess complex systems comprehensively. However, inherent problems
-#' encountered when analysing single tables are amplified with the generation
-#' of multiblock datasets and finding the relationships between data layers of
-#' increasing complexity constitutes a challenging task. For that purpose, a
-#' generic methodology is proposed by combining the strengths of established
-#' data analysis strategies, i.e. multiblock approaches and the OPLS framework
-#' to offer an efficient tool for the fusion of data obtained from multiple
-#' sources. The package enables the consensus OPLS model to be implemented
-#' quickly and efficiently for any horizontal multiblock data structure
-#' (matching by observations). Moreover, it offers an exciting range of metrics
-#' and graphics to confidently aid in determining the optimal number of
-#' components and checking model validity through permutation testing.
-#' Interpretation tools include scores and loadings plots, as well as Variable
-#' Importance in Projection (VIP), and performance coefficients such as R2, Q2
-#' and DQ2 coefficients.
+#' Merging data from multiple sources is a relevant approach for 
+#' comprehensively evaluating complex systems. However, the inherent problems 
+#' encountered when analyzing single tables are amplified with the generation 
+#' of multi-block datasets, and finding the relationships between data layers 
+#' of increasing complexity constitutes a challenging task. For that purpose, 
+#' a generic methodology is proposed by combining the strengths of established 
+#' data analysis strategies, i.e. multi-block approaches and the OPLS framework 
+#' to provide an efficient tool for the fusion of data obtained from multiple 
+#' sources. The package enables quick and efficient implementation of the 
+#' consensus OPLS model for any horizontal multi-block data structure 
+#' (observation-based matching). Moreover, it offers an interesting range of 
+#' metrics and graphics to help to determine the optimal number of components 
+#' and check the validity of the model through permutation tests. 
+#' Interpretation tools include scores and loadings plots, as well as 
+#' Variable Importance in Projection (VIP), and performance coefficients such 
+#' as R2, Q2 and DQ2 coefficients.
 #' 
 #' This package uses functions from the K-OPLS package, developed by Max
 #' Bylesjo, University of Umea, Judy Fonville and Mattias Rantalainen, Imperial
@@ -35,7 +35,14 @@
 ## usethis namespace: end
 NULL
 
-#' Three-block omics data
+#' A demonstration case study available from a public repository of the 
+#' National Cancer Institute, namely the NCI-60 data set, was used to 
+#' illustrate the method's potential for omics data fusion. A subset of NCI-60 
+#' data (transcriptomics, proteomics and metabolomics) involving experimental 
+#' data from 14 cancer cell lines from two tissue origins, i.e. colon and 
+#' ovary, was used. The object proposed in this package contains, in a list, 
+#' all the information needed to make a model: the three data blocks, a list 
+#' of observation names (samples) and the binary response matrix Y.
 #'
 #' @name demo_3_Omics
 #' @docType data

@@ -1,22 +1,38 @@
 #' @title \code{ConsensusOPLS} S4 class
-#' @description This object presents the result of a Consensus OPLS analysis.
-#' @slot modelType The type of requested OPLS regression model.
-#' @slot response The provided response.
-#' @slot nPcomp Number of Y-predictive components (latent variables) of the optimal model.
-#' @slot nOcomp Number of Y-orthogonal components (latent variables) of the optimal model.
-#' @slot blockContribution Relative contribution of each block (normalized \code{lambda} values) to the
-#' latent variables.
-#' @slot scores Representation of the samples in the latent variables of the optimal model.
-#' @slot loadings Contribution of each block's variables to the latent variables of the optimal
-#' model.
-#' @slot VIP Variable importance in projection (VIP) for each block of data, assessing the
-#' relevance of the variables in explaining the variation in the response.
-#' @slot R2X Proportion of variation in data blocks explained by the optimal model.
-#' @slot R2Y Proportion of variation in the response explained by the optimal model.
-#' @slot Q2 Predictive ability of the optimal model.
+#' @description An object return by the \code{ConsensusOPLS} function, 
+#' inheriting from class \code{ConsensusOPLS}, and representing a fitted 
+#' Consensus OPLS model.
+#' @details The following components must be included in a legitimate 
+#' \code{ConsensusOPLS} object.
+#' @slot blockContribution Relative contribution of each block (normalized 
+#' \code{lambda} values) to the latent variables.
+#' @slot cv Cross-validation result towards the optimal model. Contains 
+#' \code{AllYhat} (all predicted Y values as a concatenated matrix), 
+#' \code{cvTestIndex} (indexes for the test set observations during the 
+#' cross-validation rounds), \code{DQ2Yhat} (total discriminant Q-square result 
+#' for all Y-orthogonal components.), \code{nOcompOpt} (optimal number of 
+#' Y-orthogonal components (latent variables) for the optimal model), and 
+#' \code{Q2Yhat} (total Q-square result for all Y-orthogonal components).
 #' @slot DQ2 Predictive ability of the optimal model, for discriminant analysis.
+#' @slot loadings Contribution of each block's variables to the latent variables 
+#' of the optimal model.
+#' @slot modelType The type of requested OPLS regression model.
+#' @slot nOcomp Number of Y-orthogonal components (latent variables) of the 
+#' optimal model.
+#' @slot nPcomp Number of Y-predictive components (latent variables) of the 
+#' optimal model.
 #' @slot permStats Q2 and R2Y of models with permuted response.
-#' @slot cv Cross-validation result towards the optimal model.
+#' @slot Q2 Predictive ability of the optimal model.
+#' @slot R2X Proportion of variation in data blocks explained by the optimal 
+#' model.
+#' @slot R2Y Proportion of variation in the response explained by the optimal 
+#' model.
+#' @slot response The provided response variable (Y).
+#' @slot scores Representation of the samples in the latent variables of the 
+#' optimal model.
+#' @slot VIP Variable importance in projection (VIP) for each block of data, 
+#' assessing the relevance of the variables in explaining the variation in the 
+#' response.
 #' @name ConsensusOPLS-class
 #' @rdname ConsensusOPLS-class
 #' @import methods utils
@@ -24,20 +40,20 @@
 #' 
 setClass("ConsensusOPLS",
          slots = list(
-             modelType         = "character",
-             response          = "vector",
-             nPcomp            = "numeric",
-             nOcomp            = "numeric",
              blockContribution = "matrix",
-             scores            = "matrix",
+             cv                = "list",
+             DQ2               = "numeric",
              loadings          = "list",
-             VIP               = "list",
+             modelType         = "character",
+             nOcomp            = "numeric",
+             nPcomp            = "numeric",
+             permStats         = "list",
+             Q2                = "numeric",
              R2X               = "numeric",
              R2Y               = "numeric",
-             Q2                = "numeric",
-             DQ2               = "numeric",
-             permStats         = "list",
-             cv                = "list")
+             response          = "vector",
+             scores            = "matrix",
+             VIP               = "list")
 )
 
 
@@ -112,6 +128,278 @@ setMethod(
                 )
     }
 )       
+
+
+#' @title DQ2 plot
+#' @description Plot of DQ2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotDQ2
+#'  
+setGeneric(
+    name = "plotDQ2",
+    def = function(object,
+                   breaks = 10,
+                   xlab = "DQ2",
+                   main = "DQ2 in models with permuted response",
+                   col = "blue",
+                   lty = 2,
+                   ...) {
+        standardGeneric("plotDQ2")
+    }
+)
+
+
+#' @title DQ2 plot
+#' @description Plot of DQ2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotDQ2
+#'  
+setMethod(
+    f = "plotDQ2",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          breaks = 10,
+                          xlab = "DQ2",
+                          main = "DQ2 in models with permuted response",
+                          col = "blue",
+                          lty = 2,
+                          ...) {
+        stopifnot(length(object@permStats$DQ2Y) > 0)
+        
+        hist(object@permStats$DQ2Y[-1], breaks=breaks, bins = 30, probability=T,
+             xlab=xlab, main=main, ...)
+        lines(density(object@permStats$DQ2Y[-1]))
+        abline(v=object@permStats$DQ2Y[1], col=col, lty=lty, xpd=F)
+    }
+)
+
+
+#' @title Loading plot
+#' @description Plot of variable loadings in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp1 Latent variable for X-axis. Default, the first predictive
+#' component, \code{p_1}.
+#' @param comp2 Latent variable for Y-axis. Default, the first orthogonal
+#' component, \code{o_1}.
+#' @param blockId The positions or names of the blocks for the plot.
+#' Default, NULL, all.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to \code{length(blockId)+1}.
+#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
+#' 1 to \code{length(blockId)}.
+#' @param ... \code{plot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotLoadings
+#'  
+setGeneric(
+    name = "plotLoadings",
+    def = function(object,
+                   comp1 = "p_1",
+                   comp2 = "o_1",
+                   blockId = NULL,
+                   col = NULL,
+                   pch = NULL,
+                   ...) {
+        standardGeneric("plotLoadings")
+    }
+)
+
+
+#' @title Loading plot
+#' @description Plot of variable loadings in the optimal model.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param comp1 Latent variable for X-axis. Default, the first predictive
+#' component, \code{p_1}.
+#' @param comp2 Latent variable for Y-axis. Default, the first orthogonal
+#' component, \code{o_1}.
+#' @param blockId The positions or names of the blocks for the plot.
+#' Default, NULL, all.
+#' @param col A vector of color codes or names, one for each block. Default,
+#' NULL, 2 to \code{length(blockId)+1}.
+#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
+#' 1 to \code{length(blockId)}.
+#' @param ... \code{plot} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotLoadings
+#'  
+setMethod(
+    f = "plotLoadings",
+    signature = "ConsensusOPLS",
+    definition = function(object, 
+                          comp1 = "p_1",
+                          comp2 = "o_1",
+                          blockId = NULL,
+                          col = NULL,
+                          pch = NULL,
+                          ...) {
+        stopifnot(comp1 %in% colnames(object@scores) && 
+                      comp2 %in% colnames(object@scores))
+        
+        if (is.null(blockId)) blockId <- names(object@loadings)
+        if (is.null(col)) col <- 1:length(blockId) + 1
+        if (is.null(pch)) pch <- 1:length(blockId)
+        
+        loadings <- do.call(rbind.data.frame, object@loadings[blockId])
+        
+        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+        plot(loadings[, c(comp1, comp2)], 
+             col=col[factor(unlist(lapply(blockId, function(x) 
+                 rep(x, nrow(object@loadings[[x]])))))],
+             pch=pch[factor(unlist(lapply(blockId, function(x) 
+                 rep(x, nrow(object@loadings[[x]])))))],
+             ...)
+        legend("topright", inset=c(-0.4, 0), 
+               legend=names(object@loadings[blockId]),
+               col=col, pch=pch, title="Block",
+               cex=0.9, bty='n')
+    }
+)
+
+
+#' @title Q2 plot
+#' @description Plot of Q2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotQ2
+#'  
+setGeneric(
+    name = "plotQ2",
+    def = function(object,
+                   breaks = 10,
+                   xlab = "Q2",
+                   main = "Q2 in models with permuted response",
+                   col = "blue",
+                   lty = 2,
+                   ...) {
+        standardGeneric("plotQ2")
+    }
+)
+
+
+#' @title Q2 plot
+#' @description Plot of Q2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotQ2
+#'  
+setMethod(
+    f = "plotQ2",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          breaks = 10,
+                          xlab = "Q2",
+                          main = "Q2 in models with permuted response",
+                          col = "blue",
+                          lty = 2,
+                          ...) {
+        hist(object@permStats$Q2Y[-1], breaks=breaks, bins = 30, probability=T,
+             xlab=xlab, main=main, ...)
+        lines(density(object@permStats$Q2Y[-1]))
+        abline(v=object@permStats$Q2Y[1], col=col, lty=lty, xpd=F)
+    }
+)
+
+
+#' @title R2 plot
+#' @description Plot of R2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotR2
+#'  
+setGeneric(
+    name = "plotR2",
+    def = function(object,
+                   breaks = 10,
+                   xlab = "R2",
+                   main = "R2 in models with permuted response",
+                   col = "blue",
+                   lty = "dashed",
+                   ...) {
+        standardGeneric("plotR2")
+    }
+)
+
+
+#' @title R2 plot
+#' @description Plot of R2 of models with permuted response.
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param breaks See \code{\link{hist}}.
+#' @param xlab See \code{\link{hist}}.
+#' @param main See \code{\link{hist}}.
+#' @param col A color code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param lty A line type code or name for R2 in the optimal model. Default, 2.
+#' See \code{\link{abline}}.
+#' @param ... \code{\link{hist}} arguments.
+#' @import graphics
+#' @export
+#' @rdname plotR2
+#'  
+setMethod(
+    f = "plotR2",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          breaks = 10,
+                          xlab = "R2",
+                          main = "R2 in models with permuted response",
+                          col = "blue",
+                          lty = "dashed",
+                          ...) {
+        hist(object@permStats$R2Y[-1], breaks=breaks, bins = 30, probability=T,
+             xlab=xlab, main=main, ...)
+        lines(density(object@permStats$R2Y[-1]))
+        abline(v=object@permStats$R2Y[1], col=col, lty=lty, xpd=F)
+    }
+)
 
 
 #' @title Score plot
@@ -208,90 +496,6 @@ setMethod(
 )
 
 
-#' @title Loading plot
-#' @description Plot of variable loadings in the optimal model.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param comp1 Latent variable for X-axis. Default, the first predictive
-#' component, \code{p_1}.
-#' @param comp2 Latent variable for Y-axis. Default, the first orthogonal
-#' component, \code{o_1}.
-#' @param blockId The positions or names of the blocks for the plot.
-#' Default, NULL, all.
-#' @param col A vector of color codes or names, one for each block. Default,
-#' NULL, 2 to \code{length(blockId)+1}.
-#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
-#' 1 to \code{length(blockId)}.
-#' @param ... \code{plot} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotLoadings
-#'  
-setGeneric(
-    name = "plotLoadings",
-    def = function(object,
-                   comp1 = "p_1",
-                   comp2 = "o_1",
-                   blockId = NULL,
-                   col = NULL,
-                   pch = NULL,
-                   ...) {
-        standardGeneric("plotLoadings")
-    }
-)
-
-
-#' @title Loading plot
-#' @description Plot of variable loadings in the optimal model.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param comp1 Latent variable for X-axis. Default, the first predictive
-#' component, \code{p_1}.
-#' @param comp2 Latent variable for Y-axis. Default, the first orthogonal
-#' component, \code{o_1}.
-#' @param blockId The positions or names of the blocks for the plot.
-#' Default, NULL, all.
-#' @param col A vector of color codes or names, one for each block. Default,
-#' NULL, 2 to \code{length(blockId)+1}.
-#' @param pch A vector of graphic symbols, one for each block. Default, NULL,
-#' 1 to \code{length(blockId)}.
-#' @param ... \code{plot} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotLoadings
-#'  
-setMethod(
-    f = "plotLoadings",
-    signature = "ConsensusOPLS",
-    definition = function(object, 
-                          comp1 = "p_1",
-                          comp2 = "o_1",
-                          blockId = NULL,
-                          col = NULL,
-                          pch = NULL,
-                          ...) {
-        stopifnot(comp1 %in% colnames(object@scores) && 
-                      comp2 %in% colnames(object@scores))
-        
-        if (is.null(blockId)) blockId <- names(object@loadings)
-        if (is.null(col)) col <- 1:length(blockId) + 1
-        if (is.null(pch)) pch <- 1:length(blockId)
-
-        loadings <- do.call(rbind.data.frame, object@loadings[blockId])
-        
-        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-        plot(loadings[, c(comp1, comp2)], 
-             col=col[factor(unlist(lapply(blockId, function(x) 
-                 rep(x, nrow(object@loadings[[x]])))))],
-             pch=pch[factor(unlist(lapply(blockId, function(x) 
-                 rep(x, nrow(object@loadings[[x]])))))],
-             ...)
-        legend("topright", inset=c(-0.4, 0), 
-               legend=names(object@loadings[blockId]),
-               col=col, pch=pch, title="Block",
-               cex=0.9, bty='n')
-    }
-)
-
-
 #' @title VIP plot
 #' @description Plot of VIP versus variable loadings in the optimal model.
 #' @param object An object of class \code{ConsensusOPLS}.
@@ -384,218 +588,33 @@ setMethod(
 )
 
 
-#' @title Q2 plot
-#' @description Plot of Q2 of models with permuted response.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
-#' @param col A color code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotQ2
-#'  
-setGeneric(
-    name = "plotQ2",
-    def = function(object,
-                   breaks = 10,
-                   xlab = "Q2",
-                   main = "Q2 in models with permuted response",
-                   col = "blue",
-                   lty = 2,
-                   ...) {
-        standardGeneric("plotQ2")
-    }
-)
-
-
-#' @title Q2 plot
-#' @description Plot of Q2 of models with permuted response.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
-#' @param col A color code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotQ2
-#'  
-setMethod(
-    f = "plotQ2",
-    signature = "ConsensusOPLS",
-    definition = function(object,
-                          breaks = 10,
-                          xlab = "Q2",
-                          main = "Q2 in models with permuted response",
-                          col = "blue",
-                          lty = 2,
-                          ...) {
-        hist(object@permStats$Q2Y[-1], breaks=breaks, probability=T,
-             xlab=xlab, main=main, ...)
-        lines(density(object@permStats$Q2Y[-1]))
-        abline(v=object@permStats$Q2Y[1], col=col, lty=lty, xpd=F)
-    }
-)
-
-
-#' @title DQ2 plot
-#' @description Plot of DQ2 of models with permuted response.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
-#' @param col A color code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotDQ2
-#'  
-setGeneric(
-    name = "plotDQ2",
-    def = function(object,
-                   breaks = 10,
-                   xlab = "DQ2",
-                   main = "DQ2 in models with permuted response",
-                   col = "blue",
-                   lty = 2,
-                   ...) {
-        standardGeneric("plotDQ2")
-    }
-)
-
-
-#' @title DQ2 plot
-#' @description Plot of DQ2 of models with permuted response.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
-#' @param col A color code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotDQ2
-#'  
-setMethod(
-    f = "plotDQ2",
-    signature = "ConsensusOPLS",
-    definition = function(object,
-                          breaks = 10,
-                          xlab = "DQ2",
-                          main = "DQ2 in models with permuted response",
-                          col = "blue",
-                          lty = 2,
-                          ...) {
-        stopifnot(length(object@permStats$DQ2Y) > 0)
-        
-        hist(object@permStats$DQ2Y[-1], breaks=breaks, probability=T,
-             xlab=xlab, main=main, ...)
-        lines(density(object@permStats$DQ2Y[-1]))
-        abline(v=object@permStats$DQ2Y[1], col=col, lty=lty, xpd=F)
-    }
-)
-
-
-#' @title R2 plot
-#' @description Plot of R2 of models with permuted response.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
-#' @param col A color code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param lty A line type code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotR2
-#'  
-setGeneric(
-    name = "plotR2",
-    def = function(object,
-                   breaks = 10,
-                   xlab = "R2",
-                   main = "R2 in models with permuted response",
-                   col = "blue",
-                   lty = "dashed",
-                   ...) {
-        standardGeneric("plotR2")
-    }
-)
-
-
-#' @title R2 plot
-#' @description Plot of R2 of models with permuted response.
-#' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
-#' @param col A color code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param lty A line type code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
-#' @import graphics
-#' @export
-#' @rdname plotR2
-#'  
-setMethod(
-    f = "plotR2",
-    signature = "ConsensusOPLS",
-    definition = function(object,
-                          breaks = 10,
-                          xlab = "R2",
-                          main = "R2 in models with permuted response",
-                          col = "blue",
-                          lty = "dashed",
-                          ...) {
-        hist(object@permStats$R2Y[-1], breaks=breaks, probability=T,
-             xlab=xlab, main=main, ...)
-        lines(density(object@permStats$R2Y[-1]))
-        abline(v=object@permStats$R2Y[1], col=col, lty=lty, xpd=F)
-    }
-)
-
-
 #' @title ConsensusOPLS
 #' @description
-#' Constructs the consensus OPLS model with an optimal number of orthogonal 
+#' Constructs the consensus OPLS model with the optimal number of orthogonal 
 #' components for given data blocks and response, and evaluate the model 
 #' quality w.r.t other models built with randomly permuted responses.
 #' 
 #' @param data A list of data blocks. Each element of the list must be of matrix 
-#' type. Rows and columns can have a name, in which case it will be retained 
-#' during analysis. Any pre-processing of the data (e.g. scaling) must be 
-#' carried out before building the list.
+#' type. Rows and columns can be identified (names), in which case this will be 
+#' retained during analysis. Any pre-processing of the data (e.g. scaling) must 
+#' be carried out before building the model.
 #' @param Y A vector, factor, dummy matrix or numerical matrix for the response. 
 #' The type of answer given will condition the model to be used: a numerical 
 #' vector for linear regression, a factor or dummy matrix for logistic 
 #' regression or a discriminant model.
-#' @param maxPcomp Maximum number of Y-predictive components. Default, 1.
-#' @param maxOcomp Maximum number of Y-orthogonal components. Default, 5.
+#' @param maxPcomp Maximum number of Y-predictive components used to build the 
+#' optimal model. Default, 1.
+#' @param maxOcomp Maximum number of Y-orthogonal components used to build the 
+#' optimal model. Default, 5.
 #' @param modelType String for type of OPLS regression model, either \code{reg} 
 #' for regression or \code{da} for discriminant analysis. Default, \code{da}.
-#' @param nperm Number of random permutations desired in response Y. Default, 100.
+#' @param nperm Number of random permutations desired in response Y. Default, 
+#' 100.
 #' @param cvType String for type of cross-validation used. Either \code{nfold} 
 #' for n-fold cross-validation, where \code{nfold} is look up, or \code{mccv} 
 #' for Monte Carlo cross-validation, or \code{mccvb} for Monte Carlo 
 #' class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
-#' Default, \code{nfold}.
+#' Default, \code{nfold}, i.e. \code{nMC} and \code{cvFrac} are ignored.
 #' @param nfold Number of folds performed in n-fold cross-validation. This can 
 #' be set to the number of samples to perform Leave-One-Out cross validation. 
 #' Default, 5.
@@ -604,13 +623,16 @@ setMethod(
 #' @param cvFrac A numeric value indicating the fraction of observations from 
 #' \code{data} used in the training set for \code{mccv} or \code{mccvb} 
 #' cross-validation. Default, 4/5 = 0.8.
-#' @param kernelParams List of parameters for the kernel. Default, 
-#' list(type='p', params = c(order=1.0)).
+#' @param kernelParams List of parameters for the kernel. Either \code{p}
+#' for polynomial kernel, which implies specifying the order of the polynomial 
+#' by the \code{order} parameter, or \code{g} for Gaussian kernel. Default, 
+#' \code{list(type='p', params = c(order=1.0))}.
 #' @param mc.cores Number of cores for parallel computing. Default, 1.
 #' @param verbose A logical indicating if detailed information (cross
 #' validation) will be shown. Default, FALSE.
 #'
-#' @return An object of class \code{ConsensusOPLS}.
+#' @return An object of class \code{ConsensusOPLS} representing the consensus
+#' OPLS model fit.
 #' @examples
 #' data(demo_3_Omics)
 #' datablocks <- lapply(demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)

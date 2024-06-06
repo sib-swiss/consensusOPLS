@@ -477,7 +477,6 @@ rvcopls <- ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
                                           list(type = "p",
                                                params = c(order = 1)),
                                         mc.cores = 1,
-                                        plots = TRUE,
                                         verbose = TRUE)
 ```
 
@@ -843,7 +842,6 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                                list(type = "p", 
                                                     params = c(order = 1)),
                                              mc.cores = 1,
-                                             plots = TRUE,
                                              verbose = TRUE)
 ```
 
@@ -894,7 +892,6 @@ rvcopls <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                            list(type = "p", 
                                                 params = c(order = 2)),
                                          mc.cores = 1,
-                                         plots = TRUE,
                                          verbose = TRUE)
 ```
 
@@ -947,8 +944,7 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                                list(type = "p", 
                                                     params = c(order = 2)),
                                              mc.cores = 1,
-                                             plots = TRUE,
-                                             verbose = FALSE)
+                                             verbose = TRUE)
 ```
 
 
@@ -1000,8 +996,7 @@ ggplot2::ggplot(data = data.frame(
 #                                            list(type = "g", 
 #                                                 params = c(order = 1)),
 #                                          mc.cores = 1,
-#                                          plots = TRUE,
-#                                          verbose = FALSE)
+#                                          verbose = TRUE)
 ```
 
 ```{r print_main_results_R2_kernel3, class.source='fold-hide'}
@@ -1052,8 +1047,7 @@ ggplot2::ggplot(data = data.frame(
 #                                                list(type = "g", 
 #                                                     params = c(order = 1)),
 #                                              mc.cores = 1,
-#                                              plots = TRUE,
-#                                              verbose = FALSE)
+#                                              verbose = TRUE)
 
 #Y=omics.common[['all']][["Survival"]][id2,'Survival'],
 ```
@@ -1121,8 +1115,7 @@ lapply(X = c(1:cores_max),
                                         list(type = "p",
                                              params = c(order = 2)),
                                       mc.cores = cores_tested,
-                                      plots = TRUE,
-                                      verbose = FALSE)
+                                      verbose = TRUE)
          Tend<-Sys.time()
          Tellapsed <- Tend - Tstart
          return(Tellapsed)
@@ -1148,8 +1141,7 @@ lapply(X = c(1:cores_max),
                                         list(type = "p",
                                              params = c(order = 2)),
                                       mc.cores = cores_tested,
-                                      plots = TRUE,
-                                      verbose = FALSE)
+                                      verbose = TRUE)
          Tend<-Sys.time()
          Tellapsed <- Tend - Tstart
          return(Tellapsed)

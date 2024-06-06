@@ -1,11 +1,12 @@
 #' @title Variable Importance in Projection
 #' @description Calculate the VIP (Variable Importance in Projection) for each
-#' variable in a ConsensusOPLS model.
+#' variable in a \code{ConsensusOPLS} model.
 #' 
 #' @param data A list of data blocks.
 #' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
-#' @param model A ConsensusOPLS model Default, NULL, a model will be constructed.
-#' @param ... arguments to pass to \code{ConsensusOPLS}
+#' @param model An object inheriting from class \code{ConsensusOPLS}, 
+#' representing a Consensus OPLS fitted model. Default, NULL, a model will be constructed.
+#' @param ... arguments to pass to \code{ConsensusOPLS}.
 #'
 #' @return A table with the results:
 #' \code{VIP = sqrt(p*q/s)}, where
