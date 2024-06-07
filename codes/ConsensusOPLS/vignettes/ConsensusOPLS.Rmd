@@ -97,7 +97,7 @@ code below has been designed to have as few dependencies as possible on R
 packages, except for the stable packages.
 
 ```{r packages_installation, class.source='fold-hide'}
-pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "plotly", "BiocManager", "ComplexHeatmap")
+pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "BiocManager", "ComplexHeatmap")
 sapply(pkgs, function(x) {
     if (!requireNamespace(x, quietly = TRUE)) {
         install.packages(x)
@@ -113,7 +113,6 @@ library(devtools) # to install some packages
 library(DT) # to make interactive data tables
 library(psych) # to make specific quantitative summaries
 library(ComplexHeatmap) # to make heatmap with density plot
-library(plotly) # to make interactive graphs
 ```
 
 Then we create a uniform theme that will be used for all graphic output.
@@ -474,52 +473,46 @@ names(VIP_plot) <- BlockNames
 
 ```{r plot_VIP, class.source='fold-hide'}
 # Metabo data
-VIP_metabo <- ggplot(data = data.frame(
-    "variables" = factor(names(VIP_plot[[1]]),
-                         levels=names(VIP_plot[[1]])[order(abs(VIP_plot[[1]]), 
-                                                           decreasing=T)]), 
-    "valeur" = VIP_plot[[1]]), 
-    aes(x = variables, y = valeur)) +
-    geom_bar(stat = "identity") +
-    labs(title = paste0("Barplot of ", names(VIP_plot)[1])) +
-    xlab("Predictive variables") +
-    ylab("VIP x loading sign") +
-    theme_graphs +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-ggplotly(VIP_metabo)
-rm(VIP_metabo)
+ggplot(data = data.frame(
+  "variables" = factor(names(VIP_plot[[1]]),
+                       levels=names(VIP_plot[[1]])[order(abs(VIP_plot[[1]]), 
+                                                         decreasing=T)]), 
+  "valeur" = VIP_plot[[1]]), 
+  aes(x = variables, y = valeur)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste0("Barplot of ", names(VIP_plot)[1])) +
+  xlab("Predictive variables") +
+  ylab("VIP x loading sign") +
+  theme_graphs +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
 
 # Microarray data
-VIP_micro <-  ggplot(data = data.frame(
-    "variables" = factor(names(VIP_plot[[2]]),
-                         levels=names(VIP_plot[[2]])[order(abs(VIP_plot[[2]]), 
-                                                           decreasing=T)]), 
-    "valeur" = VIP_plot[[2]]), 
-    aes(x = variables, y = valeur)) +
-    geom_bar(stat = "identity") +
-    labs(title = paste0("Barplot of ", names(VIP_plot)[2])) +
-    xlab("Predictive variables") +
-    ylab("VIP x loading sign") +
-    theme_graphs +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-ggplotly(VIP_micro)
-rm(VIP_micro)
+ggplot(data = data.frame(
+  "variables" = factor(names(VIP_plot[[2]]),
+                       levels=names(VIP_plot[[2]])[order(abs(VIP_plot[[2]]), 
+                                                         decreasing=T)]), 
+  "valeur" = VIP_plot[[2]]), 
+  aes(x = variables, y = valeur)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste0("Barplot of ", names(VIP_plot)[2])) +
+  xlab("Predictive variables") +
+  ylab("VIP x loading sign") +
+  theme_graphs +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
 
 # Proteo data
-VIP_proteo <-  ggplot(data = data.frame(
-    "variables" = factor(names(VIP_plot[[3]]),
-                         levels=names(VIP_plot[[3]])[order(abs(VIP_plot[[3]]), 
-                                                           decreasing=T)]), 
-    "valeur" = VIP_plot[[3]]), 
-    aes(x = variables, y = valeur)) +
-    geom_bar(stat = "identity") +
-    labs(title = paste0("Barplot of ", names(VIP_plot)[3])) +
-    xlab("Predictive variables") +
-    ylab("VIP x loading sign") +
-    theme_graphs +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
-ggplotly(VIP_proteo)
-rm(VIP_proteo)
+ggplot(data = data.frame(
+  "variables" = factor(names(VIP_plot[[3]]),
+                       levels=names(VIP_plot[[3]])[order(abs(VIP_plot[[3]]), 
+                                                         decreasing=T)]), 
+  "valeur" = VIP_plot[[3]]), 
+  aes(x = variables, y = valeur)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste0("Barplot of ", names(VIP_plot)[3])) +
+  xlab("Predictive variables") +
+  ylab("VIP x loading sign") +
+  theme_graphs +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
 ```
 
 One possibility might be to select only the 20 most important components (the 
@@ -692,24 +685,21 @@ The loading plot shows the representation of variables in the two new components
 calculated by the optimal model.
 
 ```{r ggplot_data_loadings, class.source='fold-hide'}
-loadings_plot <- ggplot() +
+ggplot() +
   geom_point(data = as.data.frame(data_loads$V1),
-                      aes(x = Pred, y = Ortho, colour = Labels), 
-                      size = 2.5, alpha = 0.5) + 
+             aes(x = Pred, y = Ortho, colour = Labels), 
+             size = 2.5, alpha = 0.5) + 
   geom_point(data = as.data.frame(data_loads$V2),
-                      aes(x = Pred, y = Ortho, colour = Labels),
-                      size = 2.5, alpha = 0.5) +
+             aes(x = Pred, y = Ortho, colour = Labels),
+             size = 2.5, alpha = 0.5) +
   geom_point(data = as.data.frame(data_loads$V3),
-                      aes(x = Pred, y = Ortho, colour = Labels),
-                      size = 2.5, alpha = 0.5) +
+             aes(x = Pred, y = Ortho, colour = Labels),
+             size = 2.5, alpha = 0.5) +
   xlab("Predictive component") +
   ylab("Orthogonal component") +
   ggtitle("Loadings plot on first orthogonal and predictive component")+
   theme_graphs+
   scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
-
-ggplotly(loadings_plot)
-rm(loadings_plot)
 ```
 
 ## Loading and VIP of the optimal model
@@ -740,17 +730,14 @@ loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
 ```
 
 ```{r ggplot_data_loadings_VIP, class.source='fold-hide'}
-p_loadings_VIP <- ggplot(data = loadings_VIP,
-                                  aes(x=loadings, y=VIP, col=block, label = label)) +
-    geom_point(size = 2.5, alpha = 0.5) + 
-    xlab("Predictive component") +
-    ylab("Variable Importance in Projection") +
-    ggtitle("VIP versus loadings on predictive components")+
-    theme_graphs+
-    scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
-
-ggplotly(p_loadings_VIP)
-rm(p_loadings_VIP)
+ggplot(data = loadings_VIP,
+       aes(x=loadings, y=VIP, col=block, label = label)) +
+  geom_point(size = 2.5, alpha = 0.5) + 
+  xlab("Predictive component") +
+  ylab("Variable Importance in Projection") +
+  ggtitle("VIP versus loadings on predictive components")+
+  theme_graphs+
+  scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
 
