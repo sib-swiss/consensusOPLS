@@ -35,7 +35,10 @@
 ## usethis namespace: end
 NULL
 
-#' A demonstration case study available from a public repository of the 
+#' Three-block omics data
+#'
+#' @name demo_3_Omics
+#' @description A demonstration case study available from a public repository of the 
 #' National Cancer Institute, namely the NCI-60 data set, was used to 
 #' illustrate the method's potential for omics data fusion. A subset of NCI-60 
 #' data (transcriptomics, proteomics and metabolomics) involving experimental 
@@ -43,8 +46,6 @@ NULL
 #' ovary, was used. The object proposed in this package contains, in a list, 
 #' all the information needed to make a model: the three data blocks, a list 
 #' of observation names (samples) and the binary response matrix Y.
-#'
-#' @name demo_3_Omics
 #' @docType data
 #' @author Boccard & Rutledge
 #' @references J. Boccard and D.N. Rutledge. A consensus OPLS-DA strategy for
