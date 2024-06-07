@@ -1,5 +1,5 @@
 ---
-title: 'Consensus OPLS For Multi-Block Data Fusion'
+title: 'Consensus OPLS for Multi-Block Data Fusion'
 author: "Celine Bougel"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 bibliography: ConsensusOPLS.bib
@@ -7,7 +7,7 @@ biblio-style: apalike
 link-citations: yes
 nocite: '@*'
 vignette: >
-  %\VignetteIndexEntry{Consensus OPLS For Multi-Block Data Fusion}
+  %\VignetteIndexEntry{Consensus OPLS for Multi-Block Data Fusion}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:

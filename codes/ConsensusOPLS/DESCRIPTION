@@ -1,5 +1,5 @@
 Package: ConsensusOPLS
-Title: Consensus OPLS For Multi-Block Data Fusion
+Title: Consensus OPLS for Multi-Block Data Fusion
 Description: Merging data from multiple sources is a relevant approach for
     comprehensively evaluating complex systems. However, the inherent problems
     encountered when analyzing single tables are amplified with the generation

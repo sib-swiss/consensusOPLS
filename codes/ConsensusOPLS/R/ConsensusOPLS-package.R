@@ -1,4 +1,4 @@
-#' @title Consensus OPLS For Multi-Block Data Fusion
+#' @title Consensus OPLS for Multi-Block Data Fusion
 #' @description
 #' Merging data from multiple sources is a relevant approach for 
 #' comprehensively evaluating complex systems. However, the inherent problems 
