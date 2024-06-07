@@ -22,29 +22,32 @@ ConsensusOPLS(
 }
 \arguments{
 \item{data}{A list of data blocks. Each element of the list must be of matrix 
-type. Rows and columns can have a name, in which case it will be retained 
-during analysis. Any pre-processing of the data (e.g. scaling) must be 
-carried out before building the list.}
+type. Rows and columns can be identified (names), in which case this will be 
+retained during analysis. Any pre-processing of the data (e.g. scaling) must 
+be carried out before building the model.}
 
 \item{Y}{A vector, factor, dummy matrix or numerical matrix for the response. 
 The type of answer given will condition the model to be used: a numerical 
 vector for linear regression, a factor or dummy matrix for logistic 
 regression or a discriminant model.}
 
-\item{maxPcomp}{Maximum number of Y-predictive components. Default, 1.}
+\item{maxPcomp}{Maximum number of Y-predictive components used to build the 
+optimal model. Default, 1.}
 
-\item{maxOcomp}{Maximum number of Y-orthogonal components. Default, 5.}
+\item{maxOcomp}{Maximum number of Y-orthogonal components used to build the 
+optimal model. Default, 5.}
 
 \item{modelType}{String for type of OPLS regression model, either \code{reg} 
 for regression or \code{da} for discriminant analysis. Default, \code{da}.}
 
-\item{nperm}{Number of random permutations desired in response Y. Default, 100.}
+\item{nperm}{Number of random permutations desired in response Y. Default, 
+100.}
 
 \item{cvType}{String for type of cross-validation used. Either \code{nfold} 
 for n-fold cross-validation, where \code{nfold} is look up, or \code{mccv} 
 for Monte Carlo cross-validation, or \code{mccvb} for Monte Carlo 
 class-balanced cross-validation, where \code{nMC} and \code{cvFrac} are used.
-Default, \code{nfold}.}
+Default, \code{nfold}, i.e. \code{nMC} and \code{cvFrac} are ignored.}
 
 \item{nfold}{Number of folds performed in n-fold cross-validation. This can 
 be set to the number of samples to perform Leave-One-Out cross validation. 
@@ -57,8 +60,10 @@ Default, 5.}
 \code{data} used in the training set for \code{mccv} or \code{mccvb} 
 cross-validation. Default, 4/5 = 0.8.}
 
-\item{kernelParams}{List of parameters for the kernel. Default, 
-list(type='p', params = c(order=1.0)).}
+\item{kernelParams}{List of parameters for the kernel. Either \code{p}
+for polynomial kernel, which implies specifying the order of the polynomial 
+by the \code{order} parameter, or \code{g} for Gaussian kernel. Default, 
+\code{list(type='p', params = c(order=1.0))}.}
 
 \item{mc.cores}{Number of cores for parallel computing. Default, 1.}
 
@@ -66,10 +71,11 @@ list(type='p', params = c(order=1.0)).}
 validation) will be shown. Default, FALSE.}
 }
 \value{
-An object of class \code{ConsensusOPLS}.
+An object of class \code{ConsensusOPLS} representing the consensus
+OPLS model fit.
 }
 \description{
-Constructs the consensus OPLS model with an optimal number of orthogonal 
+Constructs the consensus OPLS model with the optimal number of orthogonal 
 components for given data blocks and response, and evaluate the model 
 quality w.r.t other models built with randomly permuted responses.
 }

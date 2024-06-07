@@ -3,9 +3,23 @@
 \docType{data}
 \name{demo_3_Omics}
 \alias{demo_3_Omics}
-\title{Three-block omics data}
+\title{A demonstration case study available from a public repository of the 
+National Cancer Institute, namely the NCI-60 data set, was used to 
+illustrate the method's potential for omics data fusion. A subset of NCI-60 
+data (transcriptomics, proteomics and metabolomics) involving experimental 
+data from 14 cancer cell lines from two tissue origins, i.e. colon and 
+ovary, was used. The object proposed in this package contains, in a list, 
+all the information needed to make a model: the three data blocks, a list 
+of observation names (samples) and the binary response matrix Y.}
 \description{
-Three-block omics data
+A demonstration case study available from a public repository of the 
+National Cancer Institute, namely the NCI-60 data set, was used to 
+illustrate the method's potential for omics data fusion. A subset of NCI-60 
+data (transcriptomics, proteomics and metabolomics) involving experimental 
+data from 14 cancer cell lines from two tissue origins, i.e. colon and 
+ovary, was used. The object proposed in this package contains, in a list, 
+all the information needed to make a model: the three data blocks, a list 
+of observation names (samples) and the binary response matrix Y.
 }
 \references{
 J. Boccard and D.N. Rutledge. A consensus OPLS-DA strategy for

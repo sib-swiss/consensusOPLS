@@ -11,9 +11,10 @@ VIP(data, Y, model = NULL, ...)
 
 \item{Y}{A vector, factor, dummy matrix or numerical matrix for the response.}
 
-\item{model}{A ConsensusOPLS model Default, NULL, a model will be constructed.}
+\item{model}{An object inheriting from class \code{ConsensusOPLS}, 
+representing a Consensus OPLS fitted model. Default, NULL, a model will be constructed.}
 
-\item{...}{arguments to pass to \code{ConsensusOPLS}}
+\item{...}{arguments to pass to \code{ConsensusOPLS}.}
 }
 \value{
 A table with the results:
@@ -24,7 +25,7 @@ A table with the results:
 }
 \description{
 Calculate the VIP (Variable Importance in Projection) for each
-variable in a ConsensusOPLS model.
+variable in a \code{ConsensusOPLS} model.
 }
 \examples{
 vip <- VIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
