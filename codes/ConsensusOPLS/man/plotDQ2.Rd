@@ -11,7 +11,7 @@ plotDQ2(
   xlab = "DQ2",
   main = "DQ2 in models with permuted response",
   col = "blue",
-  lty = 2,
+  lty = "dashed",
   ...
 )
 
@@ -21,7 +21,7 @@ plotDQ2(
   xlab = "DQ2",
   main = "DQ2 in models with permuted response",
   col = "blue",
-  lty = 2,
+  lty = "dashed",
   ...
 )
 }

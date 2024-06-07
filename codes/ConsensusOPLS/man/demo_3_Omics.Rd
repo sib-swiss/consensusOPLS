@@ -5,9 +5,9 @@
 \alias{demo_3_Omics}
 \title{Three-block omics data}
 \description{
-A demonstration case study available from a public repository of the 
-National Cancer Institute, namely the NCI-60 data set, was used to 
-illustrate the method's potential for omics data fusion. A subset of NCI-60 
+A demonstration case study available from a public repository
+of the National Cancer Institute, namely the NCI-60 data set, was used to 
+illustrate the method's potential for omics data fusion. A subset of NCI-60
 data (transcriptomics, proteomics and metabolomics) involving experimental 
 data from 14 cancer cell lines from two tissue origins, i.e. colon and 
 ovary, was used. The object proposed in this package contains, in a list, 

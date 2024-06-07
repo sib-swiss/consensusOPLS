@@ -23,7 +23,7 @@ following the \code{response}.}
 
 \item{pch}{Graphic symbol. Default, 19.}
 
-\item{...}{\code{plot} arguments.}
+\item{...}{\code{\link{plot}} arguments.}
 }
 \description{
 Plot of samples in the space of latent variables of the optimal model.

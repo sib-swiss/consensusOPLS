@@ -46,7 +46,7 @@ NULL, 2 to \code{length(blockId)+1}.}
 
 \item{ylab}{Y-axis label. Default, NULL, VIP on \code{comp}.}
 
-\item{...}{\code{plot} arguments.}
+\item{...}{\code{\link{plot}} arguments.}
 }
 \description{
 Plot of VIP versus variable loadings in the optimal model.

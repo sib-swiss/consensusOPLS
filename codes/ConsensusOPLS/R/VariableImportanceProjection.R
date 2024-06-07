@@ -3,22 +3,25 @@
 #' variable in a \code{ConsensusOPLS} model.
 #' 
 #' @param data A list of data blocks.
-#' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
+#' @param Y A vector, factor, dummy matrix or numeric matrix for the response.
 #' @param model An object inheriting from class \code{ConsensusOPLS}, 
-#' representing a Consensus OPLS fitted model. Default, NULL, a model will be constructed.
-#' @param ... arguments to pass to \code{ConsensusOPLS}.
+#' representing a Consensus OPLS fitted model. Default, NULL, a model will be
+#' constructed.
+#' @param ... \code{RVConsensusOPLS} arguments.
 #'
-#' @return A table with the results:
+#' @return A list of VIP for variables in the data blocks:
 #' \code{VIP = sqrt(p*q/s)}, where
 #' \code{p} is the number of variables in each block,
 #' \code{q} the explained variance of Y associated to each variable, and 
 #' \code{s} the total Y variance explained by the model.
 #'
 #' @examples
-#' vip <- VIP(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
-#'            Y=demo_3_Omics$Y)
+#' vip <- ConsensusOPLS:::VIP(
+#'     data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
+#'     Y=demo_3_Omics$Y)
 #' str(vip)
-#' @export
+#' @keywords internal
+#' @noRd
 #' 
 VIP <- function(data, Y, model = NULL, ...) {
     # Variable format control
@@ -38,13 +41,13 @@ VIP <- function(data, Y, model = NULL, ...) {
         nsample   <- nrow(model$scores)
         ncomp     <- ncol(model$scores)
         
-        #nclass x ncomp
+        # nclass x ncomp
         Qs <- crossprod(Y, model$scores) %*% diag(1/diag(crossprod(model$scores)), 
                                                           ncol=ncomp)
-        #nsample x ncomp
+        # nsample x ncomp
         Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)), 
                                            ncol=ncomp)
-        #nvariable x ncomp
+        # nvariable x ncomp
         Ws <- crossprod(data[[itable]], Us) %*% diag(1/diag(crossprod(Us)), 
                                                      ncol=ncomp)
         Ws <- apply(Ws, 2, function(x) x/norm(x, type='2'))

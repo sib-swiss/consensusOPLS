@@ -26,8 +26,8 @@ type. Rows and columns can be identified (names), in which case this will be
 retained during analysis. Any pre-processing of the data (e.g. scaling) must 
 be carried out before building the model.}
 
-\item{Y}{A vector, factor, dummy matrix or numerical matrix for the response. 
-The type of answer given will condition the model to be used: a numerical 
+\item{Y}{A vector, factor, dummy matrix or numeric matrix for the response. 
+The type of answer given will condition the model to be used: a numeric 
 vector for linear regression, a factor or dummy matrix for logistic 
 regression or a discriminant model.}
 

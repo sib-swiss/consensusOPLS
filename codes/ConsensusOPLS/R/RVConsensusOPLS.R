@@ -4,7 +4,7 @@
 #' DQ2 computation for discriminant analysis.
 #' 
 #' @param data A list of numeric matrices.
-#' @param Y A vector, factor, dummy matrix or numerical matrix for the response.
+#' @param Y A vector, factor, dummy matrix or numeric matrix for the response.
 #' @param maxPcomp Maximum number of Y-predictive components. 
 #' @param maxOcomp Maximum number of Y-orthogonal components.
 #' @param nfold Number of cross-validation rounds (integer).
@@ -27,7 +27,7 @@
 #' data(demo_3_Omics)
 #' ConsensusOPLS:::RVConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], 
 #'                                 Y=demo_3_Omics$Y, modelType="da", maxPcomp=1, mc.cores=1, nfold=3)
-#' @importFrom parallel mclapply
+#' @import parallel
 #' @keywords internal
 #' @noRd
 #' 

@@ -6,7 +6,7 @@
 #' of multi-block datasets, and finding the relationships between data layers 
 #' of increasing complexity constitutes a challenging task. For that purpose, 
 #' a generic methodology is proposed by combining the strengths of established 
-#' data analysis strategies, i.e. multi-block approaches and the OPLS framework 
+#' data analysis strategies, i.e. multi-block approaches and the OPLS framework
 #' to provide an efficient tool for the fusion of data obtained from multiple 
 #' sources. The package enables quick and efficient implementation of the 
 #' consensus OPLS model for any horizontal multi-block data structure 
@@ -38,9 +38,9 @@ NULL
 #' Three-block omics data
 #'
 #' @name demo_3_Omics
-#' @description A demonstration case study available from a public repository of the 
-#' National Cancer Institute, namely the NCI-60 data set, was used to 
-#' illustrate the method's potential for omics data fusion. A subset of NCI-60 
+#' @description A demonstration case study available from a public repository
+#' of the National Cancer Institute, namely the NCI-60 data set, was used to 
+#' illustrate the method's potential for omics data fusion. A subset of NCI-60
 #' data (transcriptomics, proteomics and metabolomics) involving experimental 
 #' data from 14 cancer cell lines from two tissue origins, i.e. colon and 
 #' ovary, was used. The object proposed in this package contains, in a list, 

@@ -11,7 +11,7 @@ plotQ2(
   xlab = "Q2",
   main = "Q2 in models with permuted response",
   col = "blue",
-  lty = 2,
+  lty = "dashed",
   ...
 )
 
@@ -21,7 +21,7 @@ plotQ2(
   xlab = "Q2",
   main = "Q2 in models with permuted response",
   col = "blue",
-  lty = 2,
+  lty = "dashed",
   ...
 )
 }

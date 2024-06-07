@@ -12,7 +12,7 @@ encountered when analyzing single tables are amplified with the generation
 of multi-block datasets, and finding the relationships between data layers 
 of increasing complexity constitutes a challenging task. For that purpose, 
 a generic methodology is proposed by combining the strengths of established 
-data analysis strategies, i.e. multi-block approaches and the OPLS framework 
+data analysis strategies, i.e. multi-block approaches and the OPLS framework
 to provide an efficient tool for the fusion of data obtained from multiple 
 sources. The package enables quick and efficient implementation of the 
 consensus OPLS model for any horizontal multi-block data structure 

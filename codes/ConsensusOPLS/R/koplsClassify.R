@@ -1,39 +1,10 @@
-#' @title koplsBasicClassify (deprecated)
-#' @description Classification function that assesses class belonging of a 
-#' predicted response in \code{data} based on a fixed threshold \code{k}.
-#'
-#' @param X matrix. It contains the predicted response matrix Y,
-#' where columns denote classes and rows observations.
-#' @param k numeric. Threshold value used to assign class categories.
-#'
-#' @return Predicted classification.
-#'
-#' @keywords internal
-#' @noRd
-#' 
-koplsBasicClassify <- function(X, k) {
-    # Variable format control
-    if (!is.matrix(X)) stop("X is not a matrix.")
-    if (!is.numeric(k)) stop("k is not numeric.")
-    
-    # Search predicted class(es)
-    predClass <- colnames(X)[apply(X > k, MARGIN = 1, 
-                                   FUN = function(row) which(row))]
-    
-    return (predClass)
-}
-
-
-
 #' @title koplsMaxClassify
-#' @description Classification function that assesses class belonging of 
-#' \code{data} based on the maximum value.
-#' 
-#' @param X matrix. It contains the predicted response matrix Y, where 
-#' columns denote classes and rows observations.
+#' @description The function assign a sample to the class with maximum
+#' predicted response.
+#' @param X A numeric matrix of predicted responses, with class in columns and
+#' sample in rows.
 #'
-#' @return
-#' \item{predClass}{ matrix. It contains the predicted class(es) of \code{data}.}
+#' @return A vector of classes for all samples.
 #'
 #' @examples
 #' data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),
@@ -50,7 +21,7 @@ koplsMaxClassify <- function(X) {
     # Variable format control
     if (!is.matrix(X)) stop("X is not a matrix.")
     
-    # Search max position
+    # Search position of max value
     predClass <- colnames(X)[apply(X = X, MARGIN = 1,
                                    FUN = function(row) which.max(row))]
     

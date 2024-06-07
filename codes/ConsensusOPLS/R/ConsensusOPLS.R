@@ -1,9 +1,7 @@
 #' @title \code{ConsensusOPLS} S4 class
-#' @description An object return by the \code{ConsensusOPLS} function, 
-#' inheriting from class \code{ConsensusOPLS}, and representing a fitted 
-#' Consensus OPLS model.
-#' @details The following components must be included in a legitimate 
-#' \code{ConsensusOPLS} object.
+#' @description An object returned by the \code{ConsensusOPLS} function,
+#' of class \code{ConsensusOPLS}, and representing a fitted Consensus OPLS
+#' model.
 #' @slot modelType The type of requested OPLS regression model.
 #' @slot response The provided response variable (Y).
 #' @slot nPcomp Number of Y-predictive components (latent variables) of the 
@@ -14,14 +12,14 @@
 #' \code{lambda} values) to the latent variables.
 #' @slot scores Representation of the samples in the latent variables of the 
 #' optimal model.
-#' @slot loadings Contribution of each block's variables to the latent variables 
-#' of the optimal model.
-#' @slot VIP Variable importance in projection (VIP) for each block of data, 
-#' assessing the relevance of the variables in explaining the variation in the 
+#' @slot loadings Contribution of each block's variables to the latent
+#' variables of the optimal model.
+#' @slot VIP Variable importance in projection (VIP) for each block of data,
+#' assessing the relevance of the variables in explaining the variation in the
 #' response.
-#' @slot R2X Proportion of variation in data blocks explained by the optimal 
+#' @slot R2X Proportion of variation in data blocks explained by the optimal
 #' model.
-#' @slot R2Y Proportion of variation in the response explained by the optimal 
+#' @slot R2Y Proportion of variation in the response explained by the optimal
 #' model.
 #' @slot Q2 Predictive ability of the optimal model.
 #' @slot DQ2 Predictive ability of the optimal model, for discriminant analysis.
@@ -30,7 +28,7 @@
 #' \code{AllYhat} (all predicted Y values as a concatenated matrix), 
 #' \code{cvTestIndex} (indexes for the test set observations during the 
 #' cross-validation rounds), \code{DQ2Yhat} (total discriminant Q-square result 
-#' for all Y-orthogonal components.), \code{nOcompOpt} (optimal number of 
+#' for all Y-orthogonal components), \code{nOcompOpt} (optimal number of 
 #' Y-orthogonal components (latent variables) for the optimal model), and 
 #' \code{Q2Yhat} (total Q-square result for all Y-orthogonal components).
 #' @name ConsensusOPLS-class
@@ -63,6 +61,7 @@ setMethod(
     f = "show", signature = "ConsensusOPLS",
     definition = function(object) {
         cat("***Optimal Consensus OPLS model***\n")
+        cat("\nMode: ", object@modelType, "\n")
         cat("\nNumber of predictive components: ", object@nPcomp, "\n")
         cat("\nNumber of orthogonal components: ", object@nOcomp, "\n")
         cat("\nBlock contribution:\n")
@@ -81,7 +80,7 @@ setMethod(
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
-#' @param ... \code{barplot} arguments.
+#' @param ... \code{\link{barplot}} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotContribution
@@ -102,7 +101,7 @@ setGeneric(
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
-#' @param ... \code{barplot} arguments.
+#' @param ... \code{\link{barplot}} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotContribution
@@ -124,7 +123,7 @@ setMethod(
                 legend.text=T, 
                 args.legend=list(x="topright", inset=c(-0.3, 0), 
                                  title="Block",
-                                 cex=0.9, bty='n')
+                                 cex=0.8, bty='n')
                 )
     }
 )
@@ -141,7 +140,7 @@ setMethod(
 #' @param col A vector of color codes or names. Default, NULL, generated
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
-#' @param ... \code{plot} arguments.
+#' @param ... \code{\link{plot}} arguments.
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -170,7 +169,7 @@ setGeneric(
 #' @param col A vector of color codes or names. Default, NULL, generated
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
-#' @param ... \code{plot} arguments.
+#' @param ... \code{\link{plot}} arguments.
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -188,16 +187,15 @@ setMethod(
                       comp2 %in% colnames(object@scores))
         if (is.null(col)) {
             if (object@modelType=='da') {
-                response <- factor(object@response, levels=unique(object@response))
+                response <- factor(as.character(object@response),
+                                   levels=unique(as.character(object@response)))
                 col <- c(1:nlevels(response)+1)[response]
                 
-                par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+                par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
                 plot(object@scores[, c(comp1, comp2)], col=col, pch=pch, ...)
-                legend("topright", inset=c(-0.4, 0), 
-                       legend=levels(response),
+                legend('topright', inset=c(-0.3, 0), legend=levels(response),
                        col=c(1:nlevels(response)+1), pch=pch,
-                       title="Response",
-                       cex=0.9, bty='n')
+                       title="Response", cex=0.8, bty='n')
             } else {
                 col.breaks <- cut(object@response, breaks=10)
                 val.breaks <- as.numeric(unique(
@@ -205,6 +203,7 @@ setMethod(
                                                         split=",")))))
                 rbPal <- colorRampPalette(c('blue', "ivory"))
                 col <- rbPal(10)[as.numeric(col.breaks)]
+                
                 layout(matrix(1:2, ncol=2), widths=c(3,1), heights=c(1,1))
                 plot(object@scores[, c(comp1, comp2)], col=col, pch=pch, ...)
                 legend_image <- as.raster(matrix(sort(col), ncol=1))
@@ -237,7 +236,7 @@ setMethod(
 #' NULL, 2 to \code{length(blockId)+1}.
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
-#' @param ... \code{plot} arguments.
+#' @param ... \code{\link{plot}} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -269,7 +268,7 @@ setGeneric(
 #' NULL, 2 to \code{length(blockId)+1}.
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
-#' @param ... \code{plot} arguments.
+#' @param ... \code{\link{plot}} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -293,17 +292,17 @@ setMethod(
         
         loadings <- do.call(rbind.data.frame, object@loadings[blockId])
         
-        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+        par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
         plot(loadings[, c(comp1, comp2)], 
              col=col[factor(unlist(lapply(blockId, function(x) 
                  rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              pch=pch[factor(unlist(lapply(blockId, function(x) 
                  rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              ...)
-        legend("topright", inset=c(-0.4, 0), 
+        legend("topright", inset=c(-0.3, 0), 
                legend=names(object@loadings[blockId]),
                col=col, pch=pch, title="Block",
-               cex=0.9, bty='n')
+               cex=0.8, bty='n')
     }
 )
 
@@ -321,7 +320,7 @@ setMethod(
 #' 1 to \code{length(blockId)}.
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
-#' @param ... \code{plot} arguments.
+#' @param ... \code{\link{plot}} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -354,7 +353,7 @@ setGeneric(
 #' 1 to \code{length(blockId)}.
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
-#' @param ... \code{plot} arguments.
+#' @param ... \code{\link{plot}} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -383,7 +382,7 @@ setMethod(
         loadings_VIP <- cbind.data.frame(loadings, VIPs[rownames(loadings),])
         colnames(loadings_VIP) <- c("loadings", "VIP")
         
-        par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+        par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
         plot(loadings_VIP, 
              col=col[factor(unlist(lapply(blockId, function(x) 
                  rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
@@ -392,10 +391,10 @@ setMethod(
              xlab=if (is.null(xlab)) paste0("Loadings on ", comp) else xlab,
              ylab=if (is.null(ylab)) paste0("VIP on ", comp) else ylab,
              ...)
-        legend("topright", inset=c(-0.4, 0), 
+        legend("topright", inset=c(-0.3, 0), 
                legend=names(object@loadings[blockId]),
                col=col, pch=pch, title="Block",
-               cex=0.9, bty='n')
+               cex=0.8, bty='n')
     }
 )
 
@@ -422,7 +421,7 @@ setGeneric(
                    xlab = "Q2",
                    main = "Q2 in models with permuted response",
                    col = "blue",
-                   lty = 2,
+                   lty = "dashed",
                    ...) {
         standardGeneric("plotQ2")
     }
@@ -452,11 +451,11 @@ setMethod(
                           xlab = "Q2",
                           main = "Q2 in models with permuted response",
                           col = "blue",
-                          lty = 2,
+                          lty = "dashed",
                           ...) {
-        hist(object@permStats$Q2Y[-1], breaks=breaks, probability=T,
+        hist(object@permStats$Q2Y, breaks=breaks, probability=T,
              xlab=xlab, main=main, ...)
-        lines(density(object@permStats$Q2Y[-1]))
+        lines(density(object@permStats$Q2Y))
         abline(v=object@permStats$Q2Y[1], col=col, lty=lty, xpd=F)
     }
 )
@@ -484,7 +483,7 @@ setGeneric(
                    xlab = "DQ2",
                    main = "DQ2 in models with permuted response",
                    col = "blue",
-                   lty = 2,
+                   lty = "dashed",
                    ...) {
         standardGeneric("plotDQ2")
     }
@@ -514,13 +513,13 @@ setMethod(
                           xlab = "DQ2",
                           main = "DQ2 in models with permuted response",
                           col = "blue",
-                          lty = 2,
+                          lty = "dashed",
                           ...) {
         stopifnot(length(object@permStats$DQ2Y) > 0)
         
-        hist(object@permStats$DQ2Y[-1], breaks=breaks, probability=T,
+        hist(object@permStats$DQ2Y, breaks=breaks, probability=T,
              xlab=xlab, main=main, ...)
-        lines(density(object@permStats$DQ2Y[-1]))
+        lines(density(object@permStats$DQ2Y))
         abline(v=object@permStats$DQ2Y[1], col=col, lty=lty, xpd=F)
     }
 )
@@ -598,8 +597,8 @@ setMethod(
 #' type. Rows and columns can be identified (names), in which case this will be 
 #' retained during analysis. Any pre-processing of the data (e.g. scaling) must 
 #' be carried out before building the model.
-#' @param Y A vector, factor, dummy matrix or numerical matrix for the response. 
-#' The type of answer given will condition the model to be used: a numerical 
+#' @param Y A vector, factor, dummy matrix or numeric matrix for the response. 
+#' The type of answer given will condition the model to be used: a numeric 
 #' vector for linear regression, a factor or dummy matrix for logistic 
 #' regression or a discriminant model.
 #' @param maxPcomp Maximum number of Y-predictive components used to build the 

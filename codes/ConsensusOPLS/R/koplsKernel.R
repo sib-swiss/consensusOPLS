@@ -8,10 +8,10 @@
 #'
 #' @param X1 matrix. The first X matrix (non-centered). This is the left side in 
 #' the expression K = <phi(X1), phi(X2)>.
-#' @param X2 matrix. The second X matrix (non-centered). This is the right side in the 
-#' expression K = <phi(X1), phi(X2)>. If X2 = [] (empty set), then only X1 will 
-#' be used for the calculations. This way, only (n^2 - n)/2 instead of n^2 
-#' calculations have to be performed, which is typically much faster. Only 
+#' @param X2 matrix. The second X matrix (non-centered). This is the right side
+#' in the expression K = <phi(X1), phi(X2)>. If X2 = [] (empty set), then only
+#' X1 will be used for the calculations. This way, only (n^2 - n)/2 instead of
+#' n^2 calculations have to be performed, which is typically much faster. Only
 #' applicable for pure training or testing kernels.
 #' @param type character. Indicates the type of kernel used. Supported entries 
 #' are \code{g} for Gaussian kernel, and \code{p} for Polynomial kernel. 
@@ -43,7 +43,7 @@ koplsKernel <- function(X1, X2 = NULL, type = 'p', params = c(order=1.0)) {
         stop("X2 is not a matrix.")
     if (!is.vector(params) || !is.numeric(params)) 
         stop("params must be a numeric vector.")
-    type <- match.arg(type, choices=c('p'))
+    type <- match.arg(type, choices=c('p', 'g'))
     
     if (type == "g") { # Define Gaussian Kernel
         #TODO: check why the kernel matrix becomes identity matrix when there are more variables than samples
