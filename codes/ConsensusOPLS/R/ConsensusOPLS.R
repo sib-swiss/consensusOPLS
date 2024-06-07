@@ -188,7 +188,7 @@ setMethod(
                       comp2 %in% colnames(object@scores))
         if (is.null(col)) {
             if (object@modelType=='da') {
-                response <- factor(object@response)
+                response <- factor(object@response, levels=unique(object@response))
                 col <- c(1:nlevels(response)+1)[response]
                 
                 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
@@ -296,9 +296,9 @@ setMethod(
         par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
         plot(loadings[, c(comp1, comp2)], 
              col=col[factor(unlist(lapply(blockId, function(x) 
-                 rep(x, nrow(object@loadings[[x]])))))],
+                 rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              pch=pch[factor(unlist(lapply(blockId, function(x) 
-                 rep(x, nrow(object@loadings[[x]])))))],
+                 rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              ...)
         legend("topright", inset=c(-0.4, 0), 
                legend=names(object@loadings[blockId]),
@@ -386,9 +386,9 @@ setMethod(
         par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
         plot(loadings_VIP, 
              col=col[factor(unlist(lapply(blockId, function(x) 
-                 rep(x, nrow(object@loadings[[x]])))))],
+                 rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              pch=pch[factor(unlist(lapply(blockId, function(x)
-                 rep(x, nrow(object@loadings[[x]])))))],
+                 rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              xlab=if (is.null(xlab)) paste0("Loadings on ", comp) else xlab,
              ylab=if (is.null(ylab)) paste0("VIP on ", comp) else ylab,
              ...)
