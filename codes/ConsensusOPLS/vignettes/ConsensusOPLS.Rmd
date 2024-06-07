@@ -389,8 +389,7 @@ copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
                           cvFrac = 4/5,
                           kernelParams = list(type = "p", 
                                               params = c(order = 1)),
-                          mc.cores = 1,
-                          verbose = TRUE)
+                          mc.cores = 1)
 ```
 
 This model gives the results for:
@@ -401,9 +400,6 @@ copls.da
 
 print("List of available outputs in the ConsensusOPLS object:")
 summary(attributes(copls.da))
-
-print("List of available CV results in the ConsensusOPLS object:")
-names(copls.da@cv)
 ```
 
 
