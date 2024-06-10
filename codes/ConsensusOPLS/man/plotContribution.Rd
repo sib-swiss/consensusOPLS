@@ -15,7 +15,7 @@ plotContribution(object, col = NULL, ...)
 \item{col}{A vector of color codes or names, one for each block. Default,
 NULL, 2 to number of blocks + 1.}
 
-\item{...}{\code{\link{barplot}} arguments.}
+\item{...}{\code{barplot} arguments.}
 }
 \description{
 Plot of relative contribution of each data block in the optimal model.

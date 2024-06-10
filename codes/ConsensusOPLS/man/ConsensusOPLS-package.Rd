@@ -4,7 +4,7 @@
 \name{ConsensusOPLS-package}
 \alias{ConsensusOPLS-package}
 \alias{_PACKAGE}
-\title{Consensus OPLS For Multi-Block Data Fusion}
+\title{Consensus OPLS for Multi-Block Data Fusion}
 \description{
 Merging data from multiple sources is a relevant approach for 
 comprehensively evaluating complex systems. However, the inherent problems 
@@ -40,7 +40,12 @@ Authors:
   \item Celine Bougel \email{celine.bougel@laposte.net} (\href{https://orcid.org/0000-0002-1598-7827}{ORCID})
   \item Julien Boccard \email{julien.boccard@unige.ch} (\href{https://orcid.org/0000-0001-5913-9566}{ORCID})
   \item Florence Mehl \email{florence.mehl@sib.swiss} (\href{https://orcid.org/0000-0002-9619-1707}{ORCID})
-  \item Marie Tremblay-Franco \email{marie.tremblay-franco@inrae.fr} (\href{https://orcid.org/0000-0003-4678-4456}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Marie Tremblay-Franco \email{marie.tremblay-franco@inrae.fr} (\href{https://orcid.org/0000-0003-4678-4456}{ORCID}) [funder]
+  \item Mark Ibberson \email{mark.ibberson@sib.swiss} (\href{https://orcid.org/0000-0003-3152-5670}{ORCID}) [funder]
 }
 
 }

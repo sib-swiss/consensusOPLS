@@ -43,7 +43,7 @@ NULL, 2 to \code{length(blockId)+1}.}
 \item{pch}{A vector of graphic symbols, one for each block. Default, NULL,
 1 to \code{length(blockId)}.}
 
-\item{...}{\code{\link{plot}} arguments.}
+\item{...}{\code{plot} arguments.}
 }
 \description{
 Plot of variable loadings in the optimal model.

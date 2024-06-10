@@ -16,7 +16,7 @@ Description: Merging data from multiple sources is a relevant approach for
     Interpretation tools include scores and loadings plots, as well as
     Variable Importance in Projection (VIP), and performance coefficients such
     as R2, Q2 and DQ2 coefficients.
-Version: 1.0
+Version: 1.0.0
 Authors@R:
   c(person(given = "Celine",
            family = "Bougel",
@@ -35,9 +35,14 @@ Authors@R:
            comment = c(ORCID = "0000-0002-9619-1707")),
     person(given = "Marie",
            family = "Tremblay-Franco",
-           role = c("aut"),
+           role = c("fnd"),
            email = "marie.tremblay-franco@inrae.fr",
            comment = c(ORCID = "0000-0003-4678-4456")),
+    person(given = "Mark",
+           family = "Ibberson",
+           role = c("fnd"),
+           email = "mark.ibberson@sib.swiss",
+           comment = c(ORCID = "0000-0003-3152-5670")),
     person(given = "Van Du T.",
            family = "Tran",
            role = c("aut", "cre"),

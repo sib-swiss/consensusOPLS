@@ -80,7 +80,7 @@ setMethod(
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
-#' @param ... \code{\link{barplot}} arguments.
+#' @param ... \code{barplot} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotContribution
@@ -101,7 +101,7 @@ setGeneric(
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
-#' @param ... \code{\link{barplot}} arguments.
+#' @param ... \code{barplot} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotContribution
@@ -140,7 +140,7 @@ setMethod(
 #' @param col A vector of color codes or names. Default, NULL, generated
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
-#' @param ... \code{\link{plot}} arguments.
+#' @param ... \code{plot} arguments.
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -169,7 +169,7 @@ setGeneric(
 #' @param col A vector of color codes or names. Default, NULL, generated
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
-#' @param ... \code{\link{plot}} arguments.
+#' @param ... \code{plot} arguments.
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -236,7 +236,7 @@ setMethod(
 #' NULL, 2 to \code{length(blockId)+1}.
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
-#' @param ... \code{\link{plot}} arguments.
+#' @param ... \code{plot} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -268,7 +268,7 @@ setGeneric(
 #' NULL, 2 to \code{length(blockId)+1}.
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
-#' @param ... \code{\link{plot}} arguments.
+#' @param ... \code{plot} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -320,7 +320,7 @@ setMethod(
 #' 1 to \code{length(blockId)}.
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
-#' @param ... \code{\link{plot}} arguments.
+#' @param ... \code{plot} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -353,7 +353,7 @@ setGeneric(
 #' 1 to \code{length(blockId)}.
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
-#' @param ... \code{\link{plot}} arguments.
+#' @param ... \code{plot} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -402,14 +402,14 @@ setMethod(
 #' @title Q2 plot
 #' @description Plot of Q2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
+#' @param breaks See \code{hist}.
+#' @param xlab See \code{hist}.
+#' @param main See \code{hist}.
 #' @param col A color code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
+#' See \code{abline}.
 #' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
+#' See \code{abline}.
+#' @param ... \code{hist} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotQ2
@@ -431,14 +431,14 @@ setGeneric(
 #' @title Q2 plot
 #' @description Plot of Q2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
+#' @param breaks See \code{hist}.
+#' @param xlab See \code{hist}.
+#' @param main See \code{hist}.
 #' @param col A color code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
+#' See \code{abline}.
 #' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
+#' See \code{abline}.
+#' @param ... \code{hist} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotQ2
@@ -464,14 +464,14 @@ setMethod(
 #' @title DQ2 plot
 #' @description Plot of DQ2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
+#' @param breaks See \code{hist}.
+#' @param xlab See \code{hist}.
+#' @param main See \code{hist}.
 #' @param col A color code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
+#' See \code{abline}.
 #' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
+#' See \code{abline}.
+#' @param ... \code{hist} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotDQ2
@@ -493,14 +493,14 @@ setGeneric(
 #' @title DQ2 plot
 #' @description Plot of DQ2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
+#' @param breaks See \code{hist}.
+#' @param xlab See \code{hist}.
+#' @param main See \code{hist}.
 #' @param col A color code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
+#' See \code{abline}.
 #' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
+#' See \code{abline}.
+#' @param ... \code{hist} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotDQ2
@@ -528,14 +528,14 @@ setMethod(
 #' @title R2 plot
 #' @description Plot of R2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
+#' @param breaks See \code{hist}.
+#' @param xlab See \code{hist}.
+#' @param main See \code{hist}.
 #' @param col A color code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
+#' See \code{abline}.
 #' @param lty A line type code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
+#' See \code{abline}.
+#' @param ... \code{hist} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotR2
@@ -557,14 +557,14 @@ setGeneric(
 #' @title R2 plot
 #' @description Plot of R2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param breaks See \code{\link{hist}}.
-#' @param xlab See \code{\link{hist}}.
-#' @param main See \code{\link{hist}}.
+#' @param breaks See \code{hist}.
+#' @param xlab See \code{hist}.
+#' @param main See \code{hist}.
 #' @param col A color code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
+#' See \code{abline}.
 #' @param lty A line type code or name for R2 in the optimal model. Default, 2.
-#' See \code{\link{abline}}.
-#' @param ... \code{\link{hist}} arguments.
+#' See \code{abline}.
+#' @param ... \code{hist} arguments.
 #' @import graphics
 #' @export
 #' @rdname plotR2

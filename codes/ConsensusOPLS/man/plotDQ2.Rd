@@ -28,19 +28,19 @@ plotDQ2(
 \arguments{
 \item{object}{An object of class \code{ConsensusOPLS}.}
 
-\item{breaks}{See \code{\link{hist}}.}
+\item{breaks}{See \code{hist}.}
 
-\item{xlab}{See \code{\link{hist}}.}
+\item{xlab}{See \code{hist}.}
 
-\item{main}{See \code{\link{hist}}.}
+\item{main}{See \code{hist}.}
 
 \item{col}{A color code or name for DQ2 in the optimal model. Default, 2.
-See \code{\link{abline}}.}
+See \code{abline}.}
 
 \item{lty}{A line type code or name for DQ2 in the optimal model. Default, 2.
-See \code{\link{abline}}.}
+See \code{abline}.}
 
-\item{...}{\code{\link{hist}} arguments.}
+\item{...}{\code{hist} arguments.}
 }
 \description{
 Plot of DQ2 of models with permuted response.
