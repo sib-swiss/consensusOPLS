@@ -7,7 +7,7 @@
 #' @param labelClass A vector of all potential classes. Default, NULL, labels found
 #' in \code{trueClass} and \code{codeClass} are considered.
 #'
-#' @return 
+#' @returns
 #' \item{data}{ A data frame containing, for each class (on lines), the number 
 #' of True Positives \code{TP}, True Negatives \code{TN}, False Positives 
 #' \code{FP} and False Negatives \code{FN}. It also contains (still in columns), 

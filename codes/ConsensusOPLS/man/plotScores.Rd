@@ -25,8 +25,11 @@ following the \code{response}.}
 
 \item{...}{\code{plot} arguments.}
 }
-\description{
-Plot of samples in the space of latent variables of the optimal model.
+\value{
+No return value, called for side effects
 
+No return value, called for side effects
+}
+\description{
 Plot of samples in the space of latent variables of the optimal model.
 }

@@ -31,7 +31,7 @@
 #' \code{TRUE} (default) some output will be printed regarding the 
 #' cross-validation progress.
 #'
-#' @return A list with the following entries (diagnostic parameters which can be 
+#' @returns A list with the following entries (diagnostic parameters which can be 
 #' used to determine the optimal number of model components):
 #' \item{Model}{ list. The training a K-OPLS model. It contrains:}
 #'      \item{Cp}{ matrix. Y loading matrix.}
@@ -190,7 +190,7 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         
         # Set up Cross-Validation
         cvSet <- koplsCrossValSet(K = K, Y = Y, cvFrac = cvFrac, cvType = cvType, 
-                                  nfold = nrun, nfoldRound = icv, random.seed = 10403+icv)
+                                  nfold = nrun, nfoldRound = icv)#, random.seed = 10403+icv)
         #TODO: check when nfold > 1, i.e. repeated test samples
         cvTestIndex[[length(cvTestIndex)+1]] <- cvSet$testIndex
         cvTrainingIndex[[length(cvTrainingIndex)+1]] <- cvSet$trainingIndex

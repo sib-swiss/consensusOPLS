@@ -17,7 +17,7 @@
 #' variance, \code{pa} for mc + scaling to Pareto, \code{no} for no centering + 
 #' no scaling. Default is \code{no}.
 #'
-#' @return A list with the following entries:
+#' @returns A list with the following entries:
 #' \item{Cp}{ matrix. Y loading matrix.}
 #' \item{Sp}{ matrix. Sigma matrix, containing singular values from Y'*K*Y used 
 #'  for scaling.}
@@ -190,7 +190,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # --------- #
     
     EEprime <- Kdeflate[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
-    sstot_K <- sum( diag(Kdeflate[1,1][[1]]))
+    sstot_K <- sum(diag(Kdeflate[1,1][[1]]))
     
     # Explained variance
     R2X <- 1 - sapply(1:(nox+1),

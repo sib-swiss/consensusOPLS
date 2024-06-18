@@ -21,7 +21,7 @@
 #' @param verbose Logical which indicates whether the user wants to see the 
 #' progress bar printed in the \code{ConsensusOLPSCV} function.
 #'
-#' @return A consensus OPLS model.
+#' @returns A consensus OPLS model.
 #'
 #' @examples
 #' data(demo_3_Omics)
@@ -109,6 +109,10 @@ RVConsensusOPLS <- function(data,
     W_mat <- Reduce("+", mclapply(1:ntable, mc.cores = mc.cores, FUN = function(i) {
         RA[[i]]$RV * RA[[i]]$AMat
     }))
+    
+    ## check for numerical issue
+    #if (det(W)==0 && rankMatrix(W)==nrow(W))
+    ##
     
     # Control maxOcomp
     maxOcomp <- min(c(maxOcomp, nsample, nvar))

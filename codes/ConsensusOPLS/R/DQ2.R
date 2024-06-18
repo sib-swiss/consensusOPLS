@@ -8,7 +8,7 @@
 #' @param Ypred A vector of predicted values.
 #' @param Y A vector of two-class 0/1 labels.
 #'
-#' @return
+#' @returns
 #' \item{dqq}{ numeric. Discriminant Q2 value.}
 #' \item{PRESSD}{matrix. The total squared error for discrimination analysis.}
 #'

@@ -17,7 +17,7 @@
 #' the model. If \code{FALSE}, Yhat is not rescaled (default).
 #'
 #' #TODO: Why Tp, to, T, ... are produced here?
-#' @return A list with the following entries:
+#' @returns A list with the following entries:
 #' \item{Tp}{ matrix. Predicted predictive score matrix for all generations 0: 
 #' \code{nox} of Y-orthogonal vectors.}
 #' \item{to}{ vector. Predicted Y-orthogonal score vectors.}

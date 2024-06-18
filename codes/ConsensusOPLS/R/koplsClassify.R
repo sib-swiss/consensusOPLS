@@ -4,7 +4,7 @@
 #' @param X A numeric matrix of predicted responses, with class in columns and
 #' sample in rows.
 #'
-#' @return A vector of classes for all samples.
+#' @returns A vector of classes for all samples.
 #'
 #' @examples
 #' data <- as.matrix(data.frame(x1 = c(2, 1, 5, 1),

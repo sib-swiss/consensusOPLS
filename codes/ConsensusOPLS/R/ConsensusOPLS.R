@@ -75,14 +75,14 @@ setMethod(
 
 
 #' @title Block contribution plot
-#' @description
-#' Plot of relative contribution of each data block in the optimal model.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
 #' @param ... \code{barplot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
+#' @docType methods
 #' @rdname plotContribution
 #'  
 setGeneric(
@@ -102,8 +102,10 @@ setGeneric(
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
 #' @param ... \code{barplot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
+#' @docType methods
 #' @rdname plotContribution
 #'  
 setMethod(
@@ -116,6 +118,10 @@ setMethod(
         colnames(contributions) <- c("Block", "Component", "Contribution")
         if (is.null(col)) col <- 1:nrow(object@blockContribution) + 1
         
+        # restore standard options
+        oldpar <- par(no.readonly=TRUE)
+        on.exit(par(oldpar))
+        
         par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
         barplot(data=contributions,
                 Contribution ~ Block + Component, beside=T,
@@ -123,15 +129,13 @@ setMethod(
                 legend.text=T, 
                 args.legend=list(x="topright", inset=c(-0.3, 0), 
                                  title="Block",
-                                 cex=0.8, bty='n')
-                )
+                                 cex=0.8, bty='n'),
+                ...)
     }
 )
 
 
 #' @title Score plot
-#' @description 
-#' Plot of samples in the space of latent variables of the optimal model.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param comp1 Latent variable for abscissa. Default, the first predictive
 #' component, \code{p_1}.
@@ -141,6 +145,7 @@ setMethod(
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
 #' @param ... \code{plot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -170,6 +175,7 @@ setGeneric(
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
 #' @param ... \code{plot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -190,6 +196,10 @@ setMethod(
                 response <- factor(as.character(object@response),
                                    levels=unique(as.character(object@response)))
                 col <- c(1:nlevels(response)+1)[response]
+                
+                # restore standard options
+                oldpar <- par(no.readonly=TRUE)
+                on.exit(par(oldpar))
                 
                 par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
                 plot(object@scores[, c(comp1, comp2)], col=col, pch=pch, ...)
@@ -224,7 +234,6 @@ setMethod(
 
 
 #' @title Loading plot
-#' @description Plot of variable loadings in the optimal model.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param comp1 Latent variable for X-axis. Default, the first predictive
 #' component, \code{p_1}.
@@ -237,6 +246,7 @@ setMethod(
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
 #' @param ... \code{plot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -269,6 +279,7 @@ setGeneric(
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
 #' @param ... \code{plot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -292,6 +303,10 @@ setMethod(
         
         loadings <- do.call(rbind.data.frame, object@loadings[blockId])
         
+        # restore standard options
+        oldpar <- par(no.readonly=TRUE)
+        on.exit(par(oldpar))
+        
         par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
         plot(loadings[, c(comp1, comp2)], 
              col=col[factor(unlist(lapply(blockId, function(x) 
@@ -308,7 +323,6 @@ setMethod(
 
 
 #' @title VIP plot
-#' @description Plot of VIP versus variable loadings in the optimal model.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param comp The latent variable on which VIPs and loadings are plotted.
 #' Default, the first predictive component, \code{p_1}.
@@ -321,6 +335,7 @@ setMethod(
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
 #' @param ... \code{plot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -354,6 +369,7 @@ setGeneric(
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
 #' @param ... \code{plot} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -382,6 +398,10 @@ setMethod(
         loadings_VIP <- cbind.data.frame(loadings, VIPs[rownames(loadings),])
         colnames(loadings_VIP) <- c("loadings", "VIP")
         
+        # restore standard options
+        oldpar <- par(no.readonly=TRUE)
+        on.exit(par(oldpar))
+        
         par(mar=c(5.1, 4.1, 4.1, 6.1), xpd=TRUE)
         plot(loadings_VIP, 
              col=col[factor(unlist(lapply(blockId, function(x) 
@@ -400,7 +420,6 @@ setMethod(
 
 
 #' @title Q2 plot
-#' @description Plot of Q2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param breaks See \code{hist}.
 #' @param xlab See \code{hist}.
@@ -410,6 +429,7 @@ setMethod(
 #' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotQ2
@@ -439,6 +459,7 @@ setGeneric(
 #' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotQ2
@@ -462,7 +483,6 @@ setMethod(
 
 
 #' @title DQ2 plot
-#' @description Plot of DQ2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param breaks See \code{hist}.
 #' @param xlab See \code{hist}.
@@ -472,6 +492,7 @@ setMethod(
 #' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotDQ2
@@ -501,6 +522,7 @@ setGeneric(
 #' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotDQ2
@@ -526,7 +548,6 @@ setMethod(
 
 
 #' @title R2 plot
-#' @description Plot of R2 of models with permuted response.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param breaks See \code{hist}.
 #' @param xlab See \code{hist}.
@@ -536,6 +557,7 @@ setMethod(
 #' @param lty A line type code or name for R2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotR2
@@ -565,6 +587,7 @@ setGeneric(
 #' @param lty A line type code or name for R2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
+#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotR2
@@ -630,7 +653,7 @@ setMethod(
 #' @param verbose A logical indicating if detailed information (cross
 #' validation) will be shown. Default, FALSE.
 #'
-#' @return An object of class \code{ConsensusOPLS} representing the consensus
+#' @returns An object of class \code{ConsensusOPLS} representing the consensus
 #' OPLS model fit.
 #' @examples
 #' data(demo_3_Omics)
@@ -683,21 +706,26 @@ ConsensusOPLS <- function(data,
         }
     }
     
+    # Set colnames of Y
     if (is.matrix(Y) && is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
+    
+    # Random permutation of Y rows
+    Ylist <- list(init=Y)
+    Ypermid <- replicate(nperm, sample(x = 1:nrow(Y), size = nrow(Y),
+                                       replace = FALSE, prob = NULL))
+    Ylist <- c(Ylist, lapply(1:nperm, function(i) {
+        Y[Ypermid[, i], , drop=F]
+    }))
     
     # Init parameters
     permStats <- list()
     # Loaded packages
-    loaded.package.names <- c(
-        sessionInfo()$basePkgs,
-        names(sessionInfo()$otherPkgs))
-    
+    loaded.package.names <- c(sessionInfo()$basePkgs,
+                              names(sessionInfo()$otherPkgs))
     # Create parallel cluster
     globLibPaths <- .libPaths()
     cl <- makeCluster(mc.cores)
-    clusterExport(cl,
-                  ls(all.names=TRUE, envir=globalenv()),
-                  envir=.GlobalEnv)
+    clusterExport(cl, ls(name=1, all.names=TRUE))
     # Load the packages on all the cluster
     parLapply(cl, 1:length(cl), function(i) {
         lapply(loaded.package.names, function(lpn) {
@@ -708,16 +736,9 @@ ConsensusOPLS <- function(data,
     
     # Permutations
     perms <- parLapply(cl, X=1:(1+nperm), function(i) {
-        # Fix the random seed
-        set.seed(i)
+        # Permuted response
+        Ys <- Ylist[[i]]
         
-        # Random permutation of Y rows
-        if (i==1) {
-            Ys <- Y
-        } else {
-            Ys <- Y[sample(x = 1:nrow(Y), size = nrow(Y), replace = FALSE, prob = NULL), , drop=F]
-        }
-            
         # Redo the Consensus OPLS-DA with RV coefficients weighting
         modelCV <- RVConsensusOPLS(data = data,
                                    Y = Ys,
@@ -742,7 +763,7 @@ ConsensusOPLS <- function(data,
         perms[[i]]$modelCV$cv$nOcompOpt + maxPcomp
     }))
     permStats$R2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
-        utils::tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
+        tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
     }))
     permStats$DQ2Yhat <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[permStats$lvnum[i]]
@@ -759,6 +780,46 @@ ConsensusOPLS <- function(data,
     permStats$RV     <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         RVmodified(X = Y, Y = perms[[i]]$Ys)
     }))
+    if (!verbose) {
+        permStats$VIP <- list()
+        permStats$loadings <- list()
+    } else {
+        # VIP of permuted model
+        permVIPs <- lapply(1:length(data), function(j) {
+            permVIPj.list <- parLapply(cl, X=1:(1+nperm), function(i) {
+                perms[[i]]$VIP[[j]]
+            })
+            permVIPj.array <- array(unlist(permVIPj.list),
+                                    dim = c(nrow(permVIPj.list[[1]]),
+                                            ncol(permVIPj.list[[1]]),
+                                            1+nperm),
+                                    dimnames = list(
+                                        rownames(permVIPj.list[[1]]),
+                                        colnames(permVIPj.list[[1]]),
+                                        paste0('perm', 0:nperm)))
+            return (permVIPj.array)
+        })
+        names(permVIPs) <- names(data)
+        permStats$VIP <- permVIPs
+        
+        # loadings of permuted model
+        permLoadings <- lapply(1:length(data), function(j) {
+            permLoadingj.list <- parLapply(cl, X=1:(1+nperm), function(i) {
+                perms[[i]]$modelCV$Model$loadings[[j]]
+            })
+            permLoadingj.array <- array(unlist(permLoadingj.list),
+                                    dim = c(nrow(permLoadingj.list[[1]]),
+                                            ncol(permLoadingj.list[[1]]),
+                                            1+nperm),
+                                    dimnames = list(
+                                        rownames(permLoadingj.list[[1]]),
+                                        colnames(permLoadingj.list[[1]]),
+                                        paste0('perm', 0:nperm)))
+            return (permLoadingj.array)
+        })
+        names(permLoadings) <- names(data)
+        permStats$loadings <- permLoadings
+    }
     
     ## Stop parallel clusters
     stopCluster(cl)
@@ -780,7 +841,9 @@ ConsensusOPLS <- function(data,
             perms[[1]]$modelCV$cv$DQ2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)] else numeric(),
         permStats         = list(Q2Y=permStats$Q2Yhat,
                                  DQ2Y=permStats$DQ2Yhat,
-                                 R2Y=permStats$R2Yhat),
+                                 R2Y=permStats$R2Yhat,
+                                 VIP=permStats$VIP,
+                                 loadings=permStats$loadings),
         cv                = if (verbose) perms[[1]]$modelCV$cv else list())
     )
 }

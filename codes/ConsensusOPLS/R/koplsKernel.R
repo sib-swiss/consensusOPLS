@@ -19,7 +19,7 @@
 #' Currently, all supported kernel functions use a scalar value so the vector 
 #' property of the parameters is for future compatibility.
 #' 
-#' @return The kernel matrix transformed by the kernel function specified by 
+#' @returns The kernel matrix transformed by the kernel function specified by 
 #' \code{type}.
 #'
 #' @examples

@@ -9,7 +9,7 @@
 #' @param X matrix. The normalized meta-kernel of all data block. 
 #' @param Y matrix. The centered and/or scaled kernel of each data block.
 #'
-#' @return The modified R-square value.
+#' @returns The modified R-square value.
 #'
 #' @examples
 #' X <- matrix(stats::rnorm(n = 3600), nrow=200)

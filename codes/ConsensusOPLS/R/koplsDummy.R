@@ -6,7 +6,7 @@
 #' By default, numClasses, number of unique values in \code{X}. Otherwise,
 #' classes 1,...,numClasses are considered.
 #'
-#' @return
+#' @returns
 #' \item{X}{ matrix. Results of the dummy matrix, with rows corresponding to
 #' observations and columns to classes. Each element in matrix is either one
 #' (observation belongs to class) or zero (observation does not belong to class).}
@@ -55,7 +55,7 @@ koplsDummy <- function(X, numClasses = NA) {
 #'
 #' @param Y matrix. A dummy matrix to be transformed into a numeric vector.
 #'
-#' @return The reconstructed integer class vector.
+#' @returns The reconstructed integer class vector.
 #'
 #' @examples
 #' class <- matrix(data = c(5, 1, 2, 3, 4, 3, 2, 4, 3, 1, 3), ncol = 1)

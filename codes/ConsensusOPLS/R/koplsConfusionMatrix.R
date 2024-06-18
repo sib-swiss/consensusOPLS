@@ -4,7 +4,7 @@
 #' @param true_class vector. Indicates the true class belonging.
 #' @param pred_class matrix. predicted class assignment. 
 #'
-#' @return Confusion matrix.
+#' @returns Confusion matrix.
 #'
 #' @examples
 #' trueClass <- c(1, 2, 1, 2, 3, 3)

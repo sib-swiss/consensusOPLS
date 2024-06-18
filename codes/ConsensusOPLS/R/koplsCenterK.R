@@ -11,7 +11,7 @@
 #' @param KtrTr matrix. Contains the training kernel matrix, 
 #' KtrTr = <phi(Xtr), phi(Xtr)>.
 #'
-#' @return The centered test kernel matrix.
+#' @returns The centered test kernel matrix.
 #' @import stats
 #' @examples
 #' Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
@@ -62,7 +62,7 @@ koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
 #' @param KtrTr matrix. Contains the training kernel matrix; 
 #' Ktrain = <phi(Xtr), phi(Xtr)>.
 #' 
-#' @return The centered kernel matrix.
+#' @returns The centered kernel matrix.
 #' 
 #' @examples
 #' Xte <- matrix(data = stats::rnorm(n = 20), ncol=5)
@@ -105,7 +105,7 @@ koplsCenterKTeTr <- function(KteTr, KtrTr) {
 #'
 #' @param K matrix. Contains the training kernel matrix; K = <phi(Xtr), phi(Xtr)>. 
 #'
-#' @return The centered kernel matrix.
+#' @returns The centered kernel matrix.
 #' @import stats
 #' @examples
 #' Xtr <- matrix(data = stats::rnorm(n = 25), ncol = 5)

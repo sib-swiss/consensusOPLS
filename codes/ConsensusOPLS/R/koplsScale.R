@@ -9,7 +9,7 @@
 #' matrix: \code{uv} for unit variance scaling (\code{pa}) for Pareto scaling or 
 #' \code{no} for no scaling. Default is \code{no} scaling.
 #'
-#' @return A list containing the following entries:
+#' @returns A list containing the following entries:
 #' \item{centerType}{ character. Indicates the centering method of the X matrix.}
 #' \item{scaleType}{ character. Indicates the scaling method of the X matrix.}
 #' \item{meanV}{ vector. Contains the mean values for all columns in X.}
@@ -70,7 +70,7 @@ koplsScale <- function(X, centerType = "no", scaleType = "no"){
 #' Otherwise the original data set in the \code{scaleS} object will be scaled 
 #' and returned. 
 #'
-#' @return A list containing the following entries:
+#' @returns A list containing the following entries:
 #' \item{centerType}{ character. Indicates the centering method of the X matrix:
 #' \code{mc} (mean-centering) or \code{no} (no centering).}
 #' \item{scaleType}{ character. Indicates the scaling method of the X matrix: 
@@ -131,7 +131,7 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' @param model list. An object containing scaling parameters.
 #' @param X matrix. The matrix to be scaled according to model parameters.
 #'
-#' @return A list containing the following entries:
+#' @returns A list containing the following entries:
 #' \item{centerType}{ character. Indicates the centering method of the X matrix:
 #' \code{mc} (mean-centering) or \code{no} (no centering).}
 #' \item{scaleType}{ character. Indicates the scaling method of the X matrix: 
@@ -150,6 +150,7 @@ koplsRescale <- function(scaleS, varargin = NULL){
 #' Z$X
 #' 
 #' @keywords internal
+#' @noRd
 #' 
 koplsScaleApply <- function(model, X){
     # Variable format control

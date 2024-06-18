@@ -468,8 +468,8 @@ VIP <- copls.da@VIP
 # Multiply VIP * sign(loadings for predictive component)
 VIP_plot <- lapply(X = 1:nbrBlocs,
                    FUN = function(X){
-                       signe_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
-                       result <- VIP[[X]][, "p_1"]*signe_loadings
+                       sign_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
+                       result <- VIP[[X]][, "p"]*sign_loadings
                        return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- BlockNames
 ```
@@ -723,7 +723,7 @@ VIP$variable <- gsub(paste(paste0(names(copls.da@VIP), '.'),
                           rownames(VIP))
         
 loadings_VIP <- merge(x = loadings[, c("p_1", "variable")], 
-                      y = VIP[, c("p_1", "variable")], 
+                      y = VIP[, c("p", "variable")], 
                       by = "variable", all = TRUE)
 colnames(loadings_VIP) <- c("variable", "loadings", "VIP")
 loadings_VIP <- merge(x = loadings_VIP, 

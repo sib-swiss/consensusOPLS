@@ -13,7 +13,7 @@
 #' @param nfoldRound numeric. Current nfold rounds (if cvType = \code{nfold}).
 #' @param mc.cores Number of cores for parallel computing. Default: 1.
 #'
-#' @return A list with the following entries:
+#' @returns A list with the following entries:
 #' \item{CV_param}{ data frame. It contains \code{cvType} a character for the 
 #' Cross-validation type, \code{nfold} the total number of nfold, 
 #' \code{nfoldRound} the current nfold round and \code{class} the object class
@@ -64,7 +64,7 @@ koplsCrossValSet <- function(K, Y, cvFrac = 4/5, cvType = "nfold",
         warning("cvType is not nfold, nfoldRound is not defined (missing argument).")
     
     # Set random seed
-    set.seed(random.seed)
+    #set.seed(random.seed)
     
     # Define Monte-Carlos Cross Validation - class Balanced
     if (cvType == "mccvb") {
