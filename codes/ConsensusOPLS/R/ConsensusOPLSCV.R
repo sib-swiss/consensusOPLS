@@ -285,7 +285,7 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         flush.console()
     }
     
-    if (F){
+    #if (F){
     if (modelType == "da") {
         ## CV DA metrics
         daMetrics_list <- list()
@@ -380,7 +380,7 @@ ConsensusOPLSCV <- function(K, Y, maxPcomp, maxOcomp,
         }
         modelMain$reg <- Metrics_list
     }
-    }
+    #}
     modelMain$Model <- koplsModel(K = K, Y = Y, A = maxPcomp, nox = maxOcomp, 
                                   preProcK = preProcK, preProcY = preProcY)
 

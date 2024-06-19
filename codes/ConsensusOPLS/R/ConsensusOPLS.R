@@ -79,7 +79,6 @@ setMethod(
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
 #' @param ... \code{barplot} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @docType methods
@@ -102,8 +101,9 @@ setGeneric(
 #' @param col A vector of color codes or names, one for each block. Default,
 #' NULL, 2 to number of blocks + 1.
 #' @param ... \code{barplot} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics
+#' @importFrom reshape2 melt
 #' @export
 #' @docType methods
 #' @rdname plotContribution
@@ -145,7 +145,6 @@ setMethod(
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
 #' @param ... \code{plot} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -175,7 +174,7 @@ setGeneric(
 #' following the \code{response}.
 #' @param pch Graphic symbol. Default, 19.
 #' @param ... \code{plot} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics grDevices
 #' @export
 #' @rdname plotScores
@@ -246,7 +245,6 @@ setMethod(
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
 #' @param ... \code{plot} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -279,7 +277,7 @@ setGeneric(
 #' @param pch A vector of graphic symbols, one for each block. Default, NULL,
 #' 1 to \code{length(blockId)}.
 #' @param ... \code{plot} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics
 #' @export
 #' @rdname plotLoadings
@@ -324,8 +322,10 @@ setMethod(
 
 #' @title VIP plot
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param comp The latent variable on which VIPs and loadings are plotted.
-#' Default, the first predictive component, \code{p_1}.
+#' @param comp1 Latent variable for loadings on Y-axis. Default, the first
+#' predictive component, \code{p_1}.
+#' @param comp2 Latent variable for VIPs on X-axis. Default, the predictive
+#' component, \code{p}.
 #' @param blockId The positions or names of the blocks for the plot.
 #' Default, NULL, all.
 #' @param col A vector of color codes or names, one for each block. Default,
@@ -335,7 +335,6 @@ setMethod(
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
 #' @param ... \code{plot} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -343,7 +342,8 @@ setMethod(
 setGeneric(
     name = "plotVIP",
     def = function(object,
-                   comp = "p_1",
+                   comp1 = "p_1",
+                   comp2 = "p",
                    blockId = NULL,
                    col = NULL,
                    pch = NULL,
@@ -358,8 +358,10 @@ setGeneric(
 #' @title VIP plot
 #' @description Plot of VIP versus variable loadings in the optimal model.
 #' @param object An object of class \code{ConsensusOPLS}.
-#' @param comp The latent variable on which VIPs and loadings are plotted.
-#' Default, the first predictive component, \code{p_1}.
+#' @param comp1 Latent variable for loadings on Y-axis. Default, the first
+#' predictive component, \code{p_1}.
+#' @param comp2 Latent variable for VIPs on X-axis. Default, the predictive
+#' component, \code{p}.
 #' @param blockId The positions or names of the blocks for the plot.
 #' Default, NULL, all.
 #' @param col A vector of color codes or names, one for each block. Default,
@@ -369,7 +371,7 @@ setGeneric(
 #' @param xlab X-axis label. Default, NULL, Loading on \code{comp}.
 #' @param ylab Y-axis label. Default, NULL, VIP on \code{comp}.
 #' @param ... \code{plot} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics
 #' @export
 #' @rdname plotVIP
@@ -378,23 +380,25 @@ setMethod(
     f = "plotVIP",
     signature = "ConsensusOPLS",
     definition = function(object, 
-                          comp = "p_1",
+                          comp1 = "p_1",
+                          comp2 = "p",
                           blockId = NULL,
                           col = NULL,
                           pch = NULL,
                           xlab = NULL,
                           ylab = NULL,
                           ...) {
-        stopifnot(comp %in% colnames(object@scores))
+        stopifnot(comp1 %in% colnames(object@scores) && 
+                      comp2 %in% c("p", "o", "tot"))
         
         if (is.null(blockId)) blockId <- names(object@loadings)
         if (is.null(col)) col <- 1:length(blockId) + 1
         if (is.null(pch)) pch <- 1:length(blockId)
         
         loadings <- do.call(rbind.data.frame, object@loadings[blockId])
-        loadings <- loadings[, comp, drop=F]
+        loadings <- loadings[, comp1, drop=F]
         VIPs <- do.call(rbind.data.frame, object@VIP[blockId])
-        VIPs <- VIPs[, comp, drop=F]
+        VIPs <- VIPs[, comp2, drop=F]
         loadings_VIP <- cbind.data.frame(loadings, VIPs[rownames(loadings),])
         colnames(loadings_VIP) <- c("loadings", "VIP")
         
@@ -408,8 +412,8 @@ setMethod(
                  rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
              pch=pch[factor(unlist(lapply(blockId, function(x)
                  rep(x, nrow(object@loadings[[x]])))), levels=blockId)],
-             xlab=if (is.null(xlab)) paste0("Loadings on ", comp) else xlab,
-             ylab=if (is.null(ylab)) paste0("VIP on ", comp) else ylab,
+             xlab=if (is.null(xlab)) paste0("Loadings on ", comp1) else xlab,
+             ylab=if (is.null(ylab)) paste0("VIP on ", comp2) else ylab,
              ...)
         legend("topright", inset=c(-0.3, 0), 
                legend=names(object@loadings[blockId]),
@@ -429,7 +433,6 @@ setMethod(
 #' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotQ2
@@ -459,7 +462,7 @@ setGeneric(
 #' @param lty A line type code or name for Q2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics
 #' @export
 #' @rdname plotQ2
@@ -492,7 +495,6 @@ setMethod(
 #' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotDQ2
@@ -522,7 +524,7 @@ setGeneric(
 #' @param lty A line type code or name for DQ2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics
 #' @export
 #' @rdname plotDQ2
@@ -557,7 +559,6 @@ setMethod(
 #' @param lty A line type code or name for R2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
-#' @returns No return value, called for side effects
 #' @import graphics
 #' @export
 #' @rdname plotR2
@@ -587,7 +588,7 @@ setGeneric(
 #' @param lty A line type code or name for R2 in the optimal model. Default, 2.
 #' See \code{abline}.
 #' @param ... \code{hist} arguments.
-#' @returns No return value, called for side effects
+#' @returns No return value, called for side effects.
 #' @import graphics
 #' @export
 #' @rdname plotR2
@@ -710,12 +711,12 @@ ConsensusOPLS <- function(data,
     if (is.matrix(Y) && is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
     
     # Random permutation of Y rows
-    Ylist <- list(init=Y)
-    Ypermid <- replicate(nperm, sample(x = 1:nrow(Y), size = nrow(Y),
-                                       replace = FALSE, prob = NULL))
-    Ylist <- c(Ylist, lapply(1:nperm, function(i) {
+    Ypermid <- cbind(1:nrow(Y), 
+                     unlist(replicate(nperm, sample(x = 1:nrow(Y), size = nrow(Y),
+                                                    replace = FALSE, prob = NULL))))
+    Ylist <- lapply(1:(1+nperm), function(i) {
         Y[Ypermid[, i], , drop=F]
-    }))
+    })
     
     # Init parameters
     permStats <- list()

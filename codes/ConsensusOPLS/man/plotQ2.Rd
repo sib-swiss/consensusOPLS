@@ -43,9 +43,7 @@ See \code{abline}.}
 \item{...}{\code{hist} arguments.}
 }
 \value{
-No return value, called for side effects
-
-No return value, called for side effects
+No return value, called for side effects.
 }
 \description{
 Plot of Q2 of models with permuted response.

@@ -46,9 +46,7 @@ NULL, 2 to \code{length(blockId)+1}.}
 \item{...}{\code{plot} arguments.}
 }
 \value{
-No return value, called for side effects
-
-No return value, called for side effects
+No return value, called for side effects.
 }
 \description{
 Plot of variable loadings in the optimal model.

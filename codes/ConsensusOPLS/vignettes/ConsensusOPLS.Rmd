@@ -97,7 +97,7 @@ code below has been designed to have as few dependencies as possible on R
 packages, except for the stable packages.
 
 ```{r packages_installation, eval=FALSE, class.source='fold-hide'}
-pkgs <- c("ggplot2", "ggrepel", "DT", "psych")
+pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "ConsensusOPLS")
 sapply(pkgs, function(x) {
     if (!requireNamespace(x, quietly = TRUE)) {
         install.packages(x)
@@ -116,6 +116,7 @@ library(ggrepel) # to annotate ggplot2 graph
 library(DT) # to make interactive data tables
 library(psych) # to make specific quantitative summaries
 library(ComplexHeatmap) # to make heatmap with density plot
+library(ConsensusOPLS) # to load ConsensusOPLS
 ```
 
 Then we create a uniform theme that will be used for all graphic output.
@@ -127,23 +128,6 @@ theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
                                    plot.title = element_text(size=16),
                                    legend.title = element_text(size=14))
 ```
-
-
-# Loading package
-
-To execute the `ConsensusOPLS` method, the user must load the `ConsensusOPLS` R 
-package using:
-
-```{r load_ConsensusOPLS_package}
-# Detaching and uninstalling a package
-# detach("package:ConsensusOPLS", unload=T)
-# remove.packages("ConsensusOPLS")
-
-# Installing a package
-#devtools::install_github("sib-swiss/consensusOPLS/codes/ConsensusOPLS")
-library(ConsensusOPLS)
-```
-
 
 # Data preprocessing
 

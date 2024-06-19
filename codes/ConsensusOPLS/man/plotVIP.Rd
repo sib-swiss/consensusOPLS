@@ -7,7 +7,8 @@
 \usage{
 plotVIP(
   object,
-  comp = "p_1",
+  comp1 = "p_1",
+  comp2 = "p",
   blockId = NULL,
   col = NULL,
   pch = NULL,
@@ -18,7 +19,8 @@ plotVIP(
 
 \S4method{plotVIP}{ConsensusOPLS}(
   object,
-  comp = "p_1",
+  comp1 = "p_1",
+  comp2 = "p",
   blockId = NULL,
   col = NULL,
   pch = NULL,
@@ -30,8 +32,11 @@ plotVIP(
 \arguments{
 \item{object}{An object of class \code{ConsensusOPLS}.}
 
-\item{comp}{The latent variable on which VIPs and loadings are plotted.
-Default, the first predictive component, \code{p_1}.}
+\item{comp1}{Latent variable for loadings on Y-axis. Default, the first
+predictive component, \code{p_1}.}
+
+\item{comp2}{Latent variable for VIPs on X-axis. Default, the predictive
+component, \code{p}.}
 
 \item{blockId}{The positions or names of the blocks for the plot.
 Default, NULL, all.}
@@ -49,9 +54,7 @@ NULL, 2 to \code{length(blockId)+1}.}
 \item{...}{\code{plot} arguments.}
 }
 \value{
-No return value, called for side effects
-
-No return value, called for side effects
+No return value, called for side effects.
 }
 \description{
 Plot of VIP versus variable loadings in the optimal model.

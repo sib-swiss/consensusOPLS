@@ -19,9 +19,7 @@ NULL, 2 to number of blocks + 1.}
 \item{...}{\code{barplot} arguments.}
 }
 \value{
-No return value, called for side effects
-
-No return value, called for side effects
+No return value, called for side effects.
 }
 \description{
 Plot of relative contribution of each data block in the optimal model.

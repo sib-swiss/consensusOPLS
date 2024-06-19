@@ -18,7 +18,8 @@ test_that("RVConsensusOPLS", {
                                modelType="reg",
                                mc.cores=1,
                                kernelParams = list(type = "p", params = c(order = 2)),
-                               nfold=3)
+                               nfold=3, 
+                               verbose=T)
     copls.da <- ConsensusOPLS(data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
                               Y=demo_3_Omics$Y,
                               maxPcomp=1,
