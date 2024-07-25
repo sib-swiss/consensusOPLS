@@ -74,304 +74,304 @@ theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
 # QR code
 
 ```{r QRcode_Matlab}
-path_logo <- "../../../communication/presentations/Logos/" 
-
-#install.packages("qrcode")
-library(qrcode)
-#install.packages("magick")
-library(magick)
-
-# Link
-url_matlab <- "https://gitlab.unige.ch/Julien.Boccard/consensusopls"
-qr <- qrcode::qr_code(url_matlab, ecl = "L")
-plot(qr)
-
-# Convertir le QR code en image magick
-qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
-grid::grid.raster(qr, interpolate = FALSE)
-dev.off()
-
-# Inverser les couleurs: faire le fond transparent et le motif coloré
-qr_inverted <- image_negate(qr_img) %>%
-               image_transparent("black") %>%
-               image_colorize(100, "chocolate2")
-
-white_bg <- image_blank(image_info(qr_inverted)$width,
-                        image_info(qr_inverted)$height, 
-                        color = "white")
-
-# Superposer l'image blanche sur le QR code inverti
-qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
-    
-
-# Lire le logo
-logo <- image_read(paste0(path_logo, "Matlablogo.jpg"))
-
-#Ajouter fond blanc
-logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
-
-
-# Redimensionner le logo pour qu'il soit adapté au centre du QR code
-qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
-logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
-logo_resized <- image_resize(logo_with_bg, 
-                             geometry = paste0(logo_size, "x", logo_size))
-
-# Ajouter le logo au centre du QR code
-qr_with_logo <- image_composite(qr_inverted, logo_resized, 
-                                operator = "atop", gravity = "center")
-                                #operator = "over", gravity = "center")
-
-# Sauvegarder l'image finale
-image_write(qr_inverted, 
-            path = paste0(path_logo, "/", "QRcode_Matlab_SansLogo.png"), 
-            format = "png")
-image_write(qr_with_logo, 
-            path = paste0(path_logo, "/", "QRcode_Matlab_logo.png"), 
-            format = "png")
+# path_logo <- "../../../communication/presentations/Logos/" 
+# 
+# #install.packages("qrcode")
+# library(qrcode)
+# #install.packages("magick")
+# library(magick)
+# 
+# # Link
+# url_matlab <- "https://gitlab.unige.ch/Julien.Boccard/consensusopls"
+# qr <- qrcode::qr_code(url_matlab, ecl = "L")
+# plot(qr)
+# 
+# # Convertir le QR code en image magick
+# qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
+# grid::grid.raster(qr, interpolate = FALSE)
+# dev.off()
+# 
+# # Inverser les couleurs: faire le fond transparent et le motif coloré
+# qr_inverted <- image_negate(qr_img) %>%
+#                image_transparent("black") %>%
+#                image_colorize(100, "chocolate2")
+# 
+# white_bg <- image_blank(image_info(qr_inverted)$width,
+#                         image_info(qr_inverted)$height, 
+#                         color = "white")
+# 
+# # Superposer l'image blanche sur le QR code inverti
+# qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
+#     
+# 
+# # Lire le logo
+# logo <- image_read(paste0(path_logo, "Matlablogo.jpg"))
+# 
+# #Ajouter fond blanc
+# logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
+# 
+# 
+# # Redimensionner le logo pour qu'il soit adapté au centre du QR code
+# qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
+# logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
+# logo_resized <- image_resize(logo_with_bg, 
+#                              geometry = paste0(logo_size, "x", logo_size))
+# 
+# # Ajouter le logo au centre du QR code
+# qr_with_logo <- image_composite(qr_inverted, logo_resized, 
+#                                 operator = "atop", gravity = "center")
+#                                 #operator = "over", gravity = "center")
+# 
+# # Sauvegarder l'image finale
+# image_write(qr_inverted, 
+#             path = paste0(path_logo, "/", "QRcode_Matlab_SansLogo.png"), 
+#             format = "png")
+# image_write(qr_with_logo, 
+#             path = paste0(path_logo, "/", "QRcode_Matlab_logo.png"), 
+#             format = "png")
 ```
 
 ```{r QRcode_R}
-# Link
-url_R <- "https://github.com/sib-swiss/consensusOPLS/tree/main/codes/ConsensusOPLS"
-qr <- qrcode::qr_code(url_R, ecl = "L")
-plot(qr)
-
-# Convertir le QR code en image magick
-qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
-grid::grid.raster(qr, interpolate = FALSE)
-dev.off()
-
-# Inverser les couleurs: faire le fond transparent et le motif coloré
-qr_inverted <- image_negate(qr_img) %>%
-               image_transparent("black") %>%
-               image_colorize(100, "lightskyblue3")
-
-white_bg <- image_blank(image_info(qr_inverted)$width,
-                        image_info(qr_inverted)$height, 
-                        color = "white")
-
-# Superposer l'image blanche sur le QR code inverti
-qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
-    
-
-# Lire le logo
-logo <- image_read(paste0(path_logo, "Rlogo.png"))
-
-#Ajouter fond blanc
-logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
-
-
-# Redimensionner le logo pour qu'il soit adapté au centre du QR code
-qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
-logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
-logo_resized <- image_resize(logo_with_bg, 
-                             geometry = paste0(logo_size, "x", logo_size))
-
-# Ajouter le logo au centre du QR code
-qr_with_logo <- image_composite(qr_inverted, logo_resized, 
-                                operator = "atop", gravity = "center")
-                                #operator = "over", gravity = "center")
-
-# Sauvegarder l'image finale
-image_write(qr_inverted, 
-            path = paste0(path_logo, "/", "QRcode_R_SansLogo.png"), 
-            format = "png")
-image_write(qr_with_logo, 
-            path = paste0(path_logo, "/", "QRcode_R_logo.png"), 
-            format = "png")
+# # Link
+# url_R <- "https://CRAN.R-project.org/package=ConsensusOPLS"
+# qr <- qrcode::qr_code(url_R, ecl = "L")
+# plot(qr)
+# 
+# # Convertir le QR code en image magick
+# qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
+# grid::grid.raster(qr, interpolate = FALSE)
+# dev.off()
+# 
+# # Inverser les couleurs: faire le fond transparent et le motif coloré
+# qr_inverted <- image_negate(qr_img) %>%
+#                image_transparent("black") %>%
+#                image_colorize(100, "lightskyblue3")
+# 
+# white_bg <- image_blank(image_info(qr_inverted)$width,
+#                         image_info(qr_inverted)$height,
+#                         color = "white")
+# 
+# # Superposer l'image blanche sur le QR code inverti
+# qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
+# 
+# 
+# # Lire le logo
+# logo <- image_read(paste0(path_logo, "Rlogo.png"))
+# 
+# #Ajouter fond blanc
+# logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
+# 
+# 
+# # Redimensionner le logo pour qu'il soit adapté au centre du QR code
+# qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
+# logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
+# logo_resized <- image_resize(logo_with_bg,
+#                              geometry = paste0(logo_size, "x", logo_size))
+# 
+# # Ajouter le logo au centre du QR code
+# qr_with_logo <- image_composite(qr_inverted, logo_resized,
+#                                 operator = "atop", gravity = "center")
+#                                 #operator = "over", gravity = "center")
+# 
+# # Sauvegarder l'image finale
+# image_write(qr_inverted,
+#             path = paste0(path_logo, "/", "QRcode_R_SansLogo.png"),
+#             format = "png")
+# image_write(qr_with_logo,
+#             path = paste0(path_logo, "/", "QRcode_R_logo.png"),
+#             format = "png")
 ```
 
 ```{r QRcode_theo_rfmf_excel}
-# Link
-url_excel <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbpa2OjCNfkn3i12OlltlhdJlWG8Xz6FT2RktRG6kI2-gLWUI2zReqaoe7gknoww/pubhtml"
-qr <- qrcode::qr_code(url_excel, ecl = "L")
-
-# Convertir le QR code en image magick
-qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
-grid::grid.raster(qr, interpolate = FALSE)
-dev.off()
-
-# Inverser les couleurs: faire le fond transparent et le motif coloré
-qr_inverted <- image_negate(qr_img) %>%
-               image_transparent("black") %>%
-               image_colorize(100, "forestgreen")
-
-white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
-
-# Superposer l'image blanche sur le QR code inverti
-qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
-    
-
-# Lire le logo
-logo <- image_read(paste0(path_logo, "Logo_Excel.png"))
-
-#Ajouter fond blanc
-logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
-
-
-# Redimensionner le logo pour qu'il soit adapté au centre du QR code
-qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
-logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
-logo_resized <- image_resize(logo_with_bg, 
-                             geometry = paste0(logo_size, "x", logo_size))
-
-# Ajouter le logo au centre du QR code
-qr_with_logo <- image_composite(qr_inverted, logo_resized, 
-                                operator = "atop", gravity = "center")
-                                #operator = "over", gravity = "center")
-
-# Sauvegarder l'image finale
-image_write(qr_inverted, 
-            path = paste0(path_logo, "QRcode_Excel_SansLogo.png"), 
-            format = "png")
-image_write(qr_with_logo, 
-            path = paste0(path_logo, "QRcode_Excel.png"), 
-            format = "png")
+# # Link
+# url_excel <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbpa2OjCNfkn3i12OlltlhdJlWG8Xz6FT2RktRG6kI2-gLWUI2zReqaoe7gknoww/pubhtml"
+# qr <- qrcode::qr_code(url_excel, ecl = "L")
+# 
+# # Convertir le QR code en image magick
+# qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
+# grid::grid.raster(qr, interpolate = FALSE)
+# dev.off()
+# 
+# # Inverser les couleurs: faire le fond transparent et le motif coloré
+# qr_inverted <- image_negate(qr_img) %>%
+#                image_transparent("black") %>%
+#                image_colorize(100, "forestgreen")
+# 
+# white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
+# 
+# # Superposer l'image blanche sur le QR code inverti
+# qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
+#     
+# 
+# # Lire le logo
+# logo <- image_read(paste0(path_logo, "Logo_Excel.png"))
+# 
+# #Ajouter fond blanc
+# logo_with_bg <- logo #image_background(logo, "white", flatten = TRUE)
+# 
+# 
+# # Redimensionner le logo pour qu'il soit adapté au centre du QR code
+# qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
+# logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
+# logo_resized <- image_resize(logo_with_bg, 
+#                              geometry = paste0(logo_size, "x", logo_size))
+# 
+# # Ajouter le logo au centre du QR code
+# qr_with_logo <- image_composite(qr_inverted, logo_resized, 
+#                                 operator = "atop", gravity = "center")
+#                                 #operator = "over", gravity = "center")
+# 
+# # Sauvegarder l'image finale
+# image_write(qr_inverted, 
+#             path = paste0(path_logo, "QRcode_Excel_SansLogo.png"), 
+#             format = "png")
+# image_write(qr_with_logo, 
+#             path = paste0(path_logo, "QRcode_Excel.png"), 
+#             format = "png")
 ```
 
 ```{r QRcode_theo_rfmf_peak_forest}
-# Link
-url_peak <- "https://demo.peakforest.org/webapp/"
-qr <- qrcode::qr_code(url_peak, ecl = "L")
-
-# Convertir le QR code en image magick
-qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
-grid::grid.raster(qr, interpolate = FALSE)
-dev.off()
-
-# Inverser les couleurs: faire le fond transparent et le motif coloré
-qr_inverted <- image_negate(qr_img) %>%
-               image_transparent("black") %>%
-               image_colorize(100, "dodgerblue3")
-
-white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
-
-# Superposer l'image blanche sur le QR code inverti
-qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
-    
-
-# Lire le logo
-logo <- image_read(paste0(path_logo, "Logo_Peak_Forest.png"))
-
-#Ajouter fond blanc
-logo_with_bg <- image_background(logo, "white", flatten = TRUE)
-
-
-# Redimensionner le logo pour qu'il soit adapté au centre du QR code
-qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
-logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
-logo_resized <- image_resize(logo_with_bg, 
-                             geometry = paste0(logo_size, "x", logo_size))
-
-# Ajouter le logo au centre du QR code
-qr_with_logo <- image_composite(qr_inverted, logo_resized, 
-                                operator = "over", gravity = "center")
-                                #operator = "atop", gravity = "center")
-
-# Sauvegarder l'image finale
-image_write(qr_inverted, 
-            path = paste0(path_logo, "QRcode_Peak_Forest_SansLogo.png"), 
-            format = "png")
-image_write(qr_with_logo, 
-            path = paste0(path_logo, "QRcode_Peak_Forest.png"), 
-            format = "png")
+# # Link
+# url_peak <- "https://demo.peakforest.org/webapp/"
+# qr <- qrcode::qr_code(url_peak, ecl = "L")
+# 
+# # Convertir le QR code en image magick
+# qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
+# grid::grid.raster(qr, interpolate = FALSE)
+# dev.off()
+# 
+# # Inverser les couleurs: faire le fond transparent et le motif coloré
+# qr_inverted <- image_negate(qr_img) %>%
+#                image_transparent("black") %>%
+#                image_colorize(100, "dodgerblue3")
+# 
+# white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
+# 
+# # Superposer l'image blanche sur le QR code inverti
+# qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
+#     
+# 
+# # Lire le logo
+# logo <- image_read(paste0(path_logo, "Logo_Peak_Forest.png"))
+# 
+# #Ajouter fond blanc
+# logo_with_bg <- image_background(logo, "white", flatten = TRUE)
+# 
+# 
+# # Redimensionner le logo pour qu'il soit adapté au centre du QR code
+# qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
+# logo_size <- round(qr_size * 0.15)  # 15% de la taille du QR code
+# logo_resized <- image_resize(logo_with_bg, 
+#                              geometry = paste0(logo_size, "x", logo_size))
+# 
+# # Ajouter le logo au centre du QR code
+# qr_with_logo <- image_composite(qr_inverted, logo_resized, 
+#                                 operator = "over", gravity = "center")
+#                                 #operator = "atop", gravity = "center")
+# 
+# # Sauvegarder l'image finale
+# image_write(qr_inverted, 
+#             path = paste0(path_logo, "QRcode_Peak_Forest_SansLogo.png"), 
+#             format = "png")
+# image_write(qr_with_logo, 
+#             path = paste0(path_logo, "QRcode_Peak_Forest.png"), 
+#             format = "png")
 ```
 
 ```{r QRcode_baptiste_rfmf_video1}
-# Ficher excel
-url_PCA <- "https://drive.google.com/file/d/1scrbN29pTb99fR3ukSkG1oiDcjVj9PSo/view?usp=drive_link"
-qr <- qrcode::qr_code(url_PCA, ecl = "L")
-
-# Convertir le QR code en image magick
-qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
-grid::grid.raster(qr, interpolate = FALSE)
-dev.off()
-
-# Inverser les couleurs: faire le fond transparent et le motif coloré
-qr_inverted <- image_negate(qr_img) %>%
-               image_transparent("black") %>%
-               image_colorize(100, "darkolivegreen4")
-
-white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
-
-# Superposer l'image blanche sur le QR code inverti
-qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
-    
-
-# Lire le logo
-logo <- image_read(paste0(path_logo, "image_QR-removebg-preview.png"))
-
-#Ajouter fond blanc
-logo_with_bg <- image_background(logo, "white", flatten = TRUE)
-
-
-# Redimensionner le logo pour qu'il soit adapté au centre du QR code
-qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
-logo_size <- round(qr_size * 0.15)  # 30% de la taille du QR code
-logo_resized <- image_resize(logo_with_bg, 
-                             geometry = paste0(logo_size, "x", logo_size))
-
-# Ajouter le logo au centre du QR code
-qr_with_logo <- image_composite(qr_inverted, logo_resized, 
-                                operator = "over", gravity = "center")
-                                #operator = "atop", gravity = "center")
-
-# Sauvegarder l'image finale
-image_write(qr_inverted, 
-            path = paste0(path_logo, "QRcode_Baptiste_sansLogo.png"), 
-            format = "png")
-image_write(qr_with_logo, 
-            path = paste0(path_logo, "QRcode_Baptiste.png"), 
-            format = "png")
+# # Ficher excel
+# url_PCA <- "https://drive.google.com/file/d/1scrbN29pTb99fR3ukSkG1oiDcjVj9PSo/view?usp=drive_link"
+# qr <- qrcode::qr_code(url_PCA, ecl = "L")
+# 
+# # Convertir le QR code en image magick
+# qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
+# grid::grid.raster(qr, interpolate = FALSE)
+# dev.off()
+# 
+# # Inverser les couleurs: faire le fond transparent et le motif coloré
+# qr_inverted <- image_negate(qr_img) %>%
+#                image_transparent("black") %>%
+#                image_colorize(100, "darkolivegreen4")
+# 
+# white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
+# 
+# # Superposer l'image blanche sur le QR code inverti
+# qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
+#     
+# 
+# # Lire le logo
+# logo <- image_read(paste0(path_logo, "image_QR-removebg-preview.png"))
+# 
+# #Ajouter fond blanc
+# logo_with_bg <- image_background(logo, "white", flatten = TRUE)
+# 
+# 
+# # Redimensionner le logo pour qu'il soit adapté au centre du QR code
+# qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
+# logo_size <- round(qr_size * 0.15)  # 30% de la taille du QR code
+# logo_resized <- image_resize(logo_with_bg, 
+#                              geometry = paste0(logo_size, "x", logo_size))
+# 
+# # Ajouter le logo au centre du QR code
+# qr_with_logo <- image_composite(qr_inverted, logo_resized, 
+#                                 operator = "over", gravity = "center")
+#                                 #operator = "atop", gravity = "center")
+# 
+# # Sauvegarder l'image finale
+# image_write(qr_inverted, 
+#             path = paste0(path_logo, "QRcode_Baptiste_sansLogo.png"), 
+#             format = "png")
+# image_write(qr_with_logo, 
+#             path = paste0(path_logo, "QRcode_Baptiste.png"), 
+#             format = "png")
 ```
 
 ```{r QRcode_baptiste_rfmf_video2}
-# Ficher excel
-url_raman <- "https://drive.google.com/file/d/1OmodWSV-_Bfc_dtHtpd5KwWPc02LFsdo/view?usp=drive_link"
-qr <- qrcode::qr_code(url_raman, ecl = "L")
-
-# Convertir le QR code en image magick
-qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
-grid::grid.raster(qr, interpolate = FALSE)
-dev.off()
-
-# Inverser les couleurs: faire le fond transparent et le motif coloré
-qr_inverted <- image_negate(qr_img) %>%
-               image_transparent("black") %>%
-               image_colorize(100, "darkolivegreen4")
-
-white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
-
-# Superposer l'image blanche sur le QR code inverti
-qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
-    
-
-# Lire le logo
-logo <- image_read(paste0(path_logo, "raman.png"))
-
-#Ajouter fond blanc
-logo_with_bg <- image_background(logo, "white", flatten = TRUE)
-
-
-# Redimensionner le logo pour qu'il soit adapté au centre du QR code
-qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
-logo_size <- round(qr_size * 0.15)  # 30% de la taille du QR code
-logo_resized <- image_resize(logo_with_bg, 
-                             geometry = paste0(logo_size, "x", logo_size))
-
-# Ajouter le logo au centre du QR code
-qr_with_logo <- image_composite(qr_inverted, logo_resized, 
-                                operator = "over", gravity = "center")
-                                #operator = "atop", gravity = "center")
-
-# Sauvegarder l'image finale
-image_write(qr_inverted, 
-            path = paste0(path_logo, "QRcode_Baptiste_2_sansLogo.png"), 
-            format = "png")
-image_write(qr_with_logo, 
-            path = paste0(path_logo, "QRcode_Baptiste_2.png"), 
-            format = "png")
+# # Ficher excel
+# url_raman <- "https://drive.google.com/file/d/1OmodWSV-_Bfc_dtHtpd5KwWPc02LFsdo/view?usp=drive_link"
+# qr <- qrcode::qr_code(url_raman, ecl = "L")
+# 
+# # Convertir le QR code en image magick
+# qr_img <- image_graph(width = 10*ncol(qr), height = 10*nrow(qr))
+# grid::grid.raster(qr, interpolate = FALSE)
+# dev.off()
+# 
+# # Inverser les couleurs: faire le fond transparent et le motif coloré
+# qr_inverted <- image_negate(qr_img) %>%
+#                image_transparent("black") %>%
+#                image_colorize(100, "darkolivegreen4")
+# 
+# white_bg <- image_blank(image_info(qr_inverted)$width, image_info(qr_inverted)$height, color = "white")
+# 
+# # Superposer l'image blanche sur le QR code inverti
+# qr_inverted <- image_composite(white_bg, qr_inverted, operator = "over")
+#     
+# 
+# # Lire le logo
+# logo <- image_read(paste0(path_logo, "raman.png"))
+# 
+# #Ajouter fond blanc
+# logo_with_bg <- image_background(logo, "white", flatten = TRUE)
+# 
+# 
+# # Redimensionner le logo pour qu'il soit adapté au centre du QR code
+# qr_size <- min(10 * ncol(qr), 10 * nrow(qr))
+# logo_size <- round(qr_size * 0.15)  # 30% de la taille du QR code
+# logo_resized <- image_resize(logo_with_bg, 
+#                              geometry = paste0(logo_size, "x", logo_size))
+# 
+# # Ajouter le logo au centre du QR code
+# qr_with_logo <- image_composite(qr_inverted, logo_resized, 
+#                                 operator = "over", gravity = "center")
+#                                 #operator = "atop", gravity = "center")
+# 
+# # Sauvegarder l'image finale
+# image_write(qr_inverted, 
+#             path = paste0(path_logo, "QRcode_Baptiste_2_sansLogo.png"), 
+#             format = "png")
+# image_write(qr_with_logo, 
+#             path = paste0(path_logo, "QRcode_Baptiste_2.png"), 
+#             format = "png")
 ```
 
 
@@ -501,6 +501,8 @@ COPLS_data <- list(rna=as.matrix(rna),
 COPLS_data <- lapply(COPLS_data, scale)
 Y <- as.matrix(metadata$HbA1c)
 
+nbrBlocs <- length(COPLS_data)
+
 COPLS_res <- ConsensusOPLS(
   data = COPLS_data,
   Y = Y,
@@ -542,17 +544,44 @@ ggplot(data = R2Yperm, aes(x = R2Yperm)) +
 ## Blocks contribution
 
 ```{r consensus OPLS-reg contributions, message=FALSE, warning=FALSE, fig.align='center'}
-contributions <- COPLS_res@blockContribution
-contributions <- melt(contributions)
-colnames(contributions) <- c("dataset", "Dim", "value")
+# contributions <- COPLS_res@blockContribution
+# contributions <- melt(contributions)
+# colnames(contributions) <- c("dataset", "Dim", "value")
+# 
+# ggplot(contributions, aes(x=Dim, y=value, fill=dataset)) +
+#   geom_bar(stat = "identity", position=position_dodge()) +
+#   labs(x = "Global components", y = "Specific weights of block \n on global components", fill = "omic",
+#        title = "Blocks contributions") +
+#   scale_x_discrete(labels = c("Pred #1", "Ortho #1")) +
+#   ggplot2::scale_fill_manual(values= omics.colors)+
+#   theme_graphs
 
-ggplot(contributions, aes(x=Dim, y=value, fill=dataset)) +
-  geom_bar(stat = "identity", position=position_dodge()) +
-  labs(x = "Global components", y = "Specific weights of block \n on global components", fill = "omic",
-       title = "Blocks contributions") +
-  scale_x_discrete(labels = c("Pred #1", "Ortho #1")) +
-  ggplot2::scale_fill_manual(values= omics.colors)+
-  theme_graphs
+
+data_two_plots <- data.frame("Values" = COPLS_res@blockContribution[, "p_1"],
+                             "Type" = "Pred",
+                             "Blocks" = labels(COPLS_data))
+data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
+                                          COPLS_res@blockContribution[, "o_1"]),
+                             "Type" = c(data_two_plots$Type,
+                                        rep("Ortho", times = length(COPLS_res@blockContribution[, "o_1"]))),
+                             "Blocks" = c(data_two_plots$Blocks,
+                                          labels(COPLS_data)))
+omics.colors <- c("#E41A1C", "#377EB8", "#4DAF4A")
+ggplot(data = data_two_plots,
+       aes(x = Blocks, 
+           y = Values, 
+           fill = Blocks)) +
+  geom_bar(stat = 'identity') +
+  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  ggtitle("Block contributions to each component") +
+  xlab("Components") +
+  ylab("Weight") +
+  facet_wrap(. ~ factor(Type)) +
+  theme_graphs +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        plot.title = element_text(hjust = 0.5, 
+                                  margin = margin(t = 5, r = 0, b = 0, l = 100))) +
+  ggplot2::scale_fill_manual(values= omics.colors)
 ```
 
 ## Scores Plot
@@ -643,7 +672,7 @@ VIP <- COPLS_res@VIP
 # Multiply VIP * sign(loadings for predictive component)
 VIP_plot <- lapply(X = 1:nbrBlocs,
                    FUN = function(X){
-                       signe_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
+                       signe_loadings <- sign(COPLS_res@loadings[[X]][, "p_1"])
                        result <- VIP[[X]][, "p_1"]*signe_loadings
                        return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- names(VIP)
@@ -726,7 +755,6 @@ COPLS_data_DA <- lapply(COPLS_data_DA, scale)
 Y_DA <- as.matrix(data.frame(IGT = ifelse(metadata.diab$`Diabetes status` == "IGT", 1, 0),
                              T2D = ifelse(metadata.diab$`Diabetes status` == "T2D", 1, 0),
                              T3D = ifelse(metadata.diab$`Diabetes status` == "T3D", 1, 0)))
-
 rownames(Y_DA) <- diab.patients
 
 COPLS_res_DA <- ConsensusOPLS(
@@ -735,23 +763,27 @@ COPLS_res_DA <- ConsensusOPLS(
   maxPcomp = 2,
   maxOcomp = 3,
     modelType = "da",
-    nperm = 1000,
+    nperm = 200,
   cvType = "nfold",
-  nfold = 47, # pourquoi pas 51?
+  nfold = 15,
   kernelParams = list(type = "p", 
                     params = c(order = 1)),
-  mc.cores = 1,
-  verbose = TRUE
+  mc.cores = 1
 )
 ```
 
+
 ## Permutations
+
+### Main results
 
 ```{r DA_permutations, message=FALSE, warning=FALSE, fig.align='center'}
 Q2perm_DA <- data.frame(Q2perm = COPLS_res_DA@permStats$Q2Y)
 
 ggplot(data = Q2perm_DA, aes(x = Q2perm)) +
-  geom_histogram(color="grey", fill="grey") +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
   geom_vline(aes(xintercept=COPLS_res_DA@permStats$Q2Y[2]),
              color="blue", linetype="dashed", size=1) +
   theme_graphs +
@@ -760,7 +792,9 @@ ggplot(data = Q2perm_DA, aes(x = Q2perm)) +
 dQ2perm_DA <- data.frame(dQ2perm = COPLS_res_DA@permStats$DQ2)
 
 ggplot(data = dQ2perm_DA, aes(x = dQ2perm)) +
-  geom_histogram(color="grey", fill="grey") +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
   geom_vline(aes(xintercept=COPLS_res_DA@permStats$DQ2[2]),
              color="blue", linetype="dashed", size=1) +
   theme_graphs +
@@ -770,13 +804,318 @@ ggplot(data = dQ2perm_DA, aes(x = dQ2perm)) +
 R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA@permStats$R2Y)
 
 ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
-  geom_histogram(color="grey", fill="grey") +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
   geom_vline(aes(xintercept=COPLS_res_DA@permStats$R2Y[2]),
              color="blue", linetype="dashed", size=1) +
   theme_graphs +
   ggtitle("R2Y Permutation test")
 
 ```
+
+### Zoom on bimodality
+
+```{r exclude_T3D}
+diab.patients_bis <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("IGT", "T2D")]
+metadata.diab_bis <- metadata[diab.patients_bis,]
+
+COPLS_data_DA_bis <- list(rna=as.matrix(rna[diab.patients_bis,]),
+                          lipids=as.matrix(lip[diab.patients_bis,]),
+                          sphingolipids = as.matrix(sphingo[diab.patients_bis,]))
+COPLS_data_DA_bis$lipids <- apply(COPLS_data_DA_bis$lipids, 2, as.numeric)
+COPLS_data_DA_bis <- lapply(COPLS_data_DA_bis, scale)
+
+Y_DA_bis <- as.matrix(data.frame(IGT = ifelse(metadata.diab_bis$`Diabetes status` == "IGT", 1, 0),
+                                 T2D = ifelse(metadata.diab_bis$`Diabetes status` == "T2D", 1, 0)))
+rownames(Y_DA_bis) <- diab.patients_bis
+
+COPLS_res_DA_bis <- ConsensusOPLS(
+  data = COPLS_data_DA_bis,
+  Y = Y_DA_bis,
+  maxPcomp = 1,
+  maxOcomp = 3,
+    modelType = "da",
+    nperm = 200,
+  cvType = "nfold",
+  #nfold = 35,
+  kernelParams = list(type = "p", 
+                    params = c(order = 1)),
+  mc.cores = 1
+)
+
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA_bis@permStats$R2Y)
+
+ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=COPLS_res_DA_bis@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
+  theme_graphs +
+  ggtitle("R2Y Permutation test")
+
+scores_DA_bis <- data.frame(metadata.diab_bis, COPLS_res_DA_bis@scores)
+
+ggplot(scores_DA_bis, aes(x=p_1, y=o_1, col = Diabetes.status)) +
+  geom_point(size=4) +
+  labs(x="Predictive 1",
+       y="Orthogonal 1",
+       title = "scores plots on predictive latent variables") +
+  scale_color_manual(values= diabetes.status.colors) +
+  theme_graphs
+```
+
+```{r exclude_T2D}
+diab.patients_bis <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("IGT", "T3D")]
+metadata.diab_bis <- metadata[diab.patients_bis,]
+
+COPLS_data_DA_bis <- list(rna=as.matrix(rna[diab.patients_bis,]),
+                          lipids=as.matrix(lip[diab.patients_bis,]),
+                          sphingolipids = as.matrix(sphingo[diab.patients_bis,]))
+COPLS_data_DA_bis$lipids <- apply(COPLS_data_DA_bis$lipids, 2, as.numeric)
+COPLS_data_DA_bis <- lapply(COPLS_data_DA_bis, scale)
+
+Y_DA_bis <- as.matrix(data.frame(IGT = ifelse(metadata.diab_bis$`Diabetes status` == "IGT", 1, 0),
+                                 T3D = ifelse(metadata.diab_bis$`Diabetes status` == "T3D", 1, 0)))
+rownames(Y_DA_bis) <- diab.patients_bis
+
+COPLS_res_DA_bis <- ConsensusOPLS(
+  data = COPLS_data_DA_bis,
+  Y = Y_DA_bis,
+  maxPcomp = 1,
+  maxOcomp = 3,
+    modelType = "da",
+    nperm = 200,
+  cvType = "nfold",
+  #nfold = 33,
+  kernelParams = list(type = "p", 
+                    params = c(order = 1)),
+  mc.cores = 1
+)
+
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA_bis@permStats$R2Y)
+
+ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=COPLS_res_DA_bis@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
+  theme_graphs +
+  ggtitle("R2Y Permutation test")
+
+scores_DA_bis <- data.frame(metadata.diab_bis, COPLS_res_DA_bis@scores)
+
+ggplot(scores_DA_bis, aes(x=p_1, y=o_1, col = Diabetes.status)) +
+  geom_point(size=4) +
+  labs(x="Predictive 1",
+       y="Orthogonal 1",
+       title = "scores plots on predictive latent variables") +
+  scale_color_manual(values= diabetes.status.colors) +
+  theme_graphs
+```
+
+```{r exclude_IGT}
+diab.patients_bis <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("T2D", "T3D")]
+metadata.diab_bis <- metadata[diab.patients_bis,]
+
+COPLS_data_DA_bis <- list(rna=as.matrix(rna[diab.patients_bis,]),
+                          lipids=as.matrix(lip[diab.patients_bis,]),
+                          sphingolipids = as.matrix(sphingo[diab.patients_bis,]))
+COPLS_data_DA_bis$lipids <- apply(COPLS_data_DA_bis$lipids, 2, as.numeric)
+COPLS_data_DA_bis <- lapply(COPLS_data_DA_bis, scale)
+
+Y_DA_bis <- as.matrix(data.frame(T2D = ifelse(metadata.diab_bis$`Diabetes status` == "T2D", 1, 0),
+                                 T3D = ifelse(metadata.diab_bis$`Diabetes status` == "T3D", 1, 0)))
+rownames(Y_DA_bis) <- diab.patients_bis
+
+COPLS_res_DA_bis <- ConsensusOPLS(
+  data = COPLS_data_DA_bis,
+  Y = Y_DA_bis,
+  maxPcomp = 1,
+  maxOcomp = 3,
+    modelType = "da",
+    nperm = 200,
+  cvType = "nfold",
+  #nfold = 15,
+  kernelParams = list(type = "p", 
+                    params = c(order = 1)),
+  mc.cores = 1
+)
+
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA_bis@permStats$R2Y)
+
+ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=COPLS_res_DA_bis@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
+  theme_graphs +
+  ggtitle("R2Y Permutation test")
+
+scores_DA_bis <- data.frame(metadata.diab_bis, COPLS_res_DA_bis@scores)
+
+ggplot(scores_DA_bis, aes(x=p_1, y=o_1, col = Diabetes.status)) +
+  geom_point(size=4) +
+  labs(x="Predictive 1",
+       y="Orthogonal 1",
+       title = "scores plots on predictive latent variables") +
+  scale_color_manual(values= diabetes.status.colors) +
+  theme_graphs
+```
+
+```{r only_IGT}
+diab.patients_bis <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("IGT", "T2D", "T3D")]
+metadata.diab_bis <- metadata[diab.patients_bis,]
+
+COPLS_data_DA_bis <- list(rna=as.matrix(rna[diab.patients_bis,]),
+                          lipids=as.matrix(lip[diab.patients_bis,]),
+                          sphingolipids = as.matrix(sphingo[diab.patients_bis,]))
+COPLS_data_DA_bis$lipids <- apply(COPLS_data_DA_bis$lipids, 2, as.numeric)
+COPLS_data_DA_bis <- lapply(COPLS_data_DA_bis, scale)
+
+Y_DA_bis <- as.matrix(data.frame(IGT = ifelse(metadata.diab_bis$`Diabetes status` == "IGT", 1, 0)))
+rownames(Y_DA_bis) <- diab.patients_bis
+
+COPLS_res_DA_bis <- ConsensusOPLS(
+  data = COPLS_data_DA_bis,
+  Y = Y_DA_bis,
+  maxPcomp = 1,
+  maxOcomp = 3,
+    modelType = "da",
+    nperm = 200,
+  cvType = "nfold",
+  #nfold = 15,
+  kernelParams = list(type = "p", 
+                    params = c(order = 1)),
+  mc.cores = 1
+)
+
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA_bis@permStats$R2Y)
+
+ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=COPLS_res_DA_bis@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
+  theme_graphs +
+  ggtitle("R2Y Permutation test")
+
+scores_DA_bis <- data.frame(metadata.diab_bis, COPLS_res_DA_bis@scores)
+
+ggplot(scores_DA_bis, aes(x=p_1, y=o_1, col = Diabetes.status)) +
+  geom_point(size=4) +
+  labs(x="Predictive 1",
+       y="Orthogonal 1",
+       title = "scores plots on predictive latent variables") +
+  scale_color_manual(values= diabetes.status.colors) +
+  theme_graphs
+```
+
+```{r only_T2D}
+diab.patients_bis <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("IGT", "T2D", "T3D")]
+metadata.diab_bis <- metadata[diab.patients_bis,]
+
+COPLS_data_DA_bis <- list(rna=as.matrix(rna[diab.patients_bis,]),
+                          lipids=as.matrix(lip[diab.patients_bis,]),
+                          sphingolipids = as.matrix(sphingo[diab.patients_bis,]))
+COPLS_data_DA_bis$lipids <- apply(COPLS_data_DA_bis$lipids, 2, as.numeric)
+COPLS_data_DA_bis <- lapply(COPLS_data_DA_bis, scale)
+
+Y_DA_bis <- as.matrix(data.frame(T2D = ifelse(metadata.diab_bis$`Diabetes status` == "T2D", 1, 0)))
+rownames(Y_DA_bis) <- diab.patients_bis
+
+COPLS_res_DA_bis <- ConsensusOPLS(
+  data = COPLS_data_DA_bis,
+  Y = Y_DA_bis,
+  maxPcomp = 1,
+  maxOcomp = 3,
+    modelType = "da",
+    nperm = 200,
+  cvType = "nfold",
+  #nfold = 15,
+  kernelParams = list(type = "p", 
+                    params = c(order = 1)),
+  mc.cores = 1
+)
+
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA_bis@permStats$R2Y)
+
+ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=COPLS_res_DA_bis@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
+  theme_graphs +
+  ggtitle("R2Y Permutation test")
+
+scores_DA_bis <- data.frame(metadata.diab_bis, COPLS_res_DA_bis@scores)
+
+ggplot(scores_DA_bis, aes(x=p_1, y=o_1, col = Diabetes.status)) +
+  geom_point(size=4) +
+  labs(x="Predictive 1",
+       y="Orthogonal 1",
+       title = "scores plots on predictive latent variables") +
+  scale_color_manual(values= diabetes.status.colors) +
+  theme_graphs
+```
+
+```{r only_T3D}
+diab.patients_bis <- metadata$`Patient ID`[metadata$`Diabetes status` %in% c("IGT", "T2D", "T3D")]
+metadata.diab_bis <- metadata[diab.patients_bis,]
+
+COPLS_data_DA_bis <- list(rna=as.matrix(rna[diab.patients_bis,]),
+                          lipids=as.matrix(lip[diab.patients_bis,]),
+                          sphingolipids = as.matrix(sphingo[diab.patients_bis,]))
+COPLS_data_DA_bis$lipids <- apply(COPLS_data_DA_bis$lipids, 2, as.numeric)
+COPLS_data_DA_bis <- lapply(COPLS_data_DA_bis, scale)
+
+Y_DA_bis <- as.matrix(data.frame(T3D = ifelse(metadata.diab_bis$`Diabetes status` == "T3D", 1, 0)))
+rownames(Y_DA_bis) <- diab.patients_bis
+
+COPLS_res_DA_bis <- ConsensusOPLS(
+  data = COPLS_data_DA_bis,
+  Y = Y_DA_bis,
+  maxPcomp = 1,
+  maxOcomp = 3,
+    modelType = "da",
+    nperm = 200,
+  cvType = "nfold",
+  #nfold = 15,
+  kernelParams = list(type = "p", 
+                    params = c(order = 1)),
+  mc.cores = 1
+)
+
+R2Yperm_DA <- data.frame(R2Yperm_DA = COPLS_res_DA_bis@permStats$R2Y)
+
+ggplot(data = R2Yperm_DA, aes(x = R2Yperm_DA)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30,
+                 color="grey", fill="grey") +
+  geom_density(color = "blue", linewidth = 0.5) +
+  geom_vline(aes(xintercept=COPLS_res_DA_bis@permStats$R2Y[2]),
+             color="blue", linetype="dashed", size=1) +
+  theme_graphs +
+  ggtitle("R2Y Permutation test")
+
+scores_DA_bis <- data.frame(metadata.diab_bis, COPLS_res_DA_bis@scores)
+
+ggplot(scores_DA_bis, aes(x=p_1, y=o_1, col = Diabetes.status)) +
+  geom_point(size=4) +
+  labs(x="Predictive 1",
+       y="Orthogonal 1",
+       title = "scores plots on predictive latent variables") +
+  scale_color_manual(values= diabetes.status.colors) +
+  theme_graphs
+```
+
+
+
+
 
 ## Blocks contribution
 
@@ -834,22 +1173,39 @@ ggplot(loadings_DA, aes(x=p_1, y=o_1, col=dataset, label = variable)) +
 ## VIP of the optimal model
 
 ```{r consensus OPLS-DA VIP loadings, message=FALSE, warning=FALSE, fig.align='center'}
-VIP_DA <- data.frame(VIP = c(COPLS_res_DA@VIP$rna, COPLS_res_DA@VIP$lipids, COPLS_res_DA@VIP$sphingolipids), variable = c(names(COPLS_res_DA@VIP$rna), names(COPLS_res_DA@VIP$lipids), names(COPLS_res_DA@VIP$sphingolipids)))
+loadings <- do.call(rbind.data.frame, COPLS_res_DA@loadings)
+loadings$block <- do.call(c, lapply(names(COPLS_res_DA@loadings), function(x) 
+    rep(x, nrow(COPLS_res_DA@loadings[[x]]))))
+loadings$variable <- gsub(paste(paste0(names(COPLS_res_DA@loadings), '.'), 
+                                collapse='|'), '', 
+                          rownames(loadings))
 
-loadings_VIP_DA <- merge(loadings_DA, VIP_DA, by="variable")
-loadings_VIP_DA$label <- ifelse(loadings_VIP_DA$VIP > 1, loadings_VIP_DA$variable, NA)
-loadings_VIP_DA <- loadings_VIP_DA[order(loadings_VIP_DA$VIP, decreasing = T),]
-loadings_VIP_DA$rank <- seq(1, nrow(loadings_VIP_DA))
-loadings_VIP_DA <- loadings_VIP_DA[loadings_VIP_DA$VIP > quantile(loadings_VIP_DA$VIP, 0.75, names = F),]
+VIP <- do.call(rbind.data.frame, COPLS_res_DA@VIP)
+VIP$block <- do.call(c, lapply(names(COPLS_res_DA@VIP), function(x) 
+    rep(x, nrow(COPLS_res_DA@VIP[[x]]))))
+VIP$variable <- gsub(paste(paste0(names(COPLS_res_DA@VIP), '.'), 
+                                collapse='|'), '', 
+                          rownames(VIP))
+        
+loadings_VIP <- merge(x = loadings[, c("p_1", "variable")], 
+                      y = VIP[, c("p_1", "variable")], 
+                      by = "variable", all = TRUE)
+colnames(loadings_VIP) <- c("variable", "loadings", "VIP")
+loadings_VIP <- merge(x = loadings_VIP, 
+                      y = loadings[, c("block", "variable")], 
+                      by = "variable", all = TRUE)
+loadings_VIP$label <- ifelse(loadings_VIP$VIP > 1, loadings_VIP$variable, NA)
 
-ggplot(loadings_VIP_DA, aes(x=rank, y=VIP, fill=dataset, label = label)) +
-  geom_bar(stat = "identity") +
-  labs(x="Variable",
-       y="VIP",
-       title = "VIP plot") +
+
+
+ggplot(data = loadings_VIP,
+       aes(x=loadings, y=VIP, col=block, label = label)) +
+  geom_point(size = 2.5, alpha = 0.5) + 
+  xlab("Predictive component") +
+  ylab("Variable Importance in Projection") +
+  ggtitle("VIP versus loadings on predictive components")+
   theme_graphs+
-  ggplot2::scale_color_manual(values= diabetes.status.colors)
-
+  scale_color_manual(values = diabetes.status.colors)
 ```
 
 
