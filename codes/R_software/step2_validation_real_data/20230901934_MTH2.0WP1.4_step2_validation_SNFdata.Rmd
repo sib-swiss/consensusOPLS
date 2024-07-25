@@ -470,7 +470,7 @@ rvcopls <- ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
                                         maxPcomp = LVsPred,
                                         maxOcomp  = LVsOrtho,
                                         modelType = "da",
-                                        nperm = 0,
+                                        nperm = 2,
                                         cvType = "nfold",
                                         nfold = CVfolds,
                                         kernelParams =
@@ -835,7 +835,7 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                              maxPcomp = LVsPred,
                                              maxOcomp  = LVsOrtho,
                                              modelType = "reg",
-                                             nperm = 0,
+                                             nperm = 2,
                                              cvType = "nfold",
                                              nfold = CVfolds, 
                                              kernelParams = 
@@ -885,7 +885,7 @@ rvcopls <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                          maxPcomp = LVsPred,
                                          maxOcomp  = LVsOrtho,
                                          modelType = "da",
-                                         nperm = 0,
+                                         nperm = 2,
                                          cvType = "nfold",
                                          nfold = CVfolds,
                                          kernelParams = 
@@ -929,6 +929,49 @@ ggplot2::ggplot(data = data.frame(
   ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
 ```
 
+```{r}
+data_two_plots <- data.frame("Values" = rvcopls@blockContribution[, "p_1"],
+                             "Type" = "Pred",
+                             "Blocks" = labels(omics.common.data2))
+data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
+                                          rvcopls@blockContribution[, "o_1"]),
+                             "Type" = c(data_two_plots$Type,
+                                        rep("Ortho", times = length(rvcopls@blockContribution[, "o_1"]))),
+                             "Blocks" = c(data_two_plots$Blocks,
+                                          labels(omics.common.data2)))
+
+ggplot(data = data_two_plots,
+       aes(x = factor(Type), 
+           y = Values, 
+           fill = factor(Type))) +
+  geom_bar(stat = 'identity') + 
+  ggtitle("Block contributions to each component")+
+  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  xlab("Data blocks") +
+  ylab("Weight") +
+  facet_wrap(. ~ Blocks)+
+  theme_graphs+
+  scale_fill_discrete(name = "Component")+
+  scale_fill_manual(values = c("#7F3C8D", "#11A579"))
+
+ggplot(data = data_two_plots,
+                           aes(x = Blocks, 
+                               y = Values, 
+                               fill = Blocks)) +
+    geom_bar(stat = 'identity') +
+    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+    ggtitle("Block contributions to each component") +
+    xlab("Components") +
+    ylab("Weight") +
+    facet_wrap(. ~ factor(Type)) +
+    theme_graphs +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          plot.title = element_text(hjust = 0.5, 
+                                    margin = margin(t = 5, r = 0, b = 0, l = 100))) +
+    scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+```
+
+
 ## ConsensusOPLS-reg log model
 
 ```{r run_model_reg_kernel2}
@@ -937,7 +980,7 @@ rvcopls.reg <- ConsensusOPLS:::ConsensusOPLS(data = omics.common.data2,
                                              maxPcomp = LVsPred,
                                              maxOcomp  = LVsOrtho,
                                              modelType = "reg",
-                                             nperm = 0,
+                                             nperm = 2,
                                              cvType = "nfold",
                                              nfold = CVfolds, 
                                              kernelParams = 
@@ -978,6 +1021,33 @@ ggplot2::ggplot(data = data.frame(
   ggplot2::scale_color_manual(values = c("#7F3C8D", "#11A579"))
 ```
 
+```{r}
+data_two_plots <- data.frame("Values" = rvcopls.reg@blockContribution[, "p_1"],
+                             "Type" = "Pred",
+                             "Blocks" = labels(omics.common.data2))
+data_two_plots <- data.frame("Values" = c(data_two_plots$Values,
+                                          rvcopls.reg@blockContribution[, "o_1"]),
+                             "Type" = c(data_two_plots$Type,
+                                        rep("Ortho", times = length(rvcopls.reg@blockContribution[, "o_1"]))),
+                             "Blocks" = c(data_two_plots$Blocks,
+                                          labels(omics.common.data2)))
+omics.colors <- c("#E41A1C", "#377EB8", "#4DAF4A")
+ggplot(data = data_two_plots,
+       aes(x = Blocks, 
+           y = Values, 
+           fill = Blocks)) +
+  geom_bar(stat = 'identity') +
+  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  ggtitle("Block contributions to each component") +
+  xlab("Components") +
+  ylab("Weight") +
+  facet_wrap(. ~ factor(Type)) +
+  theme_graphs +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        plot.title = element_text(hjust = 0.5, 
+                                  margin = margin(t = 5, r = 0, b = 0, l = 100))) +
+  ggplot2::scale_fill_manual(values= omics.colors)
+```
 
 
 # Gaussian kernel
@@ -989,7 +1059,7 @@ ggplot2::ggplot(data = data.frame(
 #                                          maxPcomp = LVsPred,
 #                                          maxOcomp  = LVsOrtho,
 #                                          modelType = "da",
-#                                          nperm = 0,
+#                                          nperm = 2,
 #                                          cvType = "nfold",
 #                                          nfold = CVfolds,
 #                                          kernelParams = 
@@ -1040,7 +1110,7 @@ ggplot2::ggplot(data = data.frame(
 #                                              maxPcomp = LVsPred,
 #                                              maxOcomp  = LVsOrtho,
 #                                              modelType = "reg",
-#                                              nperm = 0,
+#                                              nperm = 2,
 #                                              cvType = "nfold",
 #                                              nfold = CVfolds, 
 #                                              kernelParams = 
@@ -1057,7 +1127,6 @@ ggplot2::ggplot(data = data.frame(
 # Optimal_model_no_perm <- rvcopls.reg$optimal
 # position <- rvcopls@nOcompOpt+1
 # 
-# paste0('R2: ', round(rvcopls@R2Yhat[position], 4))
 ```
 
 ```{r print_main2_results_Q2_kernel3, class.source='fold-hide'}
@@ -1093,59 +1162,59 @@ different models, depending on the number of cores used for parallelisation.
 As an example, let's take a model with 1000 permutations:
 
 ```{r test_parallelisation_100}
-CVfolds <- round(sqrt(CVfolds), 0)
-CVfolds
-
-cores_max <- detectCores()
-cores_max
-
-lapply(X = c(1:cores_max),
-       FUN = function(cores_tested){
-         print(paste0("cores_tested = ", cores_tested))
-         Tstart<-Sys.time()
-         ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
-                                      Y=factor(Y),
-                                      maxPcomp = LVsPred,
-                                      maxOcomp  = LVsOrtho,
-                                      modelType = "da",
-                                      nperm = 100,
-                                      cvType = "nfold",
-                                      nfold = CVfolds,
-                                      kernelParams =
-                                        list(type = "p",
-                                             params = c(order = 2)),
-                                      mc.cores = cores_tested,
-                                      verbose = TRUE)
-         Tend<-Sys.time()
-         Tellapsed <- Tend - Tstart
-         return(Tellapsed)
-       })
+# CVfolds <- round(sqrt(CVfolds), 0)
+# CVfolds
+# 
+# cores_max <- detectCores()
+# cores_max
+# 
+# lapply(X = c(1:cores_max),
+#        FUN = function(cores_tested){
+#          print(paste0("cores_tested = ", cores_tested))
+#          Tstart<-Sys.time()
+#          ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
+#                                       Y=factor(Y),
+#                                       maxPcomp = LVsPred,
+#                                       maxOcomp  = LVsOrtho,
+#                                       modelType = "da",
+#                                       nperm = 100,
+#                                       cvType = "nfold",
+#                                       nfold = CVfolds,
+#                                       kernelParams =
+#                                         list(type = "p",
+#                                              params = c(order = 2)),
+#                                       mc.cores = cores_tested,
+#                                       verbose = TRUE)
+#          Tend<-Sys.time()
+#          Tellapsed <- Tend - Tstart
+#          return(Tellapsed)
+#        })
 ```
 
 And now, let's take a model with 1000 permutations:
 
 ```{r test_parallelisation_1000}
-lapply(X = c(1:cores_max),
-       FUN = function(cores_tested){
-         print(paste0("cores_tested = ", cores_tested))
-         Tstart<-Sys.time()
-         ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
-                                      Y=factor(Y),
-                                      maxPcomp = LVsPred,
-                                      maxOcomp  = LVsOrtho,
-                                      modelType = "da",
-                                      nperm = 1000,
-                                      cvType = "nfold",
-                                      nfold = CVfolds,
-                                      kernelParams =
-                                        list(type = "p",
-                                             params = c(order = 2)),
-                                      mc.cores = cores_tested,
-                                      verbose = TRUE)
-         Tend<-Sys.time()
-         Tellapsed <- Tend - Tstart
-         return(Tellapsed)
-       })
+# lapply(X = c(1:cores_max),
+#        FUN = function(cores_tested){
+#          print(paste0("cores_tested = ", cores_tested))
+#          Tstart<-Sys.time()
+#          ConsensusOPLS::ConsensusOPLS(data = omics.common.data2,
+#                                       Y=factor(Y),
+#                                       maxPcomp = LVsPred,
+#                                       maxOcomp  = LVsOrtho,
+#                                       modelType = "da",
+#                                       nperm = 1000,
+#                                       cvType = "nfold",
+#                                       nfold = CVfolds,
+#                                       kernelParams =
+#                                         list(type = "p",
+#                                              params = c(order = 2)),
+#                                       mc.cores = cores_tested,
+#                                       verbose = TRUE)
+#          Tend<-Sys.time()
+#          Tellapsed <- Tend - Tstart
+#          return(Tellapsed)
+#        })
 ```
 
 
