@@ -1,3 +1,11 @@
+# CRAN link:
+
+This project has two objectives. o build an R package to make the ConsensusOPLS
+method accessible and to add variable selection.
+
+The package was published on CRAN on June 20, 2024 and can be accessed via the 
+link https://cran.r-project.org/web/packages/ConsensusOPLS/index.html
+
 # Overview of project stages:
 
 The aim of this project is to translate the `ConsensusOPLS` method from its 
