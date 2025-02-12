@@ -43,14 +43,16 @@ model.}
 
 \item{\code{Q2}}{Predictive ability of the optimal model.}
 
-\item{\code{DQ2}}{Predictive ability of the optimal model, for discriminant analysis.}
+\item{\code{DQ2}}{Predictive ability of the optimal discriminant model.}
 
-\item{\code{permStats}}{Q2 and R2Y of models with permuted response.}
+\item{\code{permStats}}{Assessment of models with permuted response.}
+
+\item{\code{model}}{The optimal model.}
 
 \item{\code{cv}}{Cross-validation result towards the optimal model. Contains 
 \code{AllYhat} (all predicted Y values as a concatenated matrix), 
 \code{cvTestIndex} (indexes for the test set observations during the 
-cross-validation rounds), \code{DQ2Yhat} (total discriminant Q-square result 
+cross-validation rounds), \code{DQ2Yhat} (total discriminant Q-square result
 for all Y-orthogonal components), \code{nOcompOpt} (optimal number of 
 Y-orthogonal components (latent variables) for the optimal model), and 
 \code{Q2Yhat} (total Q-square result for all Y-orthogonal components).}

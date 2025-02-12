@@ -12,8 +12,8 @@
 #' @returns The modified R-square value.
 #'
 #' @examples
-#' X <- matrix(stats::rnorm(n = 3600), nrow=200)
-#' Y <- matrix(stats::rnorm(n = 5400), nrow=200)
+#' X <- matrix(rnorm(n = 3600), nrow=200)
+#' Y <- matrix(rnorm(n = 5400), nrow=200)
 #' result <- ConsensusOPLS:::RVmodified(X = X, Y = Y)
 #' result
 #' 
@@ -22,8 +22,10 @@
 #' 
 RVmodified <- function(X, Y){
     # Variable format control
-    if (!is.matrix(X)) stop("X is not a matrix.")
-    if (!is.matrix(Y)) stop("Y is not a matrix.")
+    if (!is.matrix(X))
+        stop("X is not a matrix.")
+    if (!is.matrix(Y))
+        stop("Y is not a matrix.")
     
     AA <- tcrossprod(X)
     BB <- tcrossprod(Y)

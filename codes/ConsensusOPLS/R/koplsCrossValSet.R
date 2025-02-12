@@ -27,8 +27,8 @@
 #' \item{testIndex}{ numeric. Indices of test set observations.}
 #'
 #' @examples
-#' Y <- matrix(stats::rnorm(n = 28), nrow = 14)
-#' K <- matrix(stats::rnorm(n = 140), nrow = 14)
+#' Y <- matrix(rnorm(n = 28), nrow = 14)
+#' K <- matrix(rnorm(n = 140), nrow = 14)
 #' cvType <- "nfold"  
 #' cvFrac <- 0.75 
 #' nfold <- 5  

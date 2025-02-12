@@ -81,7 +81,8 @@ quality w.r.t other models built with randomly permuted responses.
 }
 \examples{
 data(demo_3_Omics)
-datablocks <- lapply(demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)
+datablocks <- lapply(
+    demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)
 res <- ConsensusOPLS(data=datablocks, 
                      Y=demo_3_Omics$Y,
                      maxPcomp=1, maxOcomp=2, 

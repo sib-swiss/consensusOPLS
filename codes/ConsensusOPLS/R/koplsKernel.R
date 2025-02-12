@@ -2,14 +2,14 @@
 #' @description 
 #' This function constructs a kernel matrix \code{K = <phi(X1), phi(X2)>}.
 #' The kernel function \code{phi} determines how the data is transformed and
-#' is passed as the separate parameter \code{type} to the function.
+#' passed as the separate parameter \code{type} to the function.
 #' Currently \code{type} can be either \code{g} for Gaussian or \code{p} for
-#' polynomial.
+#' polynomial kernel.
 #'
 #' @param X1 matrix. The first X matrix (non-centered). This is the left side in 
 #' the expression K = <phi(X1), phi(X2)>.
 #' @param X2 matrix. The second X matrix (non-centered). This is the right side
-#' in the expression K = <phi(X1), phi(X2)>. If X2 = [] (empty set), then only
+#' in the expression K = <phi(X1), phi(X2)>. If X2 = NULL, then only
 #' X1 will be used for the calculations. This way, only (n^2 - n)/2 instead of
 #' n^2 calculations have to be performed, which is typically much faster. Only
 #' applicable for pure training or testing kernels.
@@ -23,8 +23,8 @@
 #' \code{type}.
 #'
 #' @examples
-#' X1 <- base::matrix(stats::rnorm(n = 20), nrow = 5)
-#' X2 <- base::matrix(stats::rnorm(n = 24), nrow = 6)
+#' X1 <- base::matrix(rnorm(n = 20), nrow = 5)
+#' X2 <- base::matrix(rnorm(n = 24), nrow = 6)
 #' 
 #' # Polynomial example
 #' params_polynomial <- c(order=2)  # Polynomial kernel order

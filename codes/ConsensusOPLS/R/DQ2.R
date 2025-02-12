@@ -1,8 +1,8 @@
 #' @title DQ2
 #' @description
-#' Calculates the discriminant Q2 value adjusted for values that are greater than
-#' 1 for 1-class samples and smaller than 0 for 0-class samples. The idea is 
-#' these values should not be penalized.
+#' Calculate the discriminant Q2 value adjusted for values that are greater
+#' than 1 for 1-class samples and smaller than 0 for 0-class samples. The idea
+#' is that these values should not be penalized.
 ## TOCHECK: Don't understand !!!!!!!
 #'
 #' @param Ypred A vector of predicted values.
@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' Y <- sample(x = 0:1, size = 100, replace = TRUE, prob = NULL)
-#' Ypred <- stats::runif(n = 100)
+#' Ypred <- runif(n = 100)
 #' result <- ConsensusOPLS:::DQ2(Ypred = Ypred, Y = Y)
 #' result$dqq
 #' result$PRESSD
@@ -24,7 +24,8 @@
 #' 
 DQ2 <- function(Ypred, Y) {
     # Variable format control
-    if (!all(Y %in% c(0, 1))) stop("Y must contain only 0 or 1 values.")
+    if (!all(Y %in% c(0, 1)))
+        stop("Y must contain only 0 or 1 values.")
 
     # Find indices belonging to each Class
     class0 <- which(Y == 0)

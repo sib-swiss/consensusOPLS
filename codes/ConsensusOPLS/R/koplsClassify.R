@@ -19,11 +19,12 @@
 #' 
 koplsMaxClassify <- function(X) {
     # Variable format control
-    if (!is.matrix(X)) stop("X is not a matrix.")
+    if (!is.matrix(X))
+        stop("X is not a matrix.")
     
-    # Search position of max value
-    predClass <- colnames(X)[apply(X = X, MARGIN = 1,
-                                   FUN = function(row) which.max(row))]
-    
+    # Class of max value
+    predClass <- apply(X = X, MARGIN = 1,
+                       FUN = function(row) colnames(X)[which.max(row)])
+
     return (predClass)
 }

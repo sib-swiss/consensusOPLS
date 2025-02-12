@@ -3,7 +3,6 @@
 \docType{package}
 \name{ConsensusOPLS-package}
 \alias{ConsensusOPLS-package}
-\alias{_PACKAGE}
 \title{Consensus OPLS for Multi-Block Data Fusion}
 \description{
 Merging data from multiple sources is a relevant approach for 

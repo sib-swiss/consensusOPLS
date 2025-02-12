@@ -8,20 +8,19 @@
 #'
 #' @param K matrix. Kernel matrix (un-centered); K = <phi(Xtr),phi(Xtr)>.
 #' @param Y matrix. Response matrix (un-centered/scaled). 
-#' @param A numeric. Number of predictive components. Default is 1.
+#' @param A numeric. Number of predictive components. Default, 1.
 #' @param nox numeric. Number of Y-orthogonal components. Default is 1.
-#' @param preProcK character. Pre-processing parameters for the 'K' matrix:
-#' \code{mc} for mean-centering, \code{no} for no centering. Default is 'no'.
-#' @param preProcY: character. Pre-processing parameters for the 'Y' matrix:
+#' @param preProcK character. Pre-processing parameters for the \code{K} matrix:
+#' \code{mc} for mean-centering, \code{no} for no centering. Default, 'no'.
+#' @param preProcY character. Pre-processing parameters for the \code{Y} matrix:
 #' \code{mc} for mean-centering + no scaling, \code{uv} for mc + scaling to unit 
 #' variance, \code{pa} for mc + scaling to Pareto, \code{no} for no centering + 
-#' no scaling. Default is \code{no}.
+#' no scaling. Default, \code{no}.
 #'
 #' @returns A list with the following entries:
 #' \item{Cp}{ matrix. Y loading matrix.}
-#' \item{Sp}{ matrix. Sigma matrix, containing singular values from Y'*K*Y used 
-#'  for scaling.}
-#' \item{Sps}{ matrix. Scaled Sigma matrix, containing scaled singular values.}
+#' \item{Sp}{ matrix. The inverse square root of singular values of Y'*K*Y, in
+#' diagonal matrix.}
 #' \item{Up}{ matrix. Y score matrix.}
 #' \item{Tp}{ list. Predictive score matrix for all Y-orthogonal components.}
 #' \item{T}{ matrix. Predictive score matrix for the final model.}
@@ -35,8 +34,8 @@
 #' \item{A}{ numeric. Number of predictive components.}
 #' \item{nox}{ numeric. Number of Y-orthogonal components.}
 #' \item{K}{ matrix. The kernel matrix.}
-#' \item{EEprime}{ matrix. The deflated kernel matrix for residual statistics.}
-#' \item{sstot_K}{ numeric. Total sums of squares in 'K'.}
+# #' \item{EEprime}{ matrix. The deflated kernel matrix for residual statistics.}
+#' \item{sstot_K}{ numeric. Total sums of squares in K.}
 #' \item{R2X}{ numeric. Cumulative explained variation for all model components.}
 #' \item{R2XO}{ numeric. Cumulative explained variation for Y-orthogonal model 
 #' components.}
@@ -59,51 +58,55 @@
 #' preProcK <- "mc"
 #' preProcY <- "mc"
 #' model <- ConsensusOPLS:::koplsModel(K = K, Y = Y, A = A, nox = nox, 
-#'                                    preProcK = preProcK, preProcY = preProcY)
+#'                                     preProcK = preProcK,
+#'                                     preProcY = preProcY)
 #' ls(model)
 #' 
 #' @keywords internal
 #' @noRd
 #' 
-koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
+koplsModel <- function(K, Y, A = 1, nox = 1,
+                       preProcK = "no",
+                       preProcY = "no") {
     # Variable format control
-    if (!is.matrix(K)) stop("K is not a matrix.")
-    if (!is.matrix(Y)) stop("Y is not a matrix.")
-    if (!is.numeric(A)) stop("A is not a numeric.")
-    if (!is.numeric(nox)) stop("nox is not a numeric.")
-    if (!is.character(preProcK))
-        stop("preProcK is not a character.")
-    else if (!(preProcK %in% c("mc", "no"))) 
-        stop("preProcK must be `mc` or `no`.")
-    if (!is.character(preProcY))
-        stop("preProcY is not a character.")
-    else if(!(preProcY %in% c("mc", "uv", "pa", "no")))
-        stop("preProcY must be `mc`, `uv`, `pa` or `no`.")
+    if (!is.matrix(K))
+        stop("K is not a matrix.")
+    if (!is.matrix(Y))
+        stop("Y is not a matrix.")
+    if (!is.numeric(A))
+        stop("A is not numeric.")
+    if (!is.numeric(nox))
+        stop("nox is not numeric.")
+    preProcK <- match.arg(preProcK,
+                          choices = c("mc", "no"),
+                          several.ok = F)
+    preProcY <- match.arg(preProcY,
+                          choices = c("mc", "no", "uv", "pa"),
+                          several.ok = F)
     
     # Initialize parameters
     I <- diag(ncol(K))
     
     # Preprocess K
-    Kpreproc <- if (preProcK == "mc") koplsCenterKTrTr(K = K) else K
+    Kpreproc <- if (preProcK == "mc") koplsCenterKTrTr(KtrTr = K) else K
     # TODO: not necessary to store all K matrices
     Kdeflate <- matrix(data = list(), ncol = nox+1, nrow = nox+1)
     Kdeflate[1,1] <- list(Kpreproc)
     
     # Preprocess Y
-    if (preProcY != "no") {
-        scaleParams <- koplsScale(X = Y, 
-                                  centerType = ifelse(preProcY == "mc", 
-                                                      yes = "mc", no = "no"), 
-                                  scaleType = ifelse(preProcY == "mc", 
-                                                     yes = "no", no = preProcY))
-        Ypreproc <- scaleParams$X
-    } else Ypreproc <- Y
+    scaleParams <- koplsScale(X = Y, 
+                              centerType = ifelse(preProcY == "no",
+                                                  "no",
+                                                  "mc"),
+                              scaleType = ifelse(preProcY == "mc",
+                                                 "no",
+                                                 preProcY))
+    Ypreproc <- scaleParams$X
     
     # KOPLS model estimation
     ## step 1: SVD of Y'KY
-    A <- min(A, max(ncol(Y)-1, 1)) #TODO: sth simpler than rankMatrix(Y))
+    A <- min(A, max(ncol(Y)-1, 1))
     # TOREMOVE: nclass * nsample * nsample * nsample * nsample * nclass = nclass * nclass
-    # for demo data: Y'KY == rbind(c(sum(K[1:7, 1:7]), sum(K[1:7, 8:14])), c(sum(K[1:7, 8:14]), sum(K[8:14, 8:14]))) 
     CSV <- svd(x = crossprod(x = Ypreproc, 
                              y = crossprod(x = t(Kdeflate[1,1][[1]]), 
                                            y = Ypreproc)),
@@ -112,9 +115,8 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     # TOREMOVE: nclass * ncomp, ncomp=A
     Cp <- CSV$u
     rownames(Cp) <- colnames(Ypreproc)
-    # Extract the singular values
-    Sp  <- diag(CSV$d[1:A], nrow=A)
-    Sps <- diag(CSV$d[1:A]^(-1/2), nrow=A)
+    # Extract the inverse square root of singular values
+    Sp <- diag(CSV$d[1:A]^(-1/2), nrow=A)
     
     ## step 2: Define Up
     # TOREMOVE: nsample * nclass * nclass * ncomp = nsample * ncomp
@@ -129,7 +131,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         ## step 4: Compute Tp
         # TOREMOVE: nsample * nsample * nsample * ncomp * ncomp * ncomp = nsample * ncomp
         Tp[[i]] <- crossprod(x = Kdeflate[1,i][[1]], 
-                             y = tcrossprod(x = Up, y = t(Sps))) #TODO: Why Sps here?
+                             y = tcrossprod(x = Up, y = t(Sp)))
         # TOREMOVE: ncomp * ncomp * ncomp * nsample * nsample * ncomp = ncomp * ncomp
         Bt[[i]] <- crossprod(x = t(solve(crossprod(Tp[[i]]))), 
                              y = crossprod(x = Tp[[i]], y = Up))
@@ -137,7 +139,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         # TOREMOVE: ncomp * nsample * nsample * nsample * nsample * ncomp = ncomp * ncomp
         temp <- svd(x = crossprod(x = Tp[[i]], 
                                   y = tcrossprod(x = Kdeflate[i,i][[1]] -
-                                                     tcrossprod(Tp[[i]]), 
+                                                     tcrossprod(Tp[[i]]),
                                                  y = t(Tp[[i]]))),
                     nu = 1, nv = 1)
         # TOREMOVE: ncomp * 1
@@ -147,10 +149,13 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         ## TODO: so[[i]] is scalar then?
         
         ## step 6: to
-        to[[i]] <- tcrossprod(x = tcrossprod(x = tcrossprod(x = Kdeflate[i,i][[1]] - tcrossprod(Tp[[i]]), 
-                                                            y = t(Tp[[i]])),
-                                             y = t(co[[i]])), 
-                              y = t(1/sqrt(so[[i]])))
+        to[[i]] <- tcrossprod(
+            x = tcrossprod(
+                x = tcrossprod(
+                    x = Kdeflate[i,i][[1]] - tcrossprod(Tp[[i]]), 
+                    y = t(Tp[[i]])),
+                y = t(co[[i]])), 
+            y = t(1/sqrt(so[[i]])))
         
         ## step 7: toNorm
         toNorm[[i]] <- c(sqrt(crossprod(to[[i]])))
@@ -160,12 +165,16 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         
         ## step 9: Update K
         scale_matrix <- I - tcrossprod(to[[i]])
-        Kdeflate[1, i+1][[1]] <- tcrossprod(x = Kdeflate[1,i][[1]], y = t(scale_matrix))
+        Kdeflate[1, i+1][[1]] <- tcrossprod(
+            x = Kdeflate[1,i][[1]],
+            y = t(scale_matrix))
         
         ## step 10: Update Kii
-        Kdeflate[i+1, i+1][[1]] <- tcrossprod(x = scale_matrix, 
-                                       y = tcrossprod(x = t(scale_matrix),
-                                                      y = t(Kdeflate[i, i][[1]])))
+        Kdeflate[i+1, i+1][[1]] <- tcrossprod(
+            x = scale_matrix, 
+            y = tcrossprod(
+                x = t(scale_matrix),
+                y = t(Kdeflate[i, i][[1]])))
         
         # Update i
         i <- i + 1
@@ -173,7 +182,7 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
 
     ## step 12: Tp[[nox+1]]
     Tp[[nox+1]] <- crossprod(x = Kdeflate[1, nox+1][[1]], 
-                             y = crossprod(x = t(Up), y = Sps))
+                             y = crossprod(x = t(Up), y = Sp))
     colnames(Tp[[nox+1]]) <- paste0("p_", 1:A)
     #TODO: Why is Y-predictive score determined by the optimal number of orthogonal components?
     
@@ -183,22 +192,28 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
     
     # ---------- extra stuff -----------------
     # should work but not fully tested (MB 2007-02-19)
-    # TODO check
-    sstot_Y <- sum(sum(Ypreproc**2))
+    #sstot_Y <- sum(sum(Ypreproc**2))
+    if (max(abs(colMeans(Ypreproc))) > 1e-5)
+        stop("Ypreproc is not centered.")
+    sstot_Y <- sum(Ypreproc^2)
     #FY <- Ypreproc - tcrossprod(x = Up, y = Cp)
     #R2Y <- 1 - sum(sum(FY^2))/sstot_Y
     # --------- #
     
-    EEprime <- Kdeflate[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
+    #EEprime <- Kdeflate[nox+1, nox+1][[1]] - tcrossprod(Tp[[nox+1]])
     sstot_K <- sum(diag(Kdeflate[1,1][[1]]))
     
     # Explained variance
-    R2X <- 1 - sapply(1:(nox+1),
-                      function(i) {
-                          sum(diag(Kdeflate[i,i][[1]] - tcrossprod(Tp[[nox+1]])))
-                      })/sstot_K
-    R2XC <- rep(1 - sum(diag(Kdeflate[1,1][[1]] - tcrossprod(Tp[[nox+1]])))/sstot_K,
-                times = nox+1)
+    R2X <- 1 - sapply(
+        1:(nox+1),
+        function(i) {
+            sum(diag(Kdeflate[i,i][[1]] - tcrossprod(Tp[[nox+1]])))
+        })/sstot_K
+    R2XC <- rep(
+        1 - sum(
+            diag(Kdeflate[1,1][[1]] - tcrossprod(Tp[[nox+1]]))
+        )/sstot_K,
+        times = nox+1)
     R2XO <- 1 - sapply(1:(nox+1),
                        function(i) {
                            sum(diag(Kdeflate[i,i][[1]]))    
@@ -209,9 +224,11 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
                    })
     R2Yhat <- 1 - sapply(Yhat,
                          function(yh) {
-                             sum(sum((yh - Ypreproc)^2))/sstot_Y 
+                             #sum(sum((yh - Ypreproc)^2))/sstot_Y 
+                             sum((yh - Ypreproc)^2)/sstot_Y
                          })
-    names(R2X) <- names(R2XC) <- names(R2XO) <- names(R2Yhat) <- c("p", paste0("po", 1:nox))
+    names(R2X) <- names(R2XC) <- names(R2XO) <- names(R2Yhat) <-
+        c("p", paste0("po", 1:nox))
     
     # Convert to matrix structure
     if (nox > 0) {
@@ -221,40 +238,39 @@ koplsModel <- function(K, Y, A = 1, nox = 1, preProcK = "no", preProcY = "no") {
         To <- NULL
     }
     
-    # Group parameters in data.frame
+    # Group parameters
     params <- list("nPcomp"   = A,
                    "nOcomp"   = nox, 
                    "sstot_K"  = sstot_K,
                    "sstot_Y"  = sstot_Y,
                    "preProcK" = preProcK, 
-                   "preProcY" = preProcY, 
-                   "class"    = "kopls")
+                   "preProcY" = preProcY)
     
-    return (list("params"   = params,
-                 "scoresP"  = as.matrix(Tp[[nox+1]]),
-                 "scoresO"  = as.matrix(To),
-                 "Cp"       = Cp,
-                 "Sp"       = Sp,
-                 "Sps"      = Sps,
-                 "Up"       = Up,
-                 "Tp"       = Tp,
-                 "co"       = co,
-                 "so"       = so,
-                 "to"       = to,
-                 "toNorm"   = toNorm,
-                 "Bt"       = Bt,
-                 "K"        = Kdeflate,
-                 
-                 #extra stuff
-                 "EEprime"  = EEprime,
-                 "R2X"      = R2X,
-                 "R2XO"     = R2XO,
-                 #"R2Y"     = R2Y,
-                 "R2Yhat"   = R2Yhat, # R2Yhat 22 Jan 2010 / MR
-                 
-                 #pre-processing
-                 "preProc"  = list("paramsY" = ifelse(test = (preProcY != "no"),
-                                                      yes = scaleParams,
-                                                      no = "no"))
-    ))
+    koplsObj <- list("params"   = params,
+                     "scoresP"  = as.matrix(Tp[[nox+1]]),
+                     "scoresO"  = as.matrix(To),
+                     "Cp"       = Cp,
+                     "Sp"       = Sp,
+                     "Up"       = Up,
+                     "Tp"       = Tp,
+                     "co"       = co,
+                     "so"       = so,
+                     "to"       = to,
+                     "toNorm"   = toNorm,
+                     "Bt"       = Bt,
+                     "K"        = Kdeflate,
+                     
+                     #extra stuff
+                     #"EEprime"  = EEprime,
+                     "R2X"      = R2X,
+                     "R2XO"     = R2XO,
+                     #"R2Y"     = R2Y,
+                     "R2Yhat"   = R2Yhat, # R2Yhat 22 Jan 2010 / MR
+                     
+                     #pre-processing
+                     "preProc"  = list("paramsY" = scaleParams)
+    )
+    class(koplsObj) <- c("kopls")
+    
+    return (koplsObj)
 }

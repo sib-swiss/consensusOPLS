@@ -74,6 +74,5 @@ koplsReDummy <- function(Y) {
     # Rebuild the vector
     X <- apply(X = Y, MARGIN = 1, FUN = function(X) colnames(Y)[X == 1])
     
-    # Return the reverted dummy matrix to the original vector of class labels
     return (X)
 }

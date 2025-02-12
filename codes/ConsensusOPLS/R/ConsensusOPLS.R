@@ -22,12 +22,13 @@
 #' @slot R2Y Proportion of variation in the response explained by the optimal
 #' model.
 #' @slot Q2 Predictive ability of the optimal model.
-#' @slot DQ2 Predictive ability of the optimal model, for discriminant analysis.
-#' @slot permStats Q2 and R2Y of models with permuted response.
+#' @slot DQ2 Predictive ability of the optimal discriminant model.
+#' @slot permStats Assessment of models with permuted response.
+#' @slot model The optimal model.
 #' @slot cv Cross-validation result towards the optimal model. Contains 
 #' \code{AllYhat} (all predicted Y values as a concatenated matrix), 
 #' \code{cvTestIndex} (indexes for the test set observations during the 
-#' cross-validation rounds), \code{DQ2Yhat} (total discriminant Q-square result 
+#' cross-validation rounds), \code{DQ2Yhat} (total discriminant Q-square result
 #' for all Y-orthogonal components), \code{nOcompOpt} (optimal number of 
 #' Y-orthogonal components (latent variables) for the optimal model), and 
 #' \code{Q2Yhat} (total Q-square result for all Y-orthogonal components).
@@ -51,6 +52,7 @@ setClass("ConsensusOPLS",
              Q2                = "numeric",
              DQ2               = "numeric",
              permStats         = "list",
+             model             = "list",
              cv                = "list")
 )
 
@@ -192,8 +194,9 @@ setMethod(
                       comp2 %in% colnames(object@scores))
         if (is.null(col)) {
             if (object@modelType=='da') {
-                response <- factor(as.character(object@response),
-                                   levels=unique(as.character(object@response)))
+                response <- factor(
+                    as.character(object@response),
+                    levels=sort(unique(as.character(object@response))))
                 col <- c(1:nlevels(response)+1)[response]
                 
                 # restore standard options
@@ -477,9 +480,11 @@ setMethod(
                           col = "blue",
                           lty = "dashed",
                           ...) {
+        d <- density(object@permStats$Q2Y)
+        h <- hist(object@permStats$Q2Y, breaks=breaks, plot=F)
         hist(object@permStats$Q2Y, breaks=breaks, probability=T,
-             xlab=xlab, main=main, ...)
-        lines(density(object@permStats$Q2Y))
+             xlab=xlab, ylim=c(min(d$y), max(d$y, h$density)), main=main, ...)
+        lines(d)
         abline(v=object@permStats$Q2Y[1], col=col, lty=lty, xpd=F)
     }
 )
@@ -541,9 +546,11 @@ setMethod(
                           ...) {
         stopifnot(length(object@permStats$DQ2Y) > 0)
         
+        d <- density(object@permStats$DQ2Y)
+        h <- hist(object@permStats$DQ2Y, breaks=breaks, plot=F)
         hist(object@permStats$DQ2Y, breaks=breaks, probability=T,
-             xlab=xlab, main=main, ...)
-        lines(density(object@permStats$DQ2Y))
+             xlab=xlab, ylim=c(min(d$y), max(d$y, h$density)), main=main, ...)
+        lines(d)
         abline(v=object@permStats$DQ2Y[1], col=col, lty=lty, xpd=F)
     }
 )
@@ -603,10 +610,92 @@ setMethod(
                           col = "blue",
                           lty = "dashed",
                           ...) {
-        hist(object@permStats$R2Y[-1], breaks=breaks, probability=T,
-             xlab=xlab, main=main, ...)
-        lines(density(object@permStats$R2Y[-1]))
+        d <- density(object@permStats$R2Y)
+        h <- hist(object@permStats$R2Y, breaks=breaks, plot=F)
+        hist(object@permStats$R2Y, breaks=breaks, probability=T,
+             xlab=xlab, ylim=c(min(d$y), max(d$y, h$density)), main=main, ...)
+        lines(d)
         abline(v=object@permStats$R2Y[1], col=col, lty=lty, xpd=F)
+    }
+)
+
+
+#' @title Model prediction
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param newdata A list of data frames of new data to predict. If omitted, the
+#' fitted values in \code{object} are returned.
+#' @param nOcomp Number of Y-orthogonal components to consider. Default, NULL,
+#' the number of Y-orthogonal components in the optimal model.
+#' @export
+#' @rdname predict
+#'  
+setGeneric(
+    name = "predict",
+    def = function(object,
+                   newdata = NULL,
+                   nOcomp = NULL) {
+        standardGeneric("predict")
+    }
+)
+
+
+#' @title Model prediction
+#' @param object An object of class \code{ConsensusOPLS}.
+#' @param newdata A list of data frames of new data to predict. If omitted, the
+#' fitted values in \code{object} are returned.
+#' @param nOcomp Number of Y-orthogonal components to consider. Default, NULL,
+#' the number of Y-orthogonal components in the optimal model.
+#' @export
+#' @rdname predict
+#'  
+setMethod(
+    f = "predict",
+    signature = "ConsensusOPLS",
+    definition = function(object,
+                          newdata = NULL,
+                          nOcomp = NULL) {
+        if (is.null(nOcomp)) nOcomp <- object@nOcomp
+        
+        Ktrain <- Reduce(
+            '+',
+            lapply(names(object@model$RV), function(tab)
+                object@model$RV[tab] * object@model$normKernels[[tab]]))
+        
+        if (is.null(newdata)) {
+            Ktest <- KteTr <- Ktrain
+        } else {
+            Kte <- lapply(names(newdata), function(tab) {
+                KteTe <- koplsKernel(X1 = newdata[[tab]],
+                                     X2 = NULL,
+                                     type = object@model$kernelParams$type,
+                                     params = object@model$kernelParams$params)
+                KteTe <- KteTe/norm(KteTe, type='F')
+                
+                KteTr <- koplsKernel(X1 = newdata[[tab]],
+                                     X2 = object@model$data[[tab]],
+                                     type = object@model$kernelParams$type,
+                                     params = object@model$kernelParams$params)
+                KteTr <- KteTr/norm(KteTr, type='F')
+                
+                return (list(KteTe = KteTe,
+                             KteTr = KteTr))
+            })
+            names(Kte) <- names(newdata)
+            Ktest <- Reduce('+',
+                            lapply(names(newdata), function(tab)
+                                object@model$RV[tab] * Kte[[tab]]$KteTe))
+            KteTr <- Reduce('+',
+                            lapply(names(newdata), function(tab)
+                                object@model$RV[tab] * Kte[[tab]]$KteTr))
+        }
+        
+        ## koplsPredict will center KteTr and Ktest according to
+        ## model$params$preProcK while doing nothing on Ktrain
+        newPred <- koplsPredict(KteTr = KteTr, Ktest = Ktest, Ktrain = Ktrain,
+                                model = object@model$koplsModel, nox = nOcomp,
+                                rescaleY = FALSE)
+        
+        return (newPred$Yhat)
     }
 )
 
@@ -658,7 +747,8 @@ setMethod(
 #' OPLS model fit.
 #' @examples
 #' data(demo_3_Omics)
-#' datablocks <- lapply(demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)
+#' datablocks <- lapply(
+#'     demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")], scale)
 #' res <- ConsensusOPLS(data=datablocks, 
 #'                      Y=demo_3_Omics$Y,
 #'                      maxPcomp=1, maxOcomp=2, 
@@ -666,7 +756,7 @@ setMethod(
 #'                      nperm=5)
 #' res
 #' @importFrom reshape2 melt
-#' @import utils parallel 
+#' @import parallel 
 #' @export
 #' 
 ConsensusOPLS <- function(data,
@@ -683,11 +773,16 @@ ConsensusOPLS <- function(data,
                           mc.cores = 1,
                           verbose = FALSE) {
     # Variable format control
-    if (!is.list(data)) stop("data is not a list.")
-    if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y)) stop("Y is not either matrix, vector or factor.")
-    if (nperm != as.integer(nperm)) stop("nperm is not an integer.")
-    if (maxPcomp != as.integer(maxPcomp)) stop("maxPcomp is not an integer")
-    if (maxOcomp != as.integer(maxOcomp)) stop("maxOcomp is not an integer")
+    if (!is.list(data))
+        stop("data is not a list.")
+    if (!is.matrix(Y) && !is.vector(Y) && !is.factor(Y))
+        stop("Y is not either matrix, vector or factor.")
+    if (nperm != as.integer(nperm))
+        stop("nperm is not an integer.")
+    if (maxPcomp != as.integer(maxPcomp))
+        stop("maxPcomp is not an integer")
+    if (maxOcomp != as.integer(maxOcomp))
+        stop("maxOcomp is not an integer")
     
     if (modelType == "reg") {
         if (is.factor(Y)) {
@@ -697,9 +792,11 @@ ConsensusOPLS <- function(data,
         } else {
             Y <- as.matrix(Y)
         }
-        if (ncol(Y) > 1 || !is.numeric(Y)) stop("modelType is preferably `da`.")
+        if (ncol(Y) > 1 || !is.numeric(Y))
+            stop("modelType is preferably `da`.")
     } else {
-        if (nlevels(as.factor(Y)) > length(Y)/2) { # TODO: something better than this check: if at least 2 samples belong to every class
+        if (nlevels(as.factor(Y)) > length(Y)/2) {
+            # TODO: something better than this check: if at least 2 samples belong to every class
             stop("modelType is preferably `reg`.")
         }
         if (is.vector(Y) || is.factor(Y) || ncol(Y) == 1) {
@@ -707,13 +804,18 @@ ConsensusOPLS <- function(data,
         }
     }
     
+    # Set maximum number of predictive components to the number of classes - 1
+    maxPcomp <- min(maxPcomp, max(ncol(Y)-1, 1))
+    
     # Set colnames of Y
-    if (is.matrix(Y) && is.null(colnames(Y))) colnames(Y) <- 1:ncol(Y)
+    if (is.matrix(Y) && is.null(colnames(Y)))
+        colnames(Y) <- 1:ncol(Y)
     
     # Random permutation of Y rows
-    Ypermid <- cbind(1:nrow(Y), 
-                     unlist(replicate(nperm, sample(x = 1:nrow(Y), size = nrow(Y),
-                                                    replace = FALSE, prob = NULL))))
+    Ypermid <- cbind(
+        1:nrow(Y), 
+        unlist(replicate(nperm, sample(x = 1:nrow(Y), size = nrow(Y),
+                                       replace = FALSE, prob = NULL))))
     Ylist <- lapply(1:(1+nperm), function(i) {
         Y[Ypermid[, i], , drop=F]
     })
@@ -753,18 +855,18 @@ ConsensusOPLS <- function(data,
                                    mc.cores = 1,
                                    kernelParams = kernelParams,
                                    verbose = verbose)
-        VIP <- VIP(data = data, Y = Ys, model=modelCV$Model)
+        VIP <- VIP(data = data, Y = Ys, model=modelCV$koplsModel)
         
         return (list(Ys=Ys,
                      modelCV=modelCV,
                      VIP=VIP)
         )
     })
-    permStats$lvnum  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
-        perms[[i]]$modelCV$cv$nOcompOpt + maxPcomp
+    permStats$lvnum   <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
+        perms[[i]]$modelCV$koplsModel$params$nOcomp + 1
     }))
     permStats$R2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
-        tail(perms[[i]]$modelCV$Model$R2Yhat, 1)
+        perms[[i]]$modelCV$koplsModel$R2Yhat[permStats$lvnum[i]]
     }))
     permStats$DQ2Yhat <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$DQ2Yhat[permStats$lvnum[i]]
@@ -772,14 +874,11 @@ ConsensusOPLS <- function(data,
     permStats$Q2Yhat  <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$modelCV$cv$Q2Yhat[permStats$lvnum[i]]
     }))
-    # permStats$PredAc <- unlist(mclapply(1:(1+nperm), mc.cores=mc.cores, function(i) {
-    #     perms[[i]]$modelCV$da$tot_sens[2]
-    # }))
-    permStats$Y      <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
+    permStats$Y       <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
         perms[[i]]$Ys
     }))
-    permStats$RV     <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
-        RVmodified(X = Y, Y = perms[[i]]$Ys)
+    permStats$RV      <- unlist(parLapply(cl, X=1:(1+nperm), function(i) {
+        RVmodified(X=Y, Y=perms[[i]]$Ys)
     }))
     if (!verbose) {
         permStats$VIP <- list()
@@ -806,7 +905,7 @@ ConsensusOPLS <- function(data,
         # loadings of permuted model
         permLoadings <- lapply(1:length(data), function(j) {
             permLoadingj.list <- parLapply(cl, X=1:(1+nperm), function(i) {
-                perms[[i]]$modelCV$Model$loadings[[j]]
+                perms[[i]]$modelCV$loadings[[j]]
             })
             permLoadingj.array <- array(unlist(permLoadingj.list),
                                     dim = c(nrow(permLoadingj.list[[1]]),
@@ -825,26 +924,33 @@ ConsensusOPLS <- function(data,
     ## Stop parallel clusters
     stopCluster(cl)
     
-    return (new(
+    ## Result ConsensusOPLS object
+    resObj <- new(
         "ConsensusOPLS",
         modelType         = modelType,
-        response          = if (modelType=='da') koplsReDummy(Y) else as.vector(Y),
-        nPcomp            = perms[[1]]$modelCV$Model$params$nPcomp,
-        nOcomp            = perms[[1]]$modelCV$Model$params$nOcomp,
-        blockContribution = perms[[1]]$modelCV$Model$blockContribution,
-        scores            = perms[[1]]$modelCV$Model$scores,
-        loadings          = perms[[1]]$modelCV$Model$loadings,
+        response          = if (modelType=='da') koplsReDummy(Y) else
+            as.vector(Y),
+        nPcomp            = perms[[1]]$modelCV$koplsModel$params$nPcomp,
+        nOcomp            = perms[[1]]$modelCV$koplsModel$params$nOcomp,
+        blockContribution = perms[[1]]$modelCV$koplsModel$blockContribution,
+        scores            = perms[[1]]$modelCV$scores,
+        loadings          = perms[[1]]$modelCV$loadings,
         VIP               = perms[[1]]$VIP,
-        R2X               = perms[[1]]$modelCV$Model$R2X,
-        R2Y               = perms[[1]]$modelCV$Model$R2Yhat,
-        Q2                = perms[[1]]$modelCV$cv$Q2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)],
+        R2X               = perms[[1]]$modelCV$koplsModel$R2X,
+        R2Y               = perms[[1]]$modelCV$koplsModel$R2Yhat,
+        Q2                = perms[[1]]$modelCV$cv$Q2Yhat[
+            1:(perms[[1]]$modelCV$koplsModel$params$nOcomp+1)],
         DQ2               = if (modelType=='da') 
-            perms[[1]]$modelCV$cv$DQ2Yhat[1:(perms[[1]]$modelCV$Model$params$nOcomp+1)] else numeric(),
-        permStats         = list(Q2Y=permStats$Q2Yhat,
-                                 DQ2Y=permStats$DQ2Yhat,
-                                 R2Y=permStats$R2Yhat,
-                                 VIP=permStats$VIP,
-                                 loadings=permStats$loadings),
+            perms[[1]]$modelCV$cv$DQ2Yhat[
+                1:(perms[[1]]$modelCV$koplsModel$params$nOcomp+1)] else
+                    numeric(),
+        permStats         = list(Q2Y      = permStats$Q2Yhat,
+                                 DQ2Y     = permStats$DQ2Yhat,
+                                 R2Y      = permStats$R2Yhat),
+        model             = perms[[1]]$modelCV[setdiff(
+            names(perms[[1]]$modelCV),
+            c("scores", "loadings", "cv"))],
         cv                = if (verbose) perms[[1]]$modelCV$cv else list())
-    )
+    
+    return (resObj)
 }

@@ -8,8 +8,8 @@
 #' representing a Consensus OPLS fitted model. Default, NULL, a model will be
 #' constructed.
 #' @param combine A logical indicating the formula of VIP. Default, FALSE, the
-#' formula 2 in Galindo-Prieto et al. (2013 )Variable influence on projection for
-#' orthogonal projections to latent structures is used. If TRUE, formula 4.
+#' formula 2 in Galindo-Prieto et al. (2013) Variable influence on projection
+#' for orthogonal projections to latent structures is used. If TRUE, formula 4.
 #' @param ... \code{RVConsensusOPLS} arguments.
 #'
 #' @returns A list of VIP for variables in the data blocks:
@@ -34,12 +34,12 @@ VIP <- function(data, Y, model = NULL, combine = F, ...) {
     # Build a model from given data if model is NULL
     if (is.null(model)) {
         rvcopls <- RVConsensusOPLS(data=data, Y=Y, ...)
-        model <- rvcopls$Model
+        model <- rvcopls$koplsModel
     }
     if (!is.list(model)) stop("model is not a list.")
     
     if (combine) {
-        stop("To explore")
+        stop("Not available, please use combine = FALSE.")
     } else {
         # compute VIP for predictive and orthogonal parts
         VIPs <- lapply(c("scoresP", "scoresO"), function(sc) {
@@ -50,15 +50,17 @@ VIP <- function(data, Y, model = NULL, combine = F, ...) {
                 ncomp     <- ncol(model[[sc]])
                 
                 # nclass x ncomp
-                Qs <- crossprod(Y, model[[sc]]) %*% diag(1/diag(crossprod(model[[sc]])), 
-                                                          ncol=ncomp)
+                Qs <- crossprod(Y, model[[sc]]) %*%
+                    diag(1/diag(crossprod(model[[sc]])),
+                         ncol=ncomp)
                 # nsample x ncomp
-                Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)), 
+                Us <- crossprod(t(Y), Qs) %*% diag(1/diag(crossprod(Qs)),
                                                    ncol=ncomp)
                 # nvariable x ncomp
                 # NB. why is it not model$loadings?
-                Ws <- crossprod(data[[itable]], Us) %*% diag(1/diag(crossprod(Us)), 
-                                                             ncol=ncomp)
+                Ws <- crossprod(data[[itable]], Us) %*%
+                    diag(1/diag(crossprod(Us)), 
+                         ncol=ncomp)
                 Ws <- apply(Ws, 2, function(x) x/norm(x, type='2'))
                 # ncomp x ncomp x ncomp x ncomp
                 s <- diag(crossprod(model[[sc]]) %*% crossprod(Qs))
@@ -78,8 +80,8 @@ VIP <- function(data, Y, model = NULL, combine = F, ...) {
         
         # reform the VIP of each data block
         VIP <- lapply(1:length(data), function(itable) {
-            VIP.itable <- data.frame(p=VIPs$scoresP[[itable]], 
-                                     o=VIPs$scoresO[[itable]])
+            VIP.itable <- data.frame(p = VIPs$scoresP[[itable]],
+                                     o = VIPs$scoresO[[itable]])
             VIP.itable$tot <- sqrt((VIP.itable$p^2 + VIP.itable$o^2)/2)
             
             return (VIP.itable)
