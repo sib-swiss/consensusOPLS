@@ -19,7 +19,5 @@ fitted values in \code{object} are returned.}
 the number of Y-orthogonal components in the optimal model.}
 }
 \description{
-Model prediction
-
-Model prediction
+Predicts the response on new data with a fitted model.
 }

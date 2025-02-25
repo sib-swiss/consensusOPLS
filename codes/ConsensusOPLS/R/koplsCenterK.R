@@ -1,7 +1,7 @@
 #' @title koplsCenterKTeTe
 #' @description Centering function for the test kernel, which is constructed
 #' from the test matrix Xte as KteTe = <phi(Xte), phi(Xte)>.
-#' Requires additional (un-centered) kernels KteTr and KteTr to estimate mean 
+#' Requires additional (un-centered) kernels KteTr and KteTr to estimate mean
 #' values.
 #'
 #' @param KteTe matrix. Contains the test kernel matrix, 
@@ -30,9 +30,8 @@
 #' 
 koplsCenterKTeTe <- function(KteTe, KteTr, KtrTr) {
     # Variable format control
-    if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr)) {
+    if (!is.matrix(KteTe) || !is.matrix(KteTr) || !is.matrix(KtrTr))
         stop("One or more inputs are not matrices.")
-    }
     
     nTrain <- nrow(KtrTr)
     nTest  <- nrow(KteTr)

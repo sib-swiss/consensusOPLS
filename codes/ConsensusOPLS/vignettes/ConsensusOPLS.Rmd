@@ -1,6 +1,6 @@
 ---
 title: 'Consensus OPLS for Multi-Block Data Fusion'
-author: "Celine Bougel"
+author: "Celine Bougel, Julien Boccard, Florence Mehl, Marie Tremblay-Franco, Mark Ibberson, Van Du Thuong Tran"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 bibliography: ConsensusOPLS.bib
 biblio-style: apalike
@@ -51,20 +51,20 @@ multiple sources [@BOCCARD2013].
 The method, already available in MATLAB (available at
 [Gitlab repository](https://gitlab.unige.ch/Julien.Boccard/consensusopls)),
 has been translated into an R package (available at
-[Gitlab repository](https://github.com/sib-swiss/consensusOPLS)) that includes 
+[GitHub repository](https://github.com/sib-swiss/consensusOPLS)) that includes 
 quality metrics for optimal model selection, such as the R-squared (R²) 
 coefficient, the Stone-Geisser Q² coefficient, the discriminant Q² index (DQ²) 
 [@WESTERHUIS2008], the permutation **diagnostics statistics** 
 [@SZYMANSKA2012], as well as many graphical outputs (scores plot, block 
-contributions, loadings, permutation results, etc.). It has been enhanced with 
-additional functionalities such as the computation of the Variable Importance 
-in Projection **(VIP) values** [@WOLD2001]. Moreover, the new implementation now 
-offers the possibility of using different kernels, i.e. linear (previously the 
-only option was a kernel-based reformulations of the **NIPALS** algorithm 
-[@LINDGREN1993]), polynomial, or Gaussian, which greatly enhances the 
-versatility of the method and extends its scope to a wide range of applications. 
-The package also includes a function to **predict new samples** using an already 
-computed model. 
+contributions, individual loadings, permutation results, etc.). It has been 
+enhanced with additional functionalities such as the computation of the Variable 
+Importance in Projection **(VIP) values** [@WOLD2001]. Moreover, the new 
+implementation now offers the possibility of using different kernels, i.e. 
+linear (previously the only option was a kernel-based reformulations of the 
+**NIPALS** algorithm [@LINDGREN1993]), polynomial, or Gaussian, which greatly 
+enhances the versatility of the method and extends its scope to a wide range of 
+applications. The package also includes a function to **predict new samples** 
+using an already computed model. 
 
 A demonstration case study available from a public repository of the National 
 Cancer Institute, namely the NCI-60 data set, was used to illustrate the 
@@ -82,7 +82,7 @@ tumor origins and the simultaneous analysis of the three blocks of data.
 
 # R environment preparation
 
-```{r setup, class.source='fold-hide'}
+```{r setup, class.source='fold-hide', warning=FALSE}
 #install.packages("knitr")
 library(knitr)
 opts_chunk$set(echo = TRUE)
@@ -99,29 +99,31 @@ packages, except for the stable packages.
 ```{r packages_installation, eval=FALSE, class.source='fold-hide'}
 pkgs <- c("ggplot2", "ggrepel", "DT", "psych", "ConsensusOPLS")
 sapply(pkgs, function(x) {
-    if (!requireNamespace(x, quietly = TRUE)) {
-        install.packages(x)
-    }
+  if (!requireNamespace(x, quietly = TRUE)) {
+    install.packages(x)
+  }
 })
 if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+  install.packages("BiocManager")
 if (!requireNamespace("ComplexHeatmap", quietly = TRUE)) {
-    BiocManager::install("ComplexHeatmap")
+  BiocManager::install("ComplexHeatmap")
 }
 ```
 
 ```{r packages_load, warning=FALSE, message=FALSE, class.source='fold-hide'}
-library(ggplot2) # to make beautiful graphs
-library(ggrepel) # to annotate ggplot2 graph
-library(DT) # to make interactive data tables
-library(psych) # to make specific quantitative summaries
+library(ggplot2)        # to make beautiful graphs
+library(ggrepel)        # to annotate ggplot2 graph
+library(DT)             # to make interactive data tables
+library(psych)          # to make specific quantitative summaries
 library(ComplexHeatmap) # to make heatmap with density plot
-library(ConsensusOPLS) # to load ConsensusOPLS
+library(ConsensusOPLS)  # to load ConsensusOPLS
 ```
 
-Then we create a uniform theme that will be used for all graphic output.
+Then we create a uniform theme (`theme_graphs`) that will be used for all 
+graphic outputs.
 
-```{r theme_ggplot2, class.source='fold-hide'}
+```{r theme_ggplot2}
+require(ggplot2)
 theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
                                    axis.title = element_text(size=16),
                                    axis.text = element_text(size=14),
@@ -131,7 +133,8 @@ theme_graphs <- theme_bw() + theme(strip.text = element_text(size=14),
 
 # Data preprocessing
 
-As mentioned earlier, we use the demonstration dataset proposed in the package.
+As mentioned earlier, the demonstration dataset proposed in Matlab was used for
+the package.
 
 ```{r import_demo_3_Omics}
 data(demo_3_Omics, package = "ConsensusOPLS")
@@ -142,9 +145,9 @@ This will load an data object of type `r class(demo_3_Omics)` with
 
 In other words, this list contains three data blocks, a list of observation
 names (samples), and the binary response matrix Y. Since the `ConsensusOPLS`
-method performs **horizontal integration**, all data blocks should have the
-same samples (rows). We can check the block dimension this with the following
-command:
+method performs **horizontal integration**, with **kernel-based data fusion** 
+[@BOCCARD2014_INTEGRATION], all data blocks should have exactly the same samples 
+(rows). The block dimension can be checked with the following command:
 
 ```{r check_dims, class.source='fold-hide'}
 # Check dimension
@@ -157,13 +160,31 @@ dims
 # Remove unuseful object for the next steps
 rm(dims)
 ```
-The identical order of samples in the three omics blocks should be ensured.
 
-```{r check_orders, class.source='fold-hide'}
-rns <- do.call(cbind, lapply(X=demo_3_Omics[BlockNames], rownames))
+Now that the number of lines is identical, we need to check that they are the 
+same subjects and in the same order for the different blocks.
+
+```{r check_orders_and_names, class.source='fold-hide'}
+# Check rows names in any order
+row_names <- lapply(X=demo_3_Omics[BlockNames], FUN=rownames)
+rns <- do.call(cbind, row_names)
 rns.unique <- apply(rns, 1, function(x) length(unique(x)))
-stopifnot(max(rns.unique) == 1)
+if (max(rns.unique) > 1) {
+  stop("Rows names are not identical between blocks.")
+}
+
+# Check order of samples
+check_row_names <- all(sapply(X=row_names, FUN=identical, y = row_names[[1]]))
+if (!check_row_names && max(rns.unique) == 1) {
+  print("Rows names are not in the same order for all blocks.")
+}
+
+# Remove unuseful object for the next steps
+rm(row_names, rns, rns.unique, check_row_names)
 ```
+
+
+The identical order of samples in the three omics blocks should be ensured.
 
 The list of the data blocks `demo_3_Omics[BlockNames]` and the response
 `demo_3_Omics$Y` are required as input to the ConsensusOPLS analysis.
@@ -182,12 +203,12 @@ descending order. A variable of interest can also be looked up.
 require(psych)
 require(DT)
 describe_data_by_Y <- function(data, group) {
-    bloc_by_Y <- describeBy(x = data, group = group,
-                            mat = TRUE)[, c("group1", "n", "mean", "sd",
-                                            "median", "min", "max", "range",
-                                            "se")]
-    bloc_by_Y[3:ncol(bloc_by_Y)] <- round(bloc_by_Y[3:ncol(bloc_by_Y)], 
-                                          digits = 2)
+  bloc_by_Y <- describeBy(x = data, group = group,
+                          mat = TRUE)[, c("group1", "n", "mean", "sd",
+                                          "median", "min", "max", "range",
+                                          "se")]
+  bloc_by_Y[3:ncol(bloc_by_Y)] <- round(bloc_by_Y[3:ncol(bloc_by_Y)], 
+                                        digits = 2)
   return (datatable(bloc_by_Y))
 }
 ```
@@ -243,8 +264,10 @@ are highly variable. So, the data needs to be standardized.
 demo_3_Omics_not_scaled <- demo_3_Omics
 
 # Scaling data
-demo_3_Omics[BlockNames] <- lapply(X=demo_3_Omics[BlockNames], FUN=function(x)
-    scale(x, center = TRUE, scale = TRUE)
+demo_3_Omics[BlockNames] <- lapply(X = demo_3_Omics[BlockNames], 
+                                   FUN = function(x){
+                                     scale(x, center = TRUE, scale = TRUE)
+                                   }
 )
 ```
 
@@ -368,7 +391,7 @@ copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
                           maxPcomp = LVsPred,
                           maxOcomp  = LVsOrtho,
                           modelType = "da",
-                          nperm = 100,
+                          nperm = 1000,
                           cvType = "nfold",
                           nfold = 14,
                           nMC = 100,
@@ -380,7 +403,7 @@ copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
 
 This model gives the results for:
 
-```{r outputs_model}
+```{r outputs_model, class.source='fold-hide'}
 print("The main results of the ConsensusOPLS analysis:")
 copls.da
 
@@ -403,12 +426,12 @@ by the regression line.
 ```{r print_main_results_R2, class.source='fold-hide'}
 position <- copls.da@nOcomp
 
-paste0('R2: ', round(copls.da@R2Y[position], 4))
+paste0('R2: ', round(copls.da@R2Y[paste0("po", position)], 4))
 ```
 
 Here, that means the model explain 
-`r round(copls.da@R2Y[position], 4)*100`$\%$ of the 
-variation in the y response variable.
+`r round(copls.da@R2Y[paste0("po", position)], 4)*100`$\%$ of the 
+variation in the Y response variable.
 
 - The Stone-Geisser Q² coefficient, also known as the redundancy index in 
 cross-validation, is used to evaluate the quality of each structural equation, 
@@ -417,10 +440,12 @@ model construct [@TENENHAUS2005]. If the Q² is positive, the model has
 predictive validity, whereas if it is negative, the model has no (absence of) 
 predictive validity. It is defined as `1 - (PRESS/ TSS)`, with `PRESS` is the 
 prediction error sum of squares, and `TSS` is the total sum of squares of the 
-response vector Y [@WESTERHUIS2008].
+response vector Y [@WESTERHUIS2008]. This coefficient can take values between 
+-1 and 1, but a positive coefficient with a high value is expected for 
+predictive validity.
 
 ```{r print_main_results_Q2, class.source='fold-hide'}
-paste0('Q2: ', round(copls.da@Q2[position], 4))
+paste0('Q2: ', round(copls.da@Q2[paste0("po", position)], 4))
 ```
 
 Here, this means that the model has a predictive validity.
@@ -431,19 +456,30 @@ as `1 - (PRESSD/ TSS)`, with PRESSD is the prediction error sum of squares,
 disregarded when the class prediction is beyond the class label  (i.e. `>1` or 
 `<0`, for two classes named 0 and 1), and `TSS` is the total sum of squares of 
 the response vector Y. This value is a measure for class prediction ability 
-[@WESTERHUIS2008].
+[@WESTERHUIS2008]. As with Q², this coefficient can take values between -1 and 1, 
+but a positive coefficient with a high value is expected to have predictive 
+validity.
 
 ```{r print_main_results_DQ2, class.source='fold-hide'}
-paste0('DQ2: ', round(copls.da@DQ2[position], 4))
+paste0('DQ2: ', round(copls.da@DQ2[paste0("po", position)], 4))
 ```
 
 Here, this means that the model can predict classes.
 
-- the variable Importance in projection (VIP) for each block of data. Within 
-each block, the relevance of the variables in explaining variation in the Y 
-response was assessed using the VIP parameter, which reflects the importance of 
-the variables in relation to both response and projection quality. Using the 
-`VIP* sign(loadings)` value, the relevant features can be represented as:
+- the variable Importance in projection (VIP) for each block of data [@WOLD2001].
+Within each block, the relevance of the variables in explaining variation in the 
+Y response was assessed using the VIP parameter, which reflects the importance 
+of the variables in relation to both response and projection quality 
+[@GALINDOPRIETO2015]. 
+
+Similarly, `individual loadings` represent the contribution of variables in the 
+space defined by the predictive and orthogonal components. Their `sign` 
+indicates the direction of the contribution (positive for correlated with response; 
+negative for anti-correlated with response), and the value indicates the 
+intensity of the contribution.
+
+Using the `VIP* sign(loadings)` value [@MEHL2024], the relevant features, i.e. 
+those with higher `|VIP|` values, can be represented as follows:
 
 ```{r extract_VIP, class.source='fold-hide'}
 # Compute the VIP
@@ -452,9 +488,9 @@ VIP <- copls.da@VIP
 # Multiply VIP * sign(loadings for predictive component)
 VIP_plot <- lapply(X = 1:nbrBlocs,
                    FUN = function(X){
-                       sign_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
-                       result <- VIP[[X]][, "p"]*sign_loadings
-                       return(sort(result, decreasing = TRUE))})
+                     sign_loadings <- sign(copls.da@loadings[[X]][, "p_1"])
+                     result <- VIP[[X]][, "p"]*sign_loadings
+                     return(sort(result, decreasing = TRUE))})
 names(VIP_plot) <- BlockNames
 ```
 
@@ -505,20 +541,25 @@ ggplot(data = data.frame(
 One possibility might be to select only the 20 most important components (the 
 first 10 and the last 10). The user is free to do this.
 
+The advantage of using this representation, compared to individual loading, is 
+that there is a usual selection threshold set at 1. In other words, variables 
+with a VIP $\geq$ 1 are usually considered important.
+
 
 # Plot the main results
 
 ## Consensus Score plot
 
 The scores plot shows the representation of the samples in the two new 
-components calculated by the optimal model. A horizontal separation is expected.
+components calculated by the optimal model. A horizontal separation (i.e. 
+according to the predictive component) is expected.
 
 ```{r ggplot_score_data, class.source='fold-hide', warning=FALSE}
 ggplot(data = data.frame("p_1" = copls.da@scores[, "p_1"],
-                                  "o_1" = copls.da@scores[, "o_1"],
-                                  "Labs" = as.matrix(unlist(demo_3_Omics$ObsNames[, 1]))),
-                aes(x = p_1, y = o_1, label = Labs, 
-                    shape = Labs, colour = Labs)) +
+                         "o_1" = copls.da@scores[, "o_1"],
+                         "Labs" = as.matrix(unlist(demo_3_Omics$ObsNames[, 1]))),
+       aes(x = p_1, y = o_1, label = Labs, 
+           shape = Labs, colour = Labs)) +
   xlab("Predictive component") +
   ylab("Orthogonal component") +
   ggtitle("ConsensusOPLS Score plot")+
@@ -537,6 +578,14 @@ partition of the classes was obtained.
 
 ## Block contributions to the predictive component
 
+The contribution of the blocks represents the position of the samples in the 
+new space of predictive and orthogonal components. In other words, intuitively, 
+they represent the magnitude/importance of each block's transformation in the
+new space.
+
+Here, for the predictive component, this amounts to quantifying the information 
+contribution of each block in the ConsensusOPLS model.
+
 ```{r ggplot_data_pred_compo, class.source='fold-hide'}
 ggplot(
   data = data.frame("Values" = copls.da@blockContribution[, "p_1"],
@@ -544,7 +593,8 @@ ggplot(
   aes(x = Blocks, y = Values,
       fill = Blocks, labels = Values)) +
   geom_bar(stat = 'identity') + 
-  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  geom_text(aes(label = round(Values, 2), y = Values), 
+            vjust = 1.5, color = "black", fontface = "bold") +
   ggtitle("Block contributions to the predictive component")+
   xlab("Data blocks") +
   ylab("Weight") +
@@ -558,6 +608,9 @@ and the metabolomic block (26.8$\%$).
 
 ## Block contributions to the first orthogonal component
 
+For the orthogonal component, the block contribution quantifies the noise 
+contribution of each block in the ConsensusOPLS model.
+
 ```{r ggplot_data_1st_ortho_compo, class.source='fold-hide'}
 ggplot(
   data = 
@@ -566,7 +619,8 @@ ggplot(
   aes(x = Blocks, y = Values,
       fill = Blocks, labels = Values)) +
   geom_bar(stat = 'identity') + 
-  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  geom_text(aes(label = round(Values, 2), y = Values), 
+            vjust = 1.5, color = "black", fontface = "bold") +
   ggtitle("Block contributions to the first orthogonal component") +
   xlab("Data blocks") +
   ylab("Weight") +
@@ -597,7 +651,8 @@ ggplot(data = data_two_plots,
            fill = factor(Type))) +
   geom_bar(stat = 'identity') + 
   ggtitle("Block contributions to each component")+
-  geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
+  geom_text(aes(label = round(Values, 2), y = Values), 
+            vjust = 1.5, color = "black", fontface = "bold") +
   xlab("Data blocks") +
   ylab("Weight") +
   facet_wrap(. ~ Blocks)+
@@ -610,21 +665,25 @@ In the same way, the previous graph can be represented as:
 
 ```{r plot_bloc_PredVSOrtho_bis, message = FALSE, class.source='fold-hide'}
 ggplot(data = data_two_plots,
-                           aes(x = Blocks, 
-                               y = Values, 
-                               fill = Blocks)) +
-    geom_bar(stat = 'identity') +
-    geom_text(aes(label=round(Values, 2)), vjust=-0.3) +
-    ggtitle("Block contributions to each component") +
-    xlab("Components") +
-    ylab("Weight") +
-    facet_wrap(. ~ factor(Type)) +
-    theme_graphs +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          plot.title = element_text(hjust = 0.5, 
-                                    margin = margin(t = 5, r = 0, b = 0, l = 100))) +
-    scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
+       aes(x = Blocks, 
+           y = Values, 
+           fill = Blocks)) +
+  geom_bar(stat = 'identity') +
+  geom_text(aes(label = round(Values, 2), y = Values), 
+            vjust = 1.5, color = "black", fontface = "bold") +
+  ggtitle("Block contributions to each component") +
+  xlab("Components") +
+  ylab("Weight") +
+  facet_wrap(. ~ factor(Type, levels = c("Pred", "Ortho"))) +
+  theme_graphs +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        plot.title = element_text(hjust = 0.5, 
+                                  margin = margin(t = 5, r = 0, b = 0, l = 100))) +
+  scale_fill_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
+
+This synthetic figure is generally used in presentations.
+
 
 
 
@@ -657,12 +716,12 @@ data_loads <- sapply(X = 1:nbrBlocs,
                      FUN = function(X){
                        data.frame("Pred" = 
                                     loadings[[X]][, grep(pattern = "p_",
-                                                               x = colnames(loadings[[X]]),
-                                                               fixed = TRUE)],
+                                                         x = colnames(loadings[[X]]),
+                                                         fixed = TRUE)],
                                   "Ortho" = 
                                     loadings[[X]][, grep(pattern = "o_",
-                                                               x = colnames(loadings[[X]]),
-                                                               fixed = TRUE)],
+                                                         x = colnames(loadings[[X]]),
+                                                         fixed = TRUE)],
                                   "Labels" = labels(demo_3_Omics[1:nbrBlocs])[[X]])
                      })
 data_loads <- as.data.frame(data_loads)
@@ -689,23 +748,31 @@ ggplot() +
   scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
+The graph here represents the dispersion of variable contributions on orthogonal 
+and predictive components, displaying intra- and inter-block variation. 
+Intuitively, we would expect significant distinct variables to stand out 
+horizontally (i.e. according to the predictive component). In omics data, due to 
+the large amount of information, this is rarely the case: the explanatory 
+importance is not clearly distinguishable, so we get an unstructured 
+scatterplot (distributed in ellipsoidal form).
+
 ## Loading and VIP of the optimal model
 
 ```{r create_data_loadings_VIP}
 loadings <- do.call(rbind.data.frame, copls.da@loadings)
 loadings$block <- do.call(c, lapply(names(copls.da@loadings), function(x) 
-    rep(x, nrow(copls.da@loadings[[x]]))))
+  rep(x, nrow(copls.da@loadings[[x]]))))
 loadings$variable <- gsub(paste(paste0(names(copls.da@loadings), '.'), 
                                 collapse='|'), '', 
                           rownames(loadings))
 
 VIP <- do.call(rbind.data.frame, copls.da@VIP)
 VIP$block <- do.call(c, lapply(names(copls.da@VIP), function(x) 
-    rep(x, nrow(copls.da@VIP[[x]]))))
+  rep(x, nrow(copls.da@VIP[[x]]))))
 VIP$variable <- gsub(paste(paste0(names(copls.da@VIP), '.'), 
-                                collapse='|'), '', 
-                          rownames(VIP))
-        
+                           collapse='|'), '', 
+                     rownames(VIP))
+
 loadings_VIP <- merge(x = loadings[, c("p_1", "variable")], 
                       y = VIP[, c("p", "variable")], 
                       by = "variable", all = TRUE)
@@ -727,19 +794,53 @@ ggplot(data = loadings_VIP,
   scale_color_manual(values = c("#1B9E77", "#D95F02", "#7570B3"))
 ```
 
+Again, intuitively, VIPs are linearly dependent on individual loadings, which 
+means that the scatterplot should have a V-shape: a positive slope for loadings 
+correlated to the response variable and a negative one for loadings 
+anti-correlated to the response variable. In practice, this is not always the 
+case. In fact, this graph can be used to :
 
+- detect outliers if the V shape is not respected ;
+
+- assess the robustness of the model in a different way from the indicators 
+presented above ;
+
+- verify the expected linear dependence between VIPs and loadings
+
+- select top features to contribute to the model.
 
 
 
 # Permutations
 
-Permutation tests were done with `10^3` replicates to test model validity.
+The permutations test [@SZYMANSKA2012] (for both the R² and Q²/ DQ² indicators) 
+assesses the robustness of the model. The test hypothesis determines whether the 
+model is statistically significant or has picked up noise in the data. For this, 
+a permutation (random mixing) of the values of the response variable Y is 
+performed, with the aim of destroying the structural relationship existing 
+between X and Y. With each permutation, the ConsensusOPLS model is re-evaluated. 
+In the end, for the optimal model to be robust, we need :
+
+- the value of the optimal model must be within the high values of the 
+permutations (the true value, represented by the vertical dotted line, must be 
+on the right-hand side of the graph),
+
+- the distribution of all permuted values to be relatively Gaussian (see density, 
+shown in blue on the graph).
+
+If these two criteria are met, then the model is robust and the results 
+interpretive.
+
+According to [@SZYMANSKA2012], authors have suggested that to estimate a 
+permutation  `P` value of 0.01, up to `10^4` permutations are required in 
+genetic applications. In our case, permutation tests were done with `10^3` 
+replicates to test model validity.
 
 ```{r run_permutations, warning=FALSE}
 PermRes <- copls.da@permStats
 ```
 
-```{r plot_R2_perm, class.source='fold-hide'}
+```{r plot_R2_perm, warning=FALSE, class.source='fold-hide'}
 ggplot(data = data.frame("R2Yperm" = PermRes$R2Y),
        aes(x = R2Yperm)) +
   geom_histogram(aes(y = after_stat(density)), bins = 30,
@@ -753,7 +854,7 @@ ggplot(data = data.frame("R2Yperm" = PermRes$R2Y),
   theme_graphs
 ```
 
-```{r plot_Q2_perm, message = FALSE, class.source='fold-hide'}
+```{r plot_Q2_perm, warning=FALSE, class.source='fold-hide'}
 ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Y),
        aes(x = Q2Yperm)) +
   geom_histogram(aes(y = after_stat(density)), bins = 30,
@@ -767,7 +868,7 @@ ggplot(data = data.frame("Q2Yperm" = PermRes$Q2Y),
   theme_graphs
 ```
 
-```{r plot_DQ2_perm, message = FALSE, class.source='fold-hide'}
+```{r plot_DQ2_perm, warning=FALSE, class.source='fold-hide'}
 ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Y),
        aes(x = DQ2Yperm)) +
   geom_histogram(aes(y = after_stat(density)), bins = 30,
@@ -781,12 +882,31 @@ ggplot(data = data.frame("DQ2Yperm" = PermRes$DQ2Y),
   theme_graphs
 ```
 
+We can then estimate the robustness of the built model with such plots.
 
+# Prediction
+
+The model can then be used to predict the response of new data with the same
+structure as the input data. For instance, an attempt to repredict the response
+of `demo_3_Omics` can be done as follows:
+
+```{r prediction}
+reprediction <- predict(copls.da, newdata = demo_3_Omics[BlockNames])
+```
+
+`Yhat` shows the estimated response from the model and `class` indicates the
+class determined by the highest estimated response, along with the confidence
+score measured by the normalized margin between the highest estimated response
+and the second highest value, and also by the softmax probability.
+
+```{r prediction_output}
+reprediction$Yhat
+reprediction$class
+```
 
 # Reproducibility
 
-Here is the output of `sessionInfo()` on the system on which this document was 
-compiled:
+This document was produced with the following R session configuration.
 
 ```{r reproducibility}
 sessionInfo()

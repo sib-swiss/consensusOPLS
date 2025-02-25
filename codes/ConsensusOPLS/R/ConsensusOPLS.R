@@ -640,6 +640,8 @@ setGeneric(
 
 
 #' @title Model prediction
+#' @description
+#' Predicts the response on new data with a fitted model.
 #' @param object An object of class \code{ConsensusOPLS}.
 #' @param newdata A list of data frames of new data to predict. If omitted, the
 #' fitted values in \code{object} are returned.
@@ -694,8 +696,23 @@ setMethod(
         newPred <- koplsPredict(KteTr = KteTr, Ktest = Ktest, Ktrain = Ktrain,
                                 model = object@model$koplsModel, nox = nOcomp,
                                 rescaleY = FALSE)
+        if (object@modelType=='da') {
+            classPred <- data.frame(
+                class = koplsMaxClassify(newPred$Yhat),
+                # margin between the max and second max normalized to 0-1
+                margin = apply(newPred$Yhat, 1, function(x) {
+                    -diff(sort(x, decreasing = T))[1]/diff(range(x))
+                }),
+                # softmax probability
+                softmax = t(apply(newPred$Yhat, 1, function(x) {
+                    exp_x <- exp(x - max(x))
+                    return (exp_x/sum(exp_x))
+                }))
+            )
+        } else classPred <- NA
         
-        return (newPred$Yhat)
+        return (list(Yhat=newPred$Yhat,
+                     class=classPred))
     }
 )
 

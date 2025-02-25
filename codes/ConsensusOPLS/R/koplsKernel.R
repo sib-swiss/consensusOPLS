@@ -28,8 +28,9 @@
 #' 
 #' # Polynomial example
 #' params_polynomial <- c(order=2)  # Polynomial kernel order
-#' kernel_polynomial <- ConsensusOPLS:::koplsKernel(X1 = X1, X2 = X2, 
-#'                                                  type = 'p', params=params_polynomial)
+#' kernel_polynomial <- ConsensusOPLS:::koplsKernel(
+#'     X1 = X1, X2 = X2, 
+#'     type = 'p', params=params_polynomial)
 #' kernel_polynomial
 #' 
 #' @keywords internal
@@ -50,11 +51,14 @@ koplsKernel <- function(X1, X2 = NULL, type = 'p', params = c(order=1.0)) {
         sigma <- params['sigma'] #small value = overfit, larger = more general
         
         if (is.null(X2) || nrow(X2) == 0) {
-            K <- exp(-as.matrix(dist(X1, method = "euclidean"))^2/(2*(sigma^2)))
+            K <- exp(-as.matrix(dist(X1, method = "euclidean"))^2 /
+                         (2*(sigma^2)))
         } else{
-            K <- exp(-as.matrix(dist(rbind(X1, X2), 
-                                     method = "euclidean"))[1:nrow(X1), 
-                                                            nrow(X1)+1:nrow(X2)]^2/(2*(sigma^2)))
+            K <- exp(
+                -as.matrix(
+                    dist(rbind(X1, X2), 
+                         method = "euclidean")
+                )[1:nrow(X1), nrow(X1)+1:nrow(X2)]^2/(2*(sigma^2)))
         }
     } else if (type == "p") { # Define Polynomial Kernel
         porder <- params['order']
