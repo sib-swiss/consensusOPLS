@@ -16,27 +16,6 @@ test_that("RVConsensusOPLS", {
         Y=c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01)),
         modelType="reg",
         nfold=3)
-    copls.reg <- ConsensusOPLS(
-        data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
-        Y=matrix(c(rnorm(7, mean=1, sd=0.01), rnorm(7, mean=0, sd=0.01))),
-        maxPcomp=1,
-        maxOcomp=3,
-        nperm=100,
-        modelType="reg",
-        mc.cores=1,
-        kernelParams=list(type = "p", params = c(order = 2)),
-        nfold=3, 
-        verbose=T)
-    copls.da <- ConsensusOPLS(
-        data=demo_3_Omics[c("MetaboData", "MicroData", "ProteoData")],
-        Y=demo_3_Omics$Y,
-        maxPcomp=1,
-        maxOcomp=3,
-        nperm=100,
-        modelType="da",
-        mc.cores=1,
-        nfold=14,
-        verbose=T)
     
     ## RV
     expect_equal(rvcopls$RV,

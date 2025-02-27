@@ -699,19 +699,24 @@ setMethod(
         if (object@modelType=='da') {
             classPred <- data.frame(
                 class = koplsMaxClassify(newPred$Yhat),
-                # margin between the max and second max normalized to 0-1
+                # margin between the max and second max
                 margin = apply(newPred$Yhat, 1, function(x) {
-                    -diff(sort(x, decreasing = T))[1]/diff(range(x))
+                    -diff(sort(x, decreasing = T))[1]
                 }),
                 # softmax probability
                 softmax = t(apply(newPred$Yhat, 1, function(x) {
-                    exp_x <- exp(x - max(x))
+                    x[x<0] <- 0
+                    x[x>1] <- 1
+                    x <- x/norm(x, "2")
+                    exp_x <- exp(-1/x)
                     return (exp_x/sum(exp_x))
                 }))
             )
+            # normalize margin into [0, 1]
+            #classPred$margin <- classPred$margin/max(classPred$margin)
         } else classPred <- NA
         
-        return (list(Yhat=newPred$Yhat,
+        return (list(Y=newPred$Yhat,
                      class=classPred))
     }
 )

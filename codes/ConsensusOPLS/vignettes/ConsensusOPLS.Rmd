@@ -1,6 +1,6 @@
 ---
 title: 'Consensus OPLS for Multi-Block Data Fusion'
-author: "Celine Bougel, Julien Boccard, Florence Mehl, Marie Tremblay-Franco, Mark Ibberson, Van Du Thuong Tran"
+author: "Celine Bougel, Julien Boccard, Florence Mehl, Marie Tremblay-Franco, Mark Ibberson, Van Du T. Tran"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 bibliography: ConsensusOPLS.bib
 biblio-style: apalike
@@ -401,13 +401,15 @@ copls.da <- ConsensusOPLS(data = demo_3_Omics[BlockNames],
                           mc.cores = 1)
 ```
 
-This model gives the results for:
+The summary information of the model can be obtained as 
 
-```{r outputs_model, class.source='fold-hide'}
-print("The main results of the ConsensusOPLS analysis:")
+```{r outputs_model_summary, class.source='fold-hide'}
 copls.da
+```
 
-print("List of available outputs in the ConsensusOPLS object:")
+The list of available attributes in the produced ConsensusOPLS object:
+
+```{r outputs_model_attributes, class.source='fold-hide'}
 summary(attributes(copls.da))
 ```
 
@@ -894,19 +896,19 @@ of `demo_3_Omics` can be done as follows:
 reprediction <- predict(copls.da, newdata = demo_3_Omics[BlockNames])
 ```
 
-`Yhat` shows the estimated response from the model and `class` indicates the
+`Y` shows the estimated response from the model and `class` indicates the
 class determined by the highest estimated response, along with the confidence
-score measured by the normalized margin between the highest estimated response
-and the second highest value, and also by the softmax probability.
+score measured by the margin between the highest estimated response and the
+second highest value, and also by the softmax probability.
 
 ```{r prediction_output}
-reprediction$Yhat
+reprediction$Y
 reprediction$class
 ```
 
 # Reproducibility
 
-This document was produced with the following R session configuration.
+This vignette was produced with the following R session configuration.
 
 ```{r reproducibility}
 sessionInfo()

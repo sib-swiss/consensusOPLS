@@ -7,7 +7,9 @@
 
 - Add predict function
 - Add margin and softmax for confidence score
-- Add interpretation in vignettes
+- Improve vignettes
+- Add tests
+- Clean code
 
 
 ### Bugfixes

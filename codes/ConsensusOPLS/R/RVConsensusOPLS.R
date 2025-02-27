@@ -162,13 +162,13 @@ RVConsensusOPLS <- function(data,
                 return (result)
             })
         })
-        dqq <- do.call(
+        DQ2mat <- do.call(
             rbind,
             mclapply(X = 0:maxOcomp, mc.cores = mci, FUN = function(i) {
                 do.call(
                     cbind,
                     mclapply(X = 1:Ylarg, mc.cores = mcj, FUN = function(j) {
-                        return (results[[i+1]][[j]]$dqq)
+                        return (results[[i+1]][[j]]$DQ2)
                         #TODO: why two columns are the same
                     }))
             }))
@@ -182,24 +182,25 @@ RVConsensusOPLS <- function(data,
                     }))
             }))
         
-        dq2 <- rowMeans(dqq)
+        # DQ2 for models with different number of orthogonal components
+        DQ2s <- rowMeans(DQ2mat)
         index <- maxPcomp + 1 #TODO: this is to have nOcompOpt > 0
         
         # Find the optimal number of orthogonal components as a function of DQ2
         while (index < (maxOcomp+maxPcomp) && 
-               !is.na((dq2[index+1] - dq2[index])) &&
-               (dq2[index+1] - dq2[index]) > 0.01) {
+               !is.na((DQ2s[index+1] - DQ2s[index])) &&
+               (DQ2s[index+1] - DQ2s[index]) > 0.01) {
             index <- index + 1
         }
         
         # Add DQ2 to the model object
-        modelCV$cv$DQ2Yhat <- setNames(dq2, c("p", paste0("po", 1:maxOcomp)))
+        modelCV$cv$DQ2Yhat <- setNames(DQ2s, c("p", paste0("po", 1:maxOcomp)))
         # Add optimal number of orthogonal components to the model object
         modelCV$cv$nOcompOpt <- index - maxPcomp
     } else { # if modelType == "reg", search for the optimal model based on Q2
         index <- maxPcomp + 1
         
-        # Finds the optimal number of orthogonal components as a function of Q2Yhat
+        # Find the optimal number of orthogonal components as a function of Q2Yhat
         while (index < (maxOcomp+maxPcomp) && 
                modelCV$cv$Q2Yhat[index+1] - modelCV$cv$Q2Yhat[index] > 0.01) {
             index <- index + 1
