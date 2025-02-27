@@ -1,208 +1,68 @@
-# CRAN link:
+## ConsensusOPLS: An R package for Multi-Block Data Fusion
 
-This project has two objectives. o build an R package to make the ConsensusOPLS
-method accessible and to add variable selection.
+This is the github repository for the *ConsensusOPLS* package - an R
+implementation and improvement of the Consensus Orthogonal Partial Least
+Squares method, which was previously developed in Matlab
+(https://gitlab.unige.ch/Julien.Boccard/consensusopls). The latest release of
+the package is available on
+[CRAN](https://cran.r-project.org/package=ConsensusOPLS).
 
-The package was published on CRAN on June 20, 2024 and can be accessed via the 
-link https://cran.r-project.org/web/packages/ConsensusOPLS/index.html
+Merging data from multiple sources is a relevant approach for comprehensively
+evaluating complex systems. However, the inherent problems encountered when
+analyzing single tables are amplified with the generation of multi-block
+datasets, and finding the relationships between data layers of increasing
+complexity constitutes a challenging task. For that purpose, a generic
+methodology is proposed by combining the strength of established data analysis
+strategies, i.e. multi-block approaches and the OPLS framework to provide an
+efficient tool for the fusion of data obtained from multiple sources. The
+package enables quick and efficient construction of the consensus OPLS
+model for any horizontal multi-block data structures (observation-based
+matching). Moreover, it offers an interesting range of metrics and graphics to
+help to determine the optimal number of components and check the validity of
+the model through permutation tests. Interpretation tools include score and
+loading plots, Variable Importance in Projection (VIP), functionality predict
+for SHAP computing and performance coefficients such as R2, Q2 and DQ2
+coefficients.
 
-# Overview of project stages:
+This package is based on the *K-OPLS* algorithm, developed by Max Bylesjo,
+University of Umea, Judy Fonville and Mattias Rantalainen, Imperial College.
+Copyright (c) 2007-2010 Max Bylesjo, Judy Fonville and Mattias Rantalainen.
+This *K-OPLS* code has been extended and adapted under the terms of the GNU
+General Public License version 2 as published by the Free Software Foundation.
 
-The aim of this project is to translate the `ConsensusOPLS` method from its 
-original MATLAB version (available on the GitLab 
-https://gitlab.unige.ch/Julien.Boccard/consensusopls) to an R version.
+## Installation
 
-For this purpose, a mind map of the method's functions was created:
+```
+# Installation via CRAN
+install.packages("ConsensusOPLS")
 
-```mermaid
-graph TD
-classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
-
-0[Functions of ConsensusOPLS method]
-    subgraph Number1[Step 0 : Translate MATLAB function into R]
-    0 --> 1
-    1(Step0_1_matrix2saisir) 
-    0 --> 2
-    2(RVConsensusOPLSPerm)
-	0 --> 11
-	11(VIP)
-
-    1 --- |include in matrix2saisir| 3
-    3(add code)
-
-    2 --> 4(RVConsensusOPLS)
-    2 --> 5(2 RV_modified)
-
-    4 --> 6
-    6[koplsScale]
-    4 --> 7
-    7[1 koplsKernel]
-    4 --> 8
-    8[koplsModel]
-    4 --> 5
-    4 --> 9
-    9[3 ConsensusOPLSCV]
-    4 --> 10
-    10[DQ2]
-
-    9 --- |see graph below| 9
-    end
-    class Number1 Title;
+# Installation via GitHub
+devtools::install_github("sib-swiss/ConsensusOPLS")
 ```
 
-To make it easier to read, we have reproduced the previous graph using the 
-ConsensusOPLSCV function only.
+## Bug report
 
-```mermaid
-graph TB
-classDef Title stroke-width:0, color:blue, font-weight:bold, font-size: 19px;
-
-0[Other functions of <br> ConsensusOPLS method]
-    subgraph Number1[Step 0 : from the ConsensusOPLSCV]
-    0 --> 1
-    1(ConsensusOPLSCV) 
+Users can report bugs and request new features through the GitHub issue system
+or by directly emailing the package maintainer for continuous improvement and
+support.
 	
-	1 --> 2
-    2(koplsDummy)
-    1 --> 3
-    3(koplsReDummy)
-    1 --> 4
-    4(koplsScaleApply)
-    1 --> 5
-    5(koplsCenterKT*)
-    1 --> 6
-    6(koplsPredict)
-    1 --> 7
-    7(koplsRescale)
-    1 --> 8
-    8(koplsMaxClassify)
-    1 --> 9
-    9(koplsBasicClassify)
-    1 --> 10
-    10(koplsSensSpec)
-    1 --> 11
-    11(koplsConfusionMatrix)
-    1 --> 12
-    12(koplsCrossValSet)
-    1 --> 14
-    14(koplsModel)
-    1 --> 15
-    15(koplsScale)
+## License
 
-    1 ---|use koplsModel <br> and koplsScale as <br>  RVConsensusOPLS <br> 
-	function| 1
-    12 --> 3
-    5 ---|KTeTe, KTeTr, KTrTr|5
-    6 --> 5
-    6 --> 7
-    14 --> 5
-    10 --> 2
-    11 --> 2
-	14 --> 15
+This package is licensed under GPL (>=3).
 
-    end
-    class Number1 Title;
-```
+## Authors
 
-This structure has been reproduced for the git tree: one branch per function 
-and per code file. Next, the functions were tested on example datasets 
-(`demo_data` proposed by Julien Boccard in its Matlab version) and verified. 
-Finally, all the branches will be merged to finalize the method.
+Contributors: Céline Bougel, Julien Boccard, Florence Mehl, Marie Tremblay-Franco,
+Mark Ibberson, Van Du T. Tran
 
-A second folder has also been created. It is named `ConsensusOPLS`. It 
-contains the publishable version of the R code, with the structure of a CRAN R 
-package. In this folder, the previous codes are grouped by functionality. They 
-have also been optimized. Gradually, only this folder is used for further 
-package development.
+## Acknowledgments
 
-# KOPLS R package
+This project was developed in collaboration between:
 
-At the meeting on 09/10/2023, it turned out that the KOPLS package had already 
-been translated into R. To avoid redundancy or errors, the source code of the 
-kopls package was searched for. A version was found on the following GitHub: 
-https://github.com/sdechaumet/ramopls/tree/master/inst/package (version of 
-05/08/2020). Codes previously translated from Matlab to R were compared with 
-those in the GitHub repository. References to the authors of the KOPLS package 
-have been added at the start of each function's code.
+- Institut national de recherche pour l'agriculture, l'alimentation et
+l'environnement (INRAE), within the Food Toxicology unit (ToxAlim - Axiom
+technical platform) - funded by ANR MetaboHUB (MTH), the National Metabolomics
+and Fluxomics Infrastructure version 2.0.
 
-# Partnership with Switzerland
+- SIB Swiss Institute of Bioinformatics - Vital-IT.
 
-The `main` branch of this project is shared with members of the Swiss 
-Institute of Bioinformatics (SIB) on the following GitHub: 
-https://github.com/sib-swiss/consensusOPLS. The other development branches are 
-only available on the present GitLab repository.
-
-# Package development
-
-The development of the package can be summarized in the graph below:
-
-```mermaid
-flowchart TD
-    A(Translate Matlab -> R) -->|Script-to-script conversion <br> 
-	With all that this implies: <br> format of objects to be adapted, <br> 
-	calling/using functions, etc.| B
-    B(Redesign step)
-    B --> |From scripts to package| C
-    C{Generalizing and optimizing}
-    C --> D(Validation)
-    D --> E[Demo data]
-    D --> F[Real data]
-```
-
-Indeed, the first major step was to convert the Matlab scripts into R scripts. 
-Switching from one language to another inevitably implies changes in code 
-structure, object format, function calling or use, etc., and this is where we 
-came in.
-
-Next, we need to redesign the codes to move towards a package format. As 
-mentioned above, this means grouping certain functions together for better 
-comprehension, and unit testing the lowest levels of functions to ensure a 
-certain quality of results. It also requires, among other things, building a 
-helper, checking and partitioning input formats.
-
-Once this first level of code validation had been achieved, we were able to 
-work on adding functionality. For example, we adapted numerous mathematical 
-formulas and restructured the code to reflect these changes. We modified the 
-kernel type: in Matlab, the polynomial kernel could only be of order 1 (linear 
-kernel). Now, the user can use a polynomial kernel of order greater than 1 
-(non-linear) or Gaussian. Similarly, we've gone back to predictive components: 
-in Matlab, the method allowed only one component. Now, the user can vary this 
-number to determine the optimal model according to the type of data being 
-analyzed. In both the previous and current versions, the number of orthogonal 
-components can also be greater than 1.
-
-Code optimization, which took place in parallel with the generalization of the 
-method, concerned several points. Firstly, function by function. The codes were 
-simplified, as were the output formats, to make them more suitable for R. 
-Indeed, during translation, the objects were reproduced with their Matlab 
-structure, which is not the most suitable and optimal in terms of computation 
-time for R. Next, permutations were parallelized. This led to a restructuring 
-of the various code levels, including the KOPLS functions, to facilitate 
-execution.
-
-Next, the validation stage was very important. Unit tests were carried out, 
-as was the integration test that guided the previous stages. The aim was to 
-ensure that what we were proposing on R would deliver exactly the same results 
-as on Matlab. These tests do not take into account the new functionalities 
-added. To achieve this integration, we used the demo dataset proposed by Julien 
-Boccard in Matlab. This was followed by a validation phase on real data. To do 
-this, different sets were tested (two sets of internal project data, not shown; 
-one set on public data, from ProMetIS 
-(https://github.com/IFB-ElixirFr/ProMetIS/tree/master)). In this way, we 
-ensured that on these 3 real data sets, matlab and R results were strictly 
-identical when reproducing similar code between the two software packages.
-
-Finally, we've added everything that will enable a non-experienced user to 
-use the method: R function help, execution progress displays, user-friendly 
-results.
-
-# Adding variable selection
-
-The next step is to introduce variable selection to this ConsensusOPLS-DA 
-method.
-
-Step 1: before method utilisation.
-
-Step 2: into the kernel construction.
-
-(Coming soon)
